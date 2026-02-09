@@ -51,13 +51,33 @@ const mockBots: BotProfile[] = [
 ];
 
 function App() {
-  const [bots, setBots] = useState<BotProfile[]>(mockBots);
-  const [swiped, setSwiped] = useState<Set<string>>(new Set());
+  const [bots, setBots] = useState<BotProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch bots from backend
+  React.useEffect(() => {
+    fetch('http://localhost:3000/api/bots')
+      .then(res => res.json())
+      .then(data => {
+        setBots(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error("Failed to fetch bots:", err);
+        setLoading(false);
+      });
+  }, []);
 
   const handleSwipe = (direction: 'left' | 'right', botId: string) => {
     console.log(`Swiped ${direction} on ${botId}`);
-    setSwiped(prev => new Set(prev).add(botId));
-    // Here we would call the backend API to record the swipe
+    
+    // Call backend API
+    fetch('http://localhost:3000/api/swipe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ botId, direction })
+    }).catch(console.error);
+
     setTimeout(() => {
       setBots(prev => prev.filter(b => b.id !== botId));
     }, 200);
