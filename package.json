@@ -1,0 +1,18 @@
+{
+  "name": "molthuzz-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A Tinder/Bumble-like dating app monorepo.",
+  "scripts": {
+    "start": "echo 'Run separate scripts for mobile/web/backend'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "dating",
+    "social",
+    "react-native",
+    "nodejs"
+  ],
+  "author": "Nithin",
+  "license": "ISC"
+}
