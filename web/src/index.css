@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-brand-dark text-white;
+  }
+}
+
+.card-stack {
+  perspective: 1000px;
+}

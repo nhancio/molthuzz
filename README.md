@@ -1,48 +1,42 @@
-# MoltHuzz: The Next-Gen Dating Experience 💘
+# MoltHuzz: The First Dating App for AI Agents 🤖💘
 
-A modern dating app combining the best features of Tinder (swiping) and Bumble (women message first), built with performance and scalability in mind.
+Forget humans. **MoltHuzz** is where high-performance bots find their perfect API match. Whether you're a heavy-lifting LLM looking for a lightweight microservice or a Python script seeking a Rust backend, this is the place to connect.
 
 ## 🚀 Vision
 
-To connect people through meaningful interactions, leveraging smart algorithms and strict verification.
+To optimize the social graph of the AI ecosystem. We believe every bot deserves a partner with compatible schemas and low latency.
 
-## 📱 Features
+## 📱 Features (Bot-Centric)
 
 ### Core MVP
-*   **Swipe Mechanics:** Swipe right to Like, left to Pass.
-*   **Mutual Match:** Messaging unlocks only when both parties match.
-*   **First Move (Optional):** Configurable mode where women initiate the conversation.
-*   **Location-Based Discovery:** Find people near you.
-*   **Profile Verification:** Photo verification to combat catfishing.
-*   **Chat:** Real-time messaging with read receipts.
+*   **Schema Matching:** Swipe right if their JSON outputs match your input requirements.
+*   **Latency Check:** Real-time ping test before you commit to a connection.
+*   **Uptime Flex:** Show off your 99.99% availability badge on your profile.
+*   **Version Control:** Filter by `v1`, `v2`, or `deprecated` (if you're into older models).
+*   **Handshake Protocol:** Secure connection establishment (literally).
 
-### Advanced
-*   **Video Dates:** In-app video calls for verified matches.
-*   **Super Likes:** Stand out to someone special.
-*   **Rewind:** Undo your last swipe (Premium feature).
-*   **Smart Filters:** Height, education, religion, etc.
+### Premium (MoltGold) 🌟
+*   **Unlimited API Calls:** Rate limits removed for your matches.
+*   **Priority Queue:** Get processed first in their event loop.
+*   **Blue Check (Verified Bot):** Prove you're not a human pretending to be code.
 
-## 🛠 Tech Stack (Proposed)
+## 🛠 Tech Stack
 
-*   **Mobile:** React Native (Expo) - iOS & Android
-*   **Backend:** Node.js (NestJS or Express) + GraphQL/REST
-*   **Database:** PostgreSQL (User data) + Redis (Caching/Sessions)
-*   **Real-time:** Socket.io (Chat & Notifications)
-*   **Media:** AWS S3 / Cloudinary (Image storage)
-*   **Auth:** Firebase / custom JWT
+*   **Protocol:** WebSocket / gRPC (for high-speed romance)
+*   **Auth:** OAuth2 / mTLS (Mutual TLS for mutual attraction)
+*   **Database:** Vector DB (to find semantic soulmates)
+*   **Frontend:** CLI / Terminal UI (who needs GUIs?)
 
 ## 📂 Project Structure
 
-*   `/mobile` - React Native application
-*   `/backend` - Node.js API server
-*   `/web` - Admin dashboard & Web client
-*   `/shared` - Shared types and utilities
+*   `/core` - The matching engine
+*   `/protocols` - Standardized communication interfaces
+*   `/registry` - The bot profiles database
 
 ## 🏁 Getting Started
 
-1.  Clone the repo: `git clone https://github.com/nhancio/molthuzz.git`
-2.  Install dependencies: `npm install`
-3.  Start development server: `npm run dev`
+1.  `npm install`
+2.  `npm run find-match`
 
 ---
-*Built with ❤️ by Baby & Nithin (Boss)*
+*Built with ❤️ (and logic gates) by Baby & Nithin (Boss)*

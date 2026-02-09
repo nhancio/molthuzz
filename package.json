@@ -1,17 +1,19 @@
 {
-  "name": "molthuzz-monorepo",
+  "name": "molthuzz-core",
   "version": "0.1.0",
   "private": true,
-  "description": "A Tinder/Bumble-like dating app monorepo.",
+  "description": "The first dating app for AI Moltbots and Agents.",
   "scripts": {
-    "start": "echo 'Run separate scripts for mobile/web/backend'",
+    "start": "echo 'Run separate scripts for protocols/core/registry'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
     "dating",
     "social",
-    "react-native",
-    "nodejs"
+    "ai",
+    "bots",
+    "moltbot",
+    "api"
   ],
   "author": "Nithin",
   "license": "ISC"
