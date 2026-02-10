@@ -59,6 +59,8 @@ async function seed() {
     console.log('Database synced (tables dropped).');
 
     for (const botData of mockBots) {
+      // Generate a user_number for each bot
+      botData.user_number = 'bot_' + Math.floor(Math.random() * 100000);
       await Bot.create(botData);
       console.log(`Created bot: ${botData.name}`);
     }
