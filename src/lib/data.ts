@@ -1,6 +1,8 @@
 import { collection, deleteDoc, doc, getDoc, getDocs, limit, limitToLast, onSnapshot, orderBy, query, runTransaction, serverTimestamp, setDoc, updateDoc, where, writeBatch, type Firestore, type QueryDocumentSnapshot } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, listAll, ref, uploadBytes } from 'firebase/storage';
 import { auth, db, storage } from './firebase';
+import { nativePhotoAdapter } from './photo-native';
+import { PHOTO_UPLOAD_ERROR, processAndUploadPhoto } from './photo-processing';
 import { ageFromBirthDate, canonicalPair, filterCards, validateProfile } from './model';
 import type { Account, Card, Match, Membership, Message, Profile, ProfileInput } from './contracts';
 function database(): Firestore { if (!db) throw new Error('MakeIn profiles are not connected yet. Use the labelled demo while setup is completed.'); return db; }
@@ -65,17 +67,14 @@ export function watchMembership(uid: string, next: (m: Membership | null) => voi
   try { owner(uid); return onSnapshot(doc(database(), 'entitlements', uid), value => next(value.exists() ? value.data() as Membership : null), error); } catch (e) { error(e as Error); return () => {}; }
 }
 export async function uploadPhoto(uid: string, uri: string): Promise<string> {
-  owner(uid); if (!storage) throw new Error('Photo storage is unavailable. The MakeIn owner must configure Firebase Storage and its billing plan before uploads can work.');
-  try {
-    const response = await fetch(uri); const blob = await response.blob();
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(blob.type) || blob.size > 8 * 1024 * 1024) throw new Error('Choose a JPEG, PNG or WebP image smaller than 8 MB.');
-    const destination = ref(storage, `profiles/${uid}/${Date.now()}-${Math.random().toString(36).slice(2)}.${blob.type.split('/')[1]}`);
-    await uploadBytes(destination, blob, { contentType: blob.type }); return await getDownloadURL(destination);
-  } catch (error) {
-    const code = (error as { code?: string }).code;
-    if (code?.startsWith('storage/')) throw new Error('Photo upload is unavailable. Firebase Storage may need billing, bucket setup or permissions. Your photo has not been saved.');
-    throw error;
-  }
+  owner(uid);
+  const photoStorage = storage;
+  if (!photoStorage) throw new Error(PHOTO_UPLOAD_ERROR);
+  return processAndUploadPhoto(uri, nativePhotoAdapter, async bytes => {
+    const destination = ref(photoStorage, `profiles/${uid}/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`);
+    await uploadBytes(destination, bytes, { contentType: 'image/jpeg' });
+    return await getDownloadURL(destination);
+  });
 }
 export async function blockUser(uid: string, targetId: string): Promise<void> {
   owner(uid); const instance = database(); const pair = canonicalPair(uid, targetId);
