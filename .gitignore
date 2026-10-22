@@ -39,3 +39,12 @@ Thumbs.db
 /certs/
 /ssl/
 config/keys.js
+
+.expo/
+.netlify/
+.env.*
+!.env.example
+GoogleService-Info.plist
+google-services.json
+*service-account*.json
+work/

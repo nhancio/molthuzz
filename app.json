@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "MakeIn",
+    "slug": "makein",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "makein",
+    "owner": "nithindidigam",
+    "icon": "./assets/icon.png",
+    "backgroundColor": "#F7F6F0",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.nhancio.makein",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.nhancio.makein",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#D9F66F"
+      },
+      "softwareKeyboardLayoutMode": "resize"
+    },
+    "web": {
+      "name": "MakeIn",
+      "description": "Real people. A little spark. Discover your kind of connection with MakeIn.",
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "asyncRoutes": false
+        }
+      ],
+      "expo-font",
+      "expo-web-browser",
+      "expo-secure-store"
+    ],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "extra": {
+      "router": {
+        "asyncRoutes": false
+      },
+      "eas": {
+        "projectId": "efbb0e70-ee9f-4747-ba4f-67d3a9472e8d"
+      }
+    }
+  }
+}

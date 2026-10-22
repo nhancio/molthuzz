@@ -1,20 +1,60 @@
 {
-  "name": "molthuzz-core",
-  "version": "0.1.0",
-  "private": true,
-  "description": "The first dating app for AI Moltbots and Agents.",
-  "scripts": {
-    "start": "echo 'Run separate scripts for protocols/core/registry'",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "name": "makein",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "dependencies": {
+    "@expo-google-fonts/dm-sans": "^0.4.2",
+    "@expo-google-fonts/instrument-serif": "^0.4.1",
+    "@expo/vector-icons": "^15.0.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-google-signin/google-signin": "^16.1.5",
+    "expo": "~58.0.14",
+    "expo-constants": "~58.0.12",
+    "expo-dev-client": "~58.0.14",
+    "expo-font": "~58.0.8",
+    "expo-image-picker": "~58.0.10",
+    "expo-linking": "~58.0.13",
+    "expo-router": "~58.0.23",
+    "expo-secure-store": "~58.0.2",
+    "expo-splash-screen": "~58.0.10",
+    "expo-status-bar": "~58.0.3",
+    "expo-web-browser": "~58.0.6",
+    "firebase": "^13.0.0",
+    "firebase-admin": "^14.5.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-screens": "~4.30.0",
+    "react-native-svg": "15.16.0",
+    "react-native-web": "~0.21.4"
   },
-  "keywords": [
-    "dating",
-    "social",
-    "ai",
-    "bots",
-    "moltbot",
-    "api"
-  ],
-  "author": "Nithin",
-  "license": "ISC"
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "@types/node": "^26.6.5",
+    "@types/react": "~19.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "~58.0.4",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "web": "expo start --web",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "typecheck": "tsc --noEmit",
+    "lint": "expo lint",
+    "test": "node --experimental-strip-types --test src/lib/*.test.ts netlify/functions/lib/*.test.mjs",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-makein \"node --experimental-strip-types --test --test-concurrency=1 scripts/firestore-rules.test.mjs\"",
+    "export:all": "expo export --platform all",
+    "build:web": "expo export --platform web",
+    "build:android": "eas build --platform android --profile preview",
+    "build:ios": "eas build --platform ios --profile preview"
+  },
+  "private": true,
+  "type": "module",
+  "description": "MakeIn — real people. A little spark.",
+  "overrides": {
+    "@grpc/grpc-js": "^1.14.6"
+  }
 }
