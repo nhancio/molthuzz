@@ -1,7 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { Text } from "../components/LocalizedText";
-import React, { useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import React, { useRef, useState } from "react";
+import { Pressable, ScrollView, View } from "react-native";
+import { Image } from "expo-image";
+import { DateTimePicker } from "@expo/ui/community/datetime-picker";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LanguagePicker } from "../components/LanguagePicker";
 import * as ImagePicker from "expo-image-picker";
 import { Badge, Button, Chips, Field, Icon, Notice } from "../components/UI";
 import { colors, fonts, shared } from "../theme";
@@ -66,7 +71,9 @@ export default function Onboarding({
   onExit: () => void;
   busy: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const scroll = useRef<React.ComponentRef<typeof ScrollView>>(null);
   const [value, setValue] = useState<ProfileInput>({
     ...initial,
     interests: [...initial.interests],
@@ -76,7 +83,26 @@ export default function Onboarding({
   const [step, setStep] = useState(0);
   const [error, setError] = useState("");
   const [url, setUrl] = useState("");
+  const [showPhotoUrl, setShowPhotoUrl] = useState(demo);
   const [uploading, setUploading] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [dateDraft, setDateDraft] = useState(new Date(2000, 0, 1));
+  const today = new Date();
+  const latestBirthDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+  const earliestBirthDate = new Date(today.getFullYear() - 101, today.getMonth(), today.getDate() + 1);
+  const dateString = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  function openBirthDate() {
+    const parsed = new Date(`${value.birthDate}T00:00:00`);
+    setDateDraft(Number.isFinite(parsed.getTime()) && parsed >= earliestBirthDate && parsed <= latestBirthDate
+      ? parsed
+      : new Date(2000, 0, 1));
+    setShowDatePicker(true);
+  }
+  function acceptBirthDate(date: Date) {
+    set("birthDate", dateString(date));
+    setShowDatePicker(false);
+  }
   const set = (key: keyof ProfileInput, v: any) => {
     setValue((p) => ({ ...p, [key]: v }));
     setError("");
@@ -92,7 +118,7 @@ export default function Onboarding({
     }
   };
   async function pick() {
-    if (uploading) return;
+    if (uploading || busy) return;
     setUploading(true);
     setError("");
     try {
@@ -117,6 +143,7 @@ export default function Onboarding({
         set("photos", [...value.photos, photo].slice(0, 6));
       }
     } catch (e) {
+      setShowPhotoUrl(true);
       setError(
         e instanceof Error
           ? e.message
@@ -164,11 +191,13 @@ export default function Onboarding({
     }
   }
   async function next() {
+    if (busy || uploading) return;
     const err = stepError();
     if (err) return setError(err);
     if (step < steps.length - 1) {
       setStep((x) => x + 1);
       setError("");
+      scroll.current?.scrollTo({ y: 0, animated: false });
     } else {
       const normalized: ProfileInput = {
         ...value,
@@ -191,52 +220,68 @@ export default function Onboarding({
     }
   }
   return (
-    <View style={shared.page}>
-      <View style={o.top}>
+    <KeyboardAvoidingView style={shared.page} behavior="padding" automaticOffset>
+      <View style={{
+        paddingHorizontal: 20,
+        paddingTop: insets.top + 6,
+        paddingBottom: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+      }}>
         <Pressable
           onPress={onExit}
+          disabled={busy || uploading}
           accessibilityRole="button"
           accessibilityLabel={t("Exit profile setup")}
+          accessibilityState={{ disabled: busy || uploading }}
+          style={{ minWidth: 48, minHeight: 48, justifyContent: "center", alignItems: "center", borderRadius: 24, backgroundColor: colors.soft }}
         >
-          <Text style={o.logo}>makein✳</Text>
+          <Icon name="close" size={21} />
         </Pressable>
-        <Badge>
-          {demo
-            ? t("DEMO PROFILE")
-            : editing
-              ? t("YOUR PROFILE")
-              : t("YOUR NEXT CHAPTER")}
-        </Badge>
+        <Text style={{ fontFamily: fonts.serif, fontSize: 30, letterSpacing: -1, color: colors.ink }}>makein✳</Text>
+        <LanguagePicker compact />
       </View>
       <ScrollView
+        ref={scroll}
+        onContentSizeChange={() => {
+          if (error) scroll.current?.scrollToEnd({ animated: false });
+        }}
+        style={{ flex: 1 }}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={o.content}
+        keyboardDismissMode="on-drag"
+        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ width: "100%", maxWidth: 540, alignSelf: "center", paddingHorizontal: 24, paddingTop: 12, paddingBottom: 24 }}
       >
-        <View style={o.progress}>
+        <Badge>
+          {demo ? t("DEMO PROFILE") : editing ? t("YOUR PROFILE") : t("YOUR NEXT CHAPTER")}
+        </Badge>
+        <View style={{ flexDirection: "row", gap: 5, marginTop: 22 }} accessibilityRole="progressbar" accessibilityValue={{ min: 1, max: 10, now: step + 1 }}>
           {steps.map((_, i) => (
             <View
               key={i}
-              style={[o.segment, i <= step && { backgroundColor: colors.ink }]}
+              style={{ height: 4, borderRadius: 2, flex: 1, backgroundColor: i <= step ? colors.ink : colors.line }}
             />
           ))}
         </View>
-        <Text style={[shared.label, { marginTop: 32, marginBottom: 18 }]}>
+        <Text style={[shared.label, { marginTop: 22, marginBottom: 14, letterSpacing: 1 }]}>
           {t("A LITTLE ABOUT YOU · {{step}} / 10", {
             step: String(step + 1).padStart(2, "0"),
           })}
         </Text>
-        <Text accessibilityRole="header" style={shared.heading}>
+        <Text accessibilityRole="header" style={[shared.heading, { fontSize: 32, lineHeight: 38 }]}>
           {t(steps[step][0])}
         </Text>
         <Text
           style={[
             shared.muted,
-            { marginTop: 12, marginBottom: 36, fontSize: 15 },
+            { marginTop: 10, marginBottom: 26, fontSize: 15, lineHeight: 23 },
           ]}
         >
           {t(steps[step][1])}
         </Text>
-        <View style={{ gap: 24, minHeight: 195 }}>
+        <View style={{ gap: 20 }}>
           {step === 0 && (
             <Field
               label={t("First name")}
@@ -249,14 +294,35 @@ export default function Onboarding({
           )}
           {step === 1 && (
             <>
-              <Field
-                label={t("Date of birth · YYYY-MM-DD")}
-                value={value.birthDate}
-                onChangeText={(v) => set("birthDate", v)}
-                placeholder="1998-08-24"
-                keyboardType="numbers-and-punctuation"
-                maxLength={10}
-              />
+              <View style={{ gap: 12, padding: 18, borderRadius: 20, borderCurve: "continuous", backgroundColor: colors.white, borderWidth: 1, borderColor: colors.line }}>
+                <Text style={shared.muted}>{t("Date of birth · YYYY-MM-DD")}</Text>
+                <Button secondary onPress={openBirthDate}>
+                  {value.birthDate || t("Date of birth · YYYY-MM-DD")}
+                </Button>
+                {showDatePicker && (
+                  <>
+                    <DateTimePicker
+                      value={dateDraft}
+                      mode="date"
+                      themeVariant="light"
+                      display={process.env.EXPO_OS === "ios" ? "spinner" : "default"}
+                      minimumDate={earliestBirthDate}
+                      maximumDate={latestBirthDate}
+                      locale={i18n.resolvedLanguage}
+                      positiveButton={{ label: t("Done") }}
+                      negativeButton={{ label: t("Back") }}
+                      onDismiss={() => setShowDatePicker(false)}
+                      onValueChange={(_, date) => {
+                        if (process.env.EXPO_OS === "android") acceptBirthDate(date);
+                        else setDateDraft(date);
+                      }}
+                    />
+                    {process.env.EXPO_OS !== "android" && (
+                      <Button compact onPress={() => acceptBirthDate(dateDraft)}>{t("Done")}</Button>
+                    )}
+                  </>
+                )}
+              </View>
               <Notice
                 text={t(
                   "Your birth date stays private. Only your age appears on your profile.",
@@ -325,9 +391,10 @@ export default function Onboarding({
                   <View key={`${photo}-${i}`}>
                     <Image
                       source={{ uri: photo }}
+                      contentFit="cover"
                       style={{
-                        width: 105,
-                        height: 135,
+                        width: 96,
+                        height: 124,
                         borderRadius: 14,
                         backgroundColor: colors.soft,
                       }}
@@ -343,9 +410,10 @@ export default function Onboarding({
                           value.photos.filter((_, n) => n !== i),
                         )
                       }
-                      style={o.remove}
+                      disabled={uploading || busy}
+                      style={{ position: "absolute", top: 4, right: 4, backgroundColor: colors.paper, width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" }}
                     >
-                      <Icon name="close" size={15} />
+                      <Icon name="close" size={19} />
                     </Pressable>
                   </View>
                 ))}
@@ -362,6 +430,11 @@ export default function Onboarding({
                       {t("Choose a photo")}
                     </Button>
                   )}
+                  {!showPhotoUrl && (
+                    <Button secondary compact onPress={() => setShowPhotoUrl(true)}>{t("HTTPS photo URL")}</Button>
+                  )}
+                  {showPhotoUrl && (
+                    <View style={{ gap: 16 }}>
                   <Text style={shared.muted}>
                     {demo
                       ? t(
@@ -382,10 +455,12 @@ export default function Onboarding({
                     secondary
                     compact
                     onPress={addUrl}
-                    disabled={!url.trim()}
+                    disabled={!url.trim() || uploading || busy}
                   >
                     {t("Add photo URL")}
                   </Button>
+                    </View>
+                  )}
                 </>
               )}
             </>
@@ -431,14 +506,19 @@ export default function Onboarding({
             <Notice error text={error} />
           </View>
         ) : null}
-        <View style={[shared.row, { marginTop: 38, gap: 14 }]}>
+      </ScrollView>
+      <View style={{ borderTopWidth: 1, borderColor: colors.line, backgroundColor: colors.paper, paddingHorizontal: 20, paddingTop: 14, paddingBottom: Math.max(insets.bottom, 14) }}>
+        <View style={[shared.row, { width: "100%", maxWidth: 540, alignSelf: "center", gap: 12 }]}>
           {step > 0 && (
             <Button
               secondary
               compact
+              disabled={busy || uploading}
               onPress={() => {
                 setStep((x) => x - 1);
                 setError("");
+                setShowDatePicker(false);
+                scroll.current?.scrollTo({ y: 0, animated: false });
               }}
             >
               {t("Back")}
@@ -448,7 +528,7 @@ export default function Onboarding({
             <Button
               onPress={next}
               busy={busy}
-              disabled={uploading}
+              disabled={uploading || showDatePicker}
               icon={step === 9 ? "checkmark" : "arrow-forward"}
             >
               {step === 9
@@ -459,49 +539,7 @@ export default function Onboarding({
             </Button>
           </View>
         </View>
-      </ScrollView>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
-const o = StyleSheet.create({
-  top: {
-    paddingHorizontal: 30,
-    paddingVertical: 22,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottomWidth: 1,
-    borderColor: colors.line,
-  },
-  logo: {
-    fontFamily: fonts.serif,
-    fontSize: 34,
-    color: colors.ink,
-    letterSpacing: -1,
-  },
-  content: {
-    width: "100%",
-    maxWidth: 590,
-    alignSelf: "center",
-    padding: 30,
-    paddingBottom: 65,
-  },
-  progress: { flexDirection: "row", gap: 5 },
-  segment: {
-    height: 3,
-    borderRadius: 2,
-    flex: 1,
-    backgroundColor: colors.line,
-  },
-  remove: {
-    position: "absolute",
-    top: 5,
-    right: 5,
-    backgroundColor: colors.paper,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
