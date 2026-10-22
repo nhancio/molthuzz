@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { Text } from "../components/LocalizedText";
 /* Effects synchronize external Firebase sessions and reset their loading UI. */
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -6,7 +8,6 @@ import {
   Image,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import { colors, fonts, shared } from "../theme";
@@ -100,6 +101,7 @@ function messageOf(e: unknown) {
     : "Something went wrong. Please try again.";
 }
 export default function MakeIn() {
+  const { t, i18n } = useTranslation();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [demo, setDemo] = useState(false);
@@ -128,7 +130,7 @@ export default function MakeIn() {
   const [safety, setSafety] = useState<{ id: string; name: string } | null>(
     null,
   );
-  const [reason, setReason] = useState("Inappropriate behaviour");
+  const [reason, setReason] = useState("");
   const [confirmDelete, setConfirmDelete] = useState("");
   const [newMatch, setNewMatch] = useState<Card | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -388,7 +390,9 @@ export default function MakeIn() {
   const legalSheet = (
     <Sheet
       title={
-        dialog === "privacy" ? "Your privacy matters." : "A few things to know."
+        dialog === "privacy"
+          ? t("Your privacy matters.")
+          : t("A few things to know.")
       }
       visible={dialog === "terms" || dialog === "privacy"}
       onClose={() => setDialog(null)}
@@ -400,8 +404,8 @@ export default function MakeIn() {
     return (
       <View style={shared.page}>
         <Empty
-          title="A fresh beginning."
-          text="Getting things ready…"
+          title={t("A fresh beginning.")}
+          text={t("Getting things ready…")}
           action={<ActivityIndicator color={colors.ink} />}
         />
       </View>
@@ -423,8 +427,8 @@ export default function MakeIn() {
     return (
       <View style={shared.page}>
         <Empty
-          title="A moment for you."
-          text="Loading your profile…"
+          title={t("A moment for you.")}
+          text={t("Loading your profile…")}
           action={<ActivityIndicator color={colors.ink} />}
         />
       </View>
@@ -433,8 +437,12 @@ export default function MakeIn() {
     return (
       <View style={shared.page}>
         <Empty
-          title="Couldn’t load your profile."
-          text={error}
+          title={t("Couldn’t load your profile.")}
+          text={
+            i18n.exists(error, { lng: "en" })
+              ? t(error)
+              : t("Something went wrong. Please try again.")
+          }
           action={
             <View style={{ gap: 12 }}>
               <Button
@@ -445,10 +453,10 @@ export default function MakeIn() {
                   setProfileReload((version) => version + 1);
                 }}
               >
-                Try again
+                {t("Try again")}
               </Button>
               <Button secondary onPress={leave}>
-                Sign out
+                {t("Sign out")}
               </Button>
             </View>
           }
@@ -479,12 +487,12 @@ export default function MakeIn() {
             >
               <Badge dark>
                 {demo
-                  ? "DEMO · EXIT ↗"
+                  ? t("DEMO · EXIT ↗")
                   : active
-                    ? "MEMBER ✳"
+                    ? t("MEMBER ✳")
                     : paymentConfigured
-                      ? "JOIN FOR ₹2 ↗"
-                      : "MEMBERSHIP · SOON"}
+                      ? t("JOIN FOR ₹2 ↗")
+                      : t("MEMBERSHIP · SOON")}
               </Badge>
             </Pressable>
           </View>
@@ -498,18 +506,27 @@ export default function MakeIn() {
                   color: colors.ink,
                 }}
               >
-                DEMO EXPERIENCE · Fictional profiles. Local likes and practice
-                chats.
+                {t(
+                  "DEMO EXPERIENCE · Fictional profiles. Local likes and practice chats.",
+                )}
               </Text>
             </View>
           )}
           <View style={a.main}>
             {error ? (
               <View style={{ marginBottom: 20 }}>
-                <Notice text={error} error={!error.includes("report")} />
+                <Notice
+                  text={error}
+                  error={
+                    ![
+                      "Demo report recorded in this session. No real report was submitted.",
+                      "Your report was submitted.",
+                    ].includes(error)
+                  }
+                />
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Dismiss notice"
+                  accessibilityLabel={t("Dismiss notice")}
                   onPress={() => setError("")}
                 >
                   <Text
@@ -518,7 +535,7 @@ export default function MakeIn() {
                       { textAlign: "right", marginTop: 4, fontSize: 10 },
                     ]}
                   >
-                    Dismiss
+                    {t("Dismiss")}
                   </Text>
                 </Pressable>
               </View>
@@ -611,7 +628,7 @@ export default function MakeIn() {
               <Pressable
                 key={item.id}
                 accessibilityRole="button"
-                accessibilityLabel={item.name}
+                accessibilityLabel={t(item.name)}
                 accessibilityState={{ selected: item.id === tab }}
                 onPress={() => {
                   setTab(item.id);
@@ -636,10 +653,10 @@ export default function MakeIn() {
                   }}
                 >
                   {item.id === "profile"
-                    ? "You"
+                    ? t("You")
                     : item.id === "matches"
-                      ? "Chats"
-                      : item.name}
+                      ? t("Chats")
+                      : t(item.name)}
                 </Text>
               </Pressable>
             ))}
@@ -648,18 +665,19 @@ export default function MakeIn() {
       </View>
       {legalSheet}
       <Sheet
-        title="Your kind of connection."
+        title={t("Your kind of connection.")}
         visible={dialog === "filters"}
         onClose={() => setDialog(null)}
       >
         <Text style={shared.muted}>
-          Set your age range and optional city. Your gender preferences are in
-          Edit profile.
+          {t(
+            "Set your age range and optional city. Your gender preferences are in Edit profile.",
+          )}
         </Text>
         <View style={[shared.row, { gap: 20 }]}>
           <View style={{ flex: 1 }}>
             <Field
-              label="Minimum age"
+              label={t("Minimum age")}
               keyboardType="number-pad"
               value={String(filterDraft.minAge)}
               onChangeText={(v) =>
@@ -669,7 +687,7 @@ export default function MakeIn() {
           </View>
           <View style={{ flex: 1 }}>
             <Field
-              label="Maximum age"
+              label={t("Maximum age")}
               keyboardType="number-pad"
               value={String(filterDraft.maxAge)}
               onChangeText={(v) =>
@@ -679,9 +697,9 @@ export default function MakeIn() {
           </View>
         </View>
         <Field
-          label="City · optional"
+          label={t("City · optional")}
           value={filterDraft.location}
-          placeholder="Anywhere"
+          placeholder={t("Anywhere")}
           onChangeText={(v) => setFilterDraft((f) => ({ ...f, location: v }))}
         />
         {error ? <Notice text={error} error /> : null}
@@ -700,18 +718,18 @@ export default function MakeIn() {
             setError("");
           }}
         >
-          Apply preferences
+          {t("Apply preferences")}
         </Button>
         <Button
           secondary
           compact
           onPress={() => setFilterDraft(initialFilters)}
         >
-          Reset preferences
+          {t("Reset preferences")}
         </Button>
       </Sheet>
       <Sheet
-        title="A little more possibility."
+        title={t("A little more possibility.")}
         visible={dialog === "membership"}
         onClose={() => setDialog(null)}
       >
@@ -732,13 +750,14 @@ export default function MakeIn() {
         {error && <Notice text={error} error />}
       </Sheet>
       <Sheet
-        title="Stop future renewals?"
+        title={t("Stop future renewals?")}
         visible={dialog === "cancel"}
         onClose={() => setDialog("membership")}
       >
         <Text style={shared.body}>
-          Your already paid access continues until the current period ends.
-          Cancelling stops future automatic renewal payments.
+          {t(
+            "Your already paid access continues until the current period ends. Cancelling stops future automatic renewal payments.",
+          )}
         </Text>
         <Button
           busy={busy}
@@ -750,10 +769,10 @@ export default function MakeIn() {
             })
           }
         >
-          Cancel automatic renewal
+          {t("Cancel automatic renewal")}
         </Button>
         <Button secondary onPress={() => setDialog("membership")}>
-          Keep membership
+          {t("Keep membership")}
         </Button>
         {error && <Notice text={error} error />}
       </Sheet>
@@ -766,7 +785,9 @@ export default function MakeIn() {
           <>
             <View style={[shared.row, { gap: 8 }]}>
               <Badge>
-                {selected.demo ? "FICTIONAL DEMO PROFILE" : selected.intent}
+                {selected.demo
+                  ? t("FICTIONAL DEMO PROFILE")
+                  : t(selected.intent)}
               </Badge>
             </View>
             {selected.photos.map((photo, i) => (
@@ -784,15 +805,15 @@ export default function MakeIn() {
             <View style={[shared.row, { gap: 7 }]}>
               <Icon name="location-outline" size={17} />
               <Text style={shared.muted}>
-                {selected.location} · {selected.gender}
+                {selected.location} · {t(selected.gender)}
               </Text>
             </View>
             <Text style={shared.body}>{selected.bio}</Text>
             <View>
               <Text style={[shared.label, { marginBottom: 12 }]}>
-                LOOKING FOR
+                {t("LOOKING FOR")}
               </Text>
-              <Text style={shared.body}>{selected.intent}</Text>
+              <Text style={shared.body}>{t(selected.intent)}</Text>
             </View>
             <Chips
               values={selected.interests}
@@ -818,14 +839,14 @@ export default function MakeIn() {
               icon="heart"
             >
               {incoming.some((c) => c.id === selected.id)
-                ? "Like back"
-                : "Like profile"}
+                ? t("Like back")
+                : t("Like profile")}
             </Button>
             <Button
               secondary
               onPress={() => openSafety(selected.id, selected.name)}
             >
-              Report or block
+              {t("Report or block")}
             </Button>
             {error && <Notice text={error} error />}
           </>
@@ -833,18 +854,25 @@ export default function MakeIn() {
       </Sheet>
       <Sheet
         title={
-          safety ? `Your connection with ${safety.name}` : "Safety options"
+          safety
+            ? t("Your connection with {{name}}", { name: safety.name })
+            : t("Safety options")
         }
         visible={dialog === "safety"}
         onClose={() => setDialog(null)}
       >
         <Text style={shared.muted}>
           {demo
-            ? "These actions affect this demo session only. No real report is submitted."
-            : "Blocking removes this connection and stops further likes and messages between you."}
+            ? t(
+                "These actions affect this demo session only. No real report is submitted.",
+              )
+            : t(
+                "Blocking removes this connection and stops further likes and messages between you.",
+              )}
         </Text>
         <Field
-          label="Reason for reporting"
+          label={t("Reason for reporting")}
+          placeholder={t("Inappropriate behaviour")}
           value={reason}
           onChangeText={setReason}
           maxLength={500}
@@ -857,7 +885,7 @@ export default function MakeIn() {
           onPress={() => safetyAction("report")}
           icon="flag-outline"
         >
-          Submit report
+          {t("Submit report")}
         </Button>
         <Button
           secondary
@@ -865,17 +893,17 @@ export default function MakeIn() {
           onPress={() => safetyAction("block")}
           icon="ban-outline"
         >
-          Block profile
+          {t("Block profile")}
         </Button>
         {chat && (
           <Button secondary busy={busy} onPress={() => safetyAction("unmatch")}>
-            End this match
+            {t("End this match")}
           </Button>
         )}
         {error && <Notice error text={error} />}
       </Sheet>
       <Sheet
-        title="A mutual little spark."
+        title={t("A mutual little spark.")}
         visible={dialog === "match"}
         onClose={() => setDialog(null)}
       >
@@ -902,13 +930,14 @@ export default function MakeIn() {
                 { textAlign: "center", fontSize: 40, lineHeight: 44 },
               ]}
             >
-              You and {newMatch.name}
-              {"\n"}liked each other.
+              {t("You and {{name}} liked each other.", { name: newMatch.name })}
             </Text>
             <Text style={[shared.muted, { textAlign: "center" }]}>
               {demo
-                ? "A fictional demo match. Your practice messages aren’t sent to anyone."
-                : "A shared hello could be the beginning of something good."}
+                ? t(
+                    "A fictional demo match. Your practice messages aren’t sent to anyone.",
+                  )
+                : t("A shared hello could be the beginning of something good.")}
             </Text>
             <Button
               onPress={() => {
@@ -920,27 +949,23 @@ export default function MakeIn() {
                 if (match) setChat(match);
               }}
             >
-              Say hello
+              {t("Say hello")}
             </Button>
             <Button secondary onPress={() => setDialog(null)}>
-              Keep discovering
+              {t("Keep discovering")}
             </Button>
           </>
         )}
       </Sheet>
       <Sheet
-        title="Delete your account?"
+        title={t("Delete your account?")}
         visible={dialog === "delete"}
         onClose={() => setDialog(null)}
       >
         <Text style={shared.body}>
-          This permanently removes your profile, likes, matches, conversation
-          data and sign-in account. You’ll need to sign in with Google again to
-          confirm ownership. When payments are connected, we first ask the
-          provider to cancel any subscription or pending mandate, or confirm
-          none exists. A known subscription also requires this check if payments
-          are currently unavailable. If the provider cannot confirm
-          cancellation, deletion stops.
+          {t(
+            "This permanently removes your profile, likes, matches, conversation data and sign-in account. You’ll need to sign in with Google again to confirm ownership. When payments are connected, we first ask the provider to cancel any subscription or pending mandate, or confirm none exists. A known subscription also requires this check if payments are currently unavailable. If the provider cannot confirm cancellation, deletion stops.",
+          )}
         </Text>
         {membership?.status === "active" && (
           <Notice
@@ -949,7 +974,7 @@ export default function MakeIn() {
           />
         )}
         <Field
-          label="Type DELETE to confirm"
+          label={t("Type DELETE to confirm")}
           value={confirmDelete}
           onChangeText={setConfirmDelete}
           autoCapitalize="characters"
@@ -973,7 +998,7 @@ export default function MakeIn() {
             })
           }
         >
-          Permanently delete account
+          {t("Permanently delete account")}
         </Button>
         {error && <Notice error text={error} />}
       </Sheet>

@@ -1,9 +1,10 @@
+import { useTranslation } from "react-i18next";
+import { Text } from "../components/LocalizedText";
 import React from "react";
 import {
   Image,
   ScrollView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -26,6 +27,7 @@ export default function Welcome({
   busy: boolean;
   error: string;
 }) {
+  const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const headlineSize = Math.min(76, Math.max(48, (width - 48) * 0.19));
   return (
@@ -39,13 +41,13 @@ export default function Welcome({
         <Text style={w.logo}>
           makein<Text style={{ color: "#9BB329" }}>✳</Text>
         </Text>
-        <Badge>18+ ONLY</Badge>
+        <Badge>{t("18+ ONLY")}</Badge>
       </View>
       <View style={w.hero}>
         <View style={[shared.row, { gap: 8, marginBottom: 18 }]}>
           <View style={w.dot} />
           <Text style={[shared.label, { fontSize: 8, letterSpacing: 1.6 }]}>
-            GOOD THINGS START WITH HELLO
+            {t("GOOD THINGS START WITH HELLO")}
           </Text>
         </View>
         <Text
@@ -55,8 +57,7 @@ export default function Welcome({
             { fontSize: headlineSize, lineHeight: headlineSize * 1.03 },
           ]}
         >
-          Less scrolling.{"\n"}More{" "}
-          <Text style={{ fontStyle: "italic" }}>feeling.</Text>
+          {t("Less scrolling. More feeling.")}
         </Text>
         <Text
           style={[
@@ -69,14 +70,16 @@ export default function Welcome({
             },
           ]}
         >
-          Meet someone who makes the everyday feel a little less ordinary.
+          {t(
+            "Meet someone who makes the everyday feel a little less ordinary.",
+          )}
         </Text>
         <View style={{ marginTop: 26, gap: 12 }}>
           <Button onPress={onGoogle} busy={busy} icon="logo-google">
-            Continue with Google
+            {t("Continue with Google")}
           </Button>
           <Button secondary onPress={onDemo} icon="arrow-forward">
-            Explore the demo
+            {t("Explore the demo")}
           </Button>
           {error ? <Notice text={error} error /> : null}
           <Text
@@ -90,23 +93,25 @@ export default function Welcome({
               },
             ]}
           >
-            By continuing, you confirm you’re 18+ and agree to our{" "}
+            {t(
+              "By continuing, you confirm you’re 18+ and agree to our Terms and Privacy Policy.",
+            )}
+            {"\n"}
             <Text
               accessibilityRole="link"
               onPress={() => onLegal("terms")}
               style={w.link}
             >
-              Terms
+              {t("Terms")}
             </Text>{" "}
-            and{" "}
+            {" · "}
             <Text
               accessibilityRole="link"
               onPress={() => onLegal("privacy")}
               style={w.link}
             >
-              Privacy Policy
+              {t("Privacy Policy")}
             </Text>
-            .
           </Text>
         </View>
         <View style={w.collage}>
@@ -129,7 +134,7 @@ export default function Welcome({
             />
             <View style={w.caption}>
               <Text style={w.photoTitle}>
-                The good kind{"\n"}of butterflies.
+                {t("The good kind of butterflies.")}
               </Text>
             </View>
           </View>
@@ -151,7 +156,7 @@ export default function Welcome({
             />
             <View style={w.caption}>
               <Text style={[w.photoTitle, { fontSize: 24 }]}>
-                Something{"\n"}real.
+                {t("Something real.")}
               </Text>
             </View>
           </View>
@@ -163,7 +168,7 @@ export default function Welcome({
                 fontSize: 28,
               }}
             >
-              oh, hello.
+              {t("oh, hello.")}
             </Text>
             <Icon name="sparkles-outline" size={21} />
           </View>
@@ -174,18 +179,19 @@ export default function Welcome({
             { textAlign: "center", fontSize: 8, letterSpacing: 0.8 },
           ]}
         >
-          ILLUSTRATIVE PHOTOGRAPHY · NOT MEMBER PROFILES
+          {t("ILLUSTRATIVE PHOTOGRAPHY · NOT MEMBER PROFILES")}
         </Text>
         <View style={w.footer}>
           <View style={[shared.row, { gap: 8 }]}>
             <Icon name="heart-outline" size={16} />
             <Text style={[shared.muted, { fontSize: 12 }]}>
-              Made for connection. Open to possibility.
+              {t("Made for connection. Open to possibility.")}
             </Text>
           </View>
           <Text style={[shared.muted, { fontSize: 11, textAlign: "center" }]}>
-            Planned membership: ₹2 first calendar month, then ₹99/month.
-            Auto-renews; cancel anytime. Payments are not active yet.
+            {t(
+              "Planned membership: ₹2 first calendar month, then ₹99/month. Auto-renews; cancel anytime. Payments are not active yet.",
+            )}
           </Text>
         </View>
       </View>

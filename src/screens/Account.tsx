@@ -1,5 +1,7 @@
+import { useTranslation } from "react-i18next";
+import { Text } from "../components/LocalizedText";
 import React from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
 import type { Membership, Profile } from "../lib/contracts";
 import { Badge, Button, Icon, Notice } from "../components/UI";
 import { colors, fonts, shared } from "../theme";
@@ -24,15 +26,16 @@ export function AccountScreen({
   onDelete: () => void;
   onSignOut: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 35, gap: 24 }}>
       <View>
-        <Text style={shared.label}>YOUR LITTLE CORNER</Text>
+        <Text style={shared.label}>{t("YOUR LITTLE CORNER")}</Text>
         <Text
           accessibilityRole="header"
           style={[shared.heading, { marginTop: 10 }]}
         >
-          A good place to be you.
+          {t("A good place to be you.")}
         </Text>
       </View>
       <View style={[shared.panel, shared.row, { gap: 22, flexWrap: "wrap" }]}>
@@ -53,10 +56,10 @@ export function AccountScreen({
             {profile.name}, {profile.age}
           </Text>
           <Text style={shared.muted}>{profile.location}</Text>
-          <Badge>{demo ? "DEMO PROFILE" : "YOUR PROFILE"}</Badge>
+          <Badge>{demo ? t("DEMO PROFILE") : t("YOUR PROFILE")}</Badge>
         </View>
         <Button secondary compact onPress={onEdit} icon="create-outline">
-          Edit profile
+          {t("Edit profile")}
         </Button>
       </View>
       <Pressable
@@ -76,15 +79,15 @@ export function AccountScreen({
           style={[shared.heading, { fontSize: 35, lineHeight: 38 }]}
         >
           {active
-            ? "Make room for connection."
-            : "A small step. More possibility."}
+            ? t("Make room for connection.")
+            : t("A small step. More possibility.")}
         </Text>
         <Text style={shared.body}>
           {demo
-            ? "Explore membership pricing. Demo mode is always free."
+            ? t("Explore membership pricing. Demo mode is always free.")
             : active
-              ? "View your membership and renewal details."
-              : "₹2 for your first calendar month. Then ₹99/month."}
+              ? t("View your membership and renewal details.")
+              : t("₹2 for your first calendar month. Then ₹99/month.")}
         </Text>
       </Pressable>
       <View style={[shared.panel, { paddingVertical: 6 }]}>
@@ -129,13 +132,17 @@ export function AccountScreen({
             ]}
           >
             <Icon name={item.icon} size={20} />
-            <Text style={[shared.body, { flex: 1 }]}>{item.name}</Text>
+            <Text style={[shared.body, { flex: 1 }]}>{t(item.name)}</Text>
             <Icon name="chevron-forward" size={15} />
           </Pressable>
         ))}
       </View>
       {demo && (
-        <Notice text="This profile, your likes and practice conversations are local to this demo session. They are not published or sent to other people." />
+        <Notice
+          text={t(
+            "This profile, your likes and practice conversations are local to this demo session. They are not published or sent to other people.",
+          )}
+        />
       )}
     </ScrollView>
   );
@@ -157,14 +164,15 @@ export function MembershipScreen({
   onCheckout: () => void;
   onCancel: () => void;
 }) {
+  const { t, i18n } = useTranslation();
   return (
     <View style={{ gap: 23 }}>
-      <Badge dark>MAKEIN MEMBERSHIP</Badge>
+      <Badge dark>{t("MAKEIN MEMBERSHIP")}</Badge>
       <Text
         accessibilityRole="header"
         style={[shared.heading, { fontSize: 47, lineHeight: 49 }]}
       >
-        More possibilities.{"\n"}One simple plan.
+        {t("More possibilities. One simple plan.")}
       </Text>
       <View
         style={{ padding: 25, backgroundColor: colors.lime, borderRadius: 20 }}
@@ -176,11 +184,11 @@ export function MembershipScreen({
             ₹2
           </Text>
           <Text style={{ fontFamily: fonts.medium, fontSize: 14 }}>
-            first calendar month
+            {t("first calendar month")}
           </Text>
         </View>
         <Text style={[shared.body, { marginTop: 4 }]}>
-          Then ₹99/month · INR
+          {t("Then ₹99/month · INR")}
         </Text>
       </View>
       <View style={{ gap: 15 }}>
@@ -188,30 +196,58 @@ export function MembershipScreen({
           "Discover people who share your intentions",
           "Send likes and see mutual matches",
           "Start conversations with your matches",
-        ].map((t) => (
-          <View key={t} style={[shared.row, { gap: 11 }]}>
+        ].map((benefit) => (
+          <View key={benefit} style={[shared.row, { gap: 11 }]}>
             <Icon name="checkmark-circle-outline" size={20} />
-            <Text style={[shared.body, { flex: 1, fontSize: 14 }]}>{t}</Text>
+            <Text style={[shared.body, { flex: 1, fontSize: 14 }]}>
+              {t(benefit)}
+            </Text>
           </View>
         ))}
       </View>
       <Text style={shared.muted}>
-        Automatically renews at ₹99 per month after your first calendar month,
-        until cancelled. A calendar month runs from your start date to the same
-        date next month (or that month’s last day). Cancel in your membership
-        settings to stop future renewals. Paid access continues until the end of
-        your current period.
+        {t(
+          "Automatically renews at ₹99 per month after your first calendar month, until cancelled. A calendar month runs from your start date to the same date next month (or that month’s last day). Cancel in your membership settings to stop future renewals. Paid access continues until the end of your current period.",
+        )}
       </Text>
       {demo ? (
-        <Notice text="You’re exploring the free demo. No real payment is started, and no paid membership is created." />
+        <Notice
+          text={t(
+            "You’re exploring the free demo. No real payment is started, and no paid membership is created.",
+          )}
+        />
       ) : active ? (
         <>
           <Notice
-            text={`${membership?.status === "cancelled" ? "Renewal cancelled. Access continues until" : "Membership active. Current access ends"} ${new Date(membership!.currentPeriodEnd).toLocaleDateString()}.${membership?.renewalAt && membership.status !== "cancelled" ? ` Next renewal: ${new Date(membership.renewalAt).toLocaleDateString()}.` : ""}`}
+            text={
+              membership?.status === "cancelled"
+                ? t("Renewal cancelled. Access continues until {{date}}.", {
+                    date: new Date(
+                      membership.currentPeriodEnd,
+                    ).toLocaleDateString(i18n.resolvedLanguage),
+                  })
+                : membership?.renewalAt
+                  ? t(
+                      "Membership active. Current access ends {{date}}. Next renewal: {{renewalDate}}.",
+                      {
+                        date: new Date(
+                          membership!.currentPeriodEnd,
+                        ).toLocaleDateString(i18n.resolvedLanguage),
+                        renewalDate: new Date(
+                          membership.renewalAt,
+                        ).toLocaleDateString(i18n.resolvedLanguage),
+                      },
+                    )
+                  : t("Membership active. Current access ends {{date}}.", {
+                      date: new Date(
+                        membership!.currentPeriodEnd,
+                      ).toLocaleDateString(i18n.resolvedLanguage),
+                    })
+            }
           />
           {membership?.status !== "cancelled" && (
             <Button secondary onPress={onCancel} busy={busy}>
-              Cancel automatic renewal
+              {t("Cancel automatic renewal")}
             </Button>
           )}
         </>
@@ -219,22 +255,28 @@ export function MembershipScreen({
         <>
           <Button onPress={onCheckout} busy={busy} icon="arrow-forward">
             {configured
-              ? "Continue to secure checkout"
-              : "Check payment availability"}
+              ? t("Continue to secure checkout")
+              : t("Check payment availability")}
           </Button>
           {!configured && (
-            <Notice text="Payments are not available in this build yet. Your profile setup is free. No charge or membership activation occurs here." />
+            <Notice
+              text={t(
+                "Payments are not available in this build yet. Your profile setup is free. No charge or membership activation occurs here.",
+              )}
+            />
           )}
         </>
       )}
       <Text style={[shared.muted, { fontSize: 11 }]}>
-        Membership supports access to features. It does not guarantee likes,
-        matches or replies.
+        {t(
+          "Membership supports access to features. It does not guarantee likes, matches or replies.",
+        )}
       </Text>
     </View>
   );
 }
 export function Legal({ kind }: { kind: "terms" | "privacy" }) {
+  const { t } = useTranslation();
   const sections =
     kind === "terms"
       ? [
@@ -283,15 +325,17 @@ export function Legal({ kind }: { kind: "terms" | "privacy" }) {
         ];
   return (
     <View style={{ gap: 23 }}>
-      <Text style={shared.muted}>MakeIn · Effective 23 October 2026</Text>
+      <Text style={shared.muted}>
+        {t("MakeIn · Effective 23 October 2026")}
+      </Text>
       {sections.map(([title, text]) => (
         <View key={title} style={{ gap: 7 }}>
           <Text
             style={{ fontFamily: fonts.semi, fontSize: 16, color: colors.ink }}
           >
-            {title}
+            {t(title)}
           </Text>
-          <Text style={shared.muted}>{text}</Text>
+          <Text style={shared.muted}>{t(text)}</Text>
         </View>
       ))}
     </View>

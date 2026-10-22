@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { Text, TextInput } from "./LocalizedText";
 import React from "react";
 import {
   ActivityIndicator,
@@ -5,8 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   TextInputProps,
   View,
 } from "react-native";
@@ -85,6 +85,7 @@ export function Chips({
   onChange: (value: string[]) => void;
   multiple?: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <View style={s.chips}>
       {values.map((v) => (
@@ -106,7 +107,7 @@ export function Chips({
           <Text
             style={[s.chipText, selected.includes(v) && { color: colors.ink }]}
           >
-            {v}
+            {t(v)}
           </Text>
           {selected.includes(v) && <Icon name="checkmark" size={15} />}
         </Pressable>
@@ -136,6 +137,12 @@ export function Notice({
   text: string;
   error?: boolean;
 }) {
+  const { t, i18n } = useTranslation();
+  const displayText = i18n.exists(text, { lng: "en" })
+    ? t(text)
+    : error
+      ? t("Something went wrong. Please try again.")
+      : text;
   return (
     <View
       accessibilityRole="alert"
@@ -152,7 +159,7 @@ export function Notice({
           { flex: 1, color: error ? colors.red : colors.ink },
         ]}
       >
-        {text}
+        {displayText}
       </Text>
     </View>
   );
@@ -199,6 +206,7 @@ export function Sheet({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   // Unmount closed dialogs so web modal transition state cannot retain focus or overlays.
   if (!visible) return null;
   return (
@@ -227,7 +235,7 @@ export function Sheet({
             </Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Close dialog"
+              accessibilityLabel={t("Close dialog")}
               onPress={onClose}
               style={s.close}
             >
@@ -263,7 +271,13 @@ export const s = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
   },
-  buttonText: { fontFamily: fonts.semi, fontSize: 14, color: colors.ink },
+  buttonText: {
+    fontFamily: fonts.semi,
+    fontSize: 14,
+    color: colors.ink,
+    flexShrink: 1,
+    textAlign: "center",
+  },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   chip: {
     flexDirection: "row",

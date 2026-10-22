@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { Text } from "./LocalizedText";
 import React, { useMemo, useRef, useState } from "react";
 import {
   Animated,
@@ -5,7 +7,6 @@ import {
   PanResponder,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import type { Card } from "../lib/contracts";
@@ -27,6 +28,7 @@ export default function ProfileCard({
   busy: boolean;
   onGestureStateChange: (busy: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const [position] = useState(() => new Animated.ValueXY());
   const locked = useRef(false);
   const [photo, setPhoto] = useState(0);
@@ -108,10 +110,10 @@ export default function ProfileCard({
         ))}
       </View>
       <View style={c.top}>
-        <Badge dark>{card.demo ? "DEMO PROFILE" : card.intent}</Badge>
+        <Badge dark>{card.demo ? t("DEMO PROFILE") : t(card.intent)}</Badge>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Open full profile"
+          accessibilityLabel={t("Open full profile")}
           onPress={onOpen}
           style={c.info}
         >
@@ -120,7 +122,9 @@ export default function ProfileCard({
       </View>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`View ${card.name}’s full profile`}
+        accessibilityLabel={t("View {{name}}’s full profile", {
+          name: card.name,
+        })}
         onPress={onOpen}
         style={c.caption}
       >
@@ -139,7 +143,7 @@ export default function ProfileCard({
         <View style={[shared.row, { flexWrap: "wrap", gap: 7, marginTop: 19 }]}>
           {card.interests.slice(0, 3).map((i) => (
             <View key={i} style={c.pill}>
-              <Text style={c.interest}>{i}</Text>
+              <Text style={c.interest}>{t(i)}</Text>
             </View>
           ))}
         </View>
@@ -147,7 +151,7 @@ export default function ProfileCard({
       {card.photos.length > 1 && (
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Next profile photo"
+          accessibilityLabel={t("Next profile photo")}
           onPress={() => setPhoto((i) => (i + 1) % card.photos.length)}
           style={c.nextPhoto}
         >
@@ -169,7 +173,7 @@ export default function ProfileCard({
           },
         ]}
       >
-        <Text style={[c.stampText, { color: colors.lime }]}>LIKE</Text>
+        <Text style={[c.stampText, { color: colors.lime }]}>{t("LIKE")}</Text>
       </Animated.View>
       <Animated.View
         pointerEvents="none"
@@ -186,7 +190,7 @@ export default function ProfileCard({
           },
         ]}
       >
-        <Text style={[c.stampText, { color: colors.white }]}>PASS</Text>
+        <Text style={[c.stampText, { color: colors.white }]}>{t("PASS")}</Text>
       </Animated.View>
     </Animated.View>
   );

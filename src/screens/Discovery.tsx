@@ -1,10 +1,11 @@
+import { useTranslation } from "react-i18next";
+import { Text } from "../components/LocalizedText";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -37,6 +38,7 @@ export default function Discovery({
   onFilters: () => void;
   onReset: () => void;
 }) {
+  const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
   const [bounds, setBounds] = useState({ height: 570, width: 354 });
   const [headerHeight, setHeaderHeight] = useState(57);
@@ -75,18 +77,18 @@ export default function Discovery({
         >
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={[shared.label, { fontSize: 9 }]}>
-              A WORLD OF POSSIBILITIES
+              {t("A WORLD OF POSSIBILITIES")}
             </Text>
             <Text
               accessibilityRole="header"
               style={[shared.heading, { fontSize: 34, lineHeight: 38 }]}
             >
-              Your next hello.
+              {t("Your next hello.")}
             </Text>
           </View>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Discovery filters"
+            accessibilityLabel={t("Discovery filters")}
             onPress={onFilters}
             style={d.filter}
           >
@@ -122,7 +124,7 @@ export default function Discovery({
                     disabled={interactionBusy}
                     onPress={() => onDecision("pass")}
                     accessibilityRole="button"
-                    accessibilityLabel="Pass profile"
+                    accessibilityLabel={t("Pass profile")}
                     style={[
                       d.action,
                       {
@@ -138,7 +140,7 @@ export default function Discovery({
                   <Pressable
                     onPress={() => onOpen(card)}
                     accessibilityRole="button"
-                    accessibilityLabel="View profile"
+                    accessibilityLabel={t("View profile")}
                     style={[
                       d.action,
                       { width: 46, height: 46, backgroundColor: colors.soft },
@@ -150,7 +152,7 @@ export default function Discovery({
                     disabled={interactionBusy}
                     onPress={() => onDecision("like")}
                     accessibilityRole="button"
-                    accessibilityLabel="Like profile"
+                    accessibilityLabel={t("Like profile")}
                     style={[
                       d.action,
                       {
@@ -172,21 +174,25 @@ export default function Discovery({
                     { fontSize: 9, textAlign: "center", marginTop: 8 },
                   ]}
                 >
-                  SWIPE LEFT TO PASS · RIGHT TO LIKE
+                  {t("SWIPE LEFT TO PASS · RIGHT TO LIKE")}
                 </Text>
               </View>
             </>
           ) : (
             <Empty
-              title="A little pause."
+              title={t("A little pause.")}
               text={
                 demo
-                  ? "You’ve explored these fictional profiles. Reset the demo or adjust your filters to keep looking."
-                  : "No profiles meet your preferences yet. Try broadening your filters or return later."
+                  ? t(
+                      "You’ve explored these fictional profiles. Reset the demo or adjust your filters to keep looking.",
+                    )
+                  : t(
+                      "No profiles meet your preferences yet. Try broadening your filters or return later.",
+                    )
               }
               action={
                 <Button secondary onPress={demo ? onReset : onFilters}>
-                  {demo ? "Reset demo cards" : "Adjust filters"}
+                  {demo ? t("Reset demo cards") : t("Adjust filters")}
                 </Button>
               }
             />

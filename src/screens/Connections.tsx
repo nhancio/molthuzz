@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { Text, TextInput } from "../components/LocalizedText";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -6,8 +8,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from "react-native";
 import type { Card, Match, Message } from "../lib/contracts";
@@ -26,19 +26,24 @@ export function Likes({
   onOpen: (c: Card) => void;
   onRefresh: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-      <Text style={shared.label}>A LITTLE MUTUAL CURIOSITY</Text>
+      <Text style={shared.label}>{t("A LITTLE MUTUAL CURIOSITY")}</Text>
       <Text
         accessibilityRole="header"
         style={[shared.heading, { marginTop: 10 }]}
       >
-        You caught their eye.
+        {t("You caught their eye.")}
       </Text>
       <Text style={[shared.muted, { marginTop: 12, marginBottom: 30 }]}>
         {demo
-          ? "Sample incoming likes from fictional profiles. Try liking one to practice matching."
-          : "People who liked your profile. Like someone back to start a conversation."}
+          ? t(
+              "Sample incoming likes from fictional profiles. Try liking one to practice matching.",
+            )
+          : t(
+              "People who liked your profile. Like someone back to start a conversation.",
+            )}
       </Text>
       {loading ? (
         <ActivityIndicator color={colors.ink} />
@@ -48,7 +53,10 @@ export function Likes({
             <Pressable
               key={c.id}
               accessibilityRole="button"
-              accessibilityLabel={`View ${c.name}, ${c.age}`}
+              accessibilityLabel={t("View {{name}}, {{age}}", {
+                name: c.name,
+                age: c.age,
+              })}
               onPress={() => onOpen(c)}
               style={n.like}
             >
@@ -78,7 +86,7 @@ export function Likes({
               </View>
               {demo && (
                 <View style={{ position: "absolute", top: 12, left: 12 }}>
-                  <Badge>DEMO</Badge>
+                  <Badge>{t("DEMO")}</Badge>
                 </View>
               )}
               <View style={n.littleHeart}>
@@ -90,11 +98,13 @@ export function Likes({
       ) : (
         <Empty
           icon="heart-outline"
-          title="Good things take time."
-          text="Your incoming likes will appear here. A thoughtful bio helps someone find a reason to say hello."
+          title={t("Good things take time.")}
+          text={t(
+            "Your incoming likes will appear here. A thoughtful bio helps someone find a reason to say hello.",
+          )}
           action={
             <Button secondary onPress={onRefresh}>
-              Refresh likes
+              {t("Refresh likes")}
             </Button>
           }
         />
@@ -113,19 +123,22 @@ export function Conversations({
   demo: boolean;
   onOpen: (m: Match) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 35 }}>
-      <Text style={shared.label}>THE START OF SOMETHING</Text>
+      <Text style={shared.label}>{t("THE START OF SOMETHING")}</Text>
       <Text
         accessibilityRole="header"
         style={[shared.heading, { marginTop: 10 }]}
       >
-        Hello looks good on you.
+        {t("Hello looks good on you.")}
       </Text>
       <Text style={[shared.muted, { marginVertical: 15 }]}>
         {demo
-          ? "Your demo matches. Practice a first message — no one else receives it."
-          : "When the feeling is mutual, the conversation starts here."}
+          ? t(
+              "Your demo matches. Practice a first message — no one else receives it.",
+            )
+          : t("When the feeling is mutual, the conversation starts here.")}
       </Text>
       {matches.length ? (
         <View style={{ marginTop: 17, gap: 12 }}>
@@ -135,19 +148,21 @@ export function Conversations({
               <Pressable
                 key={match.id}
                 accessibilityRole="button"
-                accessibilityLabel={`Open conversation with ${match.names[other] || "your match"}`}
+                accessibilityLabel={t("Open conversation with {{name}}", {
+                  name: match.names[other] || t("your match"),
+                })}
                 onPress={() => onOpen(match)}
                 style={n.match}
               >
                 <Image source={{ uri: match.photos[other] }} style={n.avatar} />
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: fonts.semi, fontSize: 17 }}>
-                    {match.names[other] || "Your match"}
+                    {match.names[other] || t("Your match")}
                   </Text>
                   <Text style={[shared.muted, { fontSize: 12, marginTop: 4 }]}>
                     {demo
-                      ? "Demo match · Say your first hello"
-                      : "You matched · Say your first hello"}
+                      ? t("Demo match · Say your first hello")
+                      : t("You matched · Say your first hello")}
                   </Text>
                 </View>
                 <Icon name="chevron-forward" size={18} />
@@ -158,8 +173,10 @@ export function Conversations({
       ) : (
         <Empty
           icon="chatbubble-ellipses-outline"
-          title="A hello is on its way."
-          text="Like someone in Discover. When they like you back, you’ll find your match here."
+          title={t("A hello is on its way.")}
+          text={t(
+            "Like someone in Discover. When they like you back, you’ll find your match here.",
+          )}
         />
       )}
     </ScrollView>
@@ -186,6 +203,7 @@ export function Chat({
   onSafety: () => void;
   loading: boolean;
 }) {
+  const { t } = useTranslation();
   const [text, setText] = useState("");
   const other = match.members.find((x) => x !== uid) || "";
   async function send() {
@@ -216,7 +234,7 @@ export function Chat({
         <Pressable
           onPress={onBack}
           accessibilityRole="button"
-          accessibilityLabel="Back to matches"
+          accessibilityLabel={t("Back to matches")}
           style={{
             minWidth: 44,
             minHeight: 44,
@@ -235,12 +253,14 @@ export function Chat({
             {match.names[other]}
           </Text>
           <Text style={[shared.muted, { fontSize: 11 }]}>
-            {demo ? "Demo conversation · practice only" : "Your connection"}
+            {demo
+              ? t("Demo conversation · practice only")
+              : t("Your connection")}
           </Text>
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Conversation safety options"
+          accessibilityLabel={t("Conversation safety options")}
           style={{
             minWidth: 44,
             minHeight: 44,
@@ -267,11 +287,15 @@ export function Chat({
           <ActivityIndicator />
         ) : !messages.length ? (
           <Empty
-            title="Every story starts somewhere."
+            title={t("Every story starts somewhere.")}
             text={
               demo
-                ? "Write a practice hello. It stays in this session and isn’t sent to anyone."
-                : "Skip the perfect opening line. Ask about something that caught your eye."
+                ? t(
+                    "Write a practice hello. It stays in this session and isn’t sent to anyone.",
+                  )
+                : t(
+                    "Skip the perfect opening line. Ask about something that caught your eye.",
+                  )
             }
             icon="chatbubbles-outline"
           />
@@ -291,7 +315,7 @@ export function Chat({
               <Text style={shared.body}>{m.text}</Text>
               {demo && (
                 <Text style={[shared.muted, { fontSize: 9, marginTop: 5 }]}>
-                  PRACTICE MESSAGE
+                  {t("PRACTICE MESSAGE")}
                 </Text>
               )}
             </View>
@@ -300,8 +324,8 @@ export function Chat({
       </ScrollView>
       <View style={n.composer}>
         <TextInput
-          accessibilityLabel="Message"
-          placeholder="A thoughtful hello…"
+          accessibilityLabel={t("Message")}
+          placeholder={t("A thoughtful hello…")}
           placeholderTextColor={colors.muted}
           style={[
             shared.body,
@@ -319,7 +343,7 @@ export function Chat({
         />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Send message"
+          accessibilityLabel={t("Send message")}
           disabled={busy || !text.trim()}
           onPress={send}
           style={[n.send, { opacity: busy || !text.trim() ? 0.4 : 1 }]}
@@ -338,8 +362,10 @@ export function Chat({
         ]}
       >
         {demo
-          ? "Demo only. No real messages are sent."
-          : "Stay curious. Be kind. Keep personal details private until you feel comfortable."}
+          ? t("Demo only. No real messages are sent.")
+          : t(
+              "Stay curious. Be kind. Keep personal details private until you feel comfortable.",
+            )}
       </Text>
     </KeyboardAvoidingView>
   );

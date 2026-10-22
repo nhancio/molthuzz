@@ -1,12 +1,7 @@
+import { useTranslation } from "react-i18next";
+import { Text } from "../components/LocalizedText";
 import React, { useState } from "react";
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Image, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Badge, Button, Chips, Field, Icon, Notice } from "../components/UI";
 import { colors, fonts, shared } from "../theme";
@@ -71,6 +66,7 @@ export default function Onboarding({
   onExit: () => void;
   busy: boolean;
 }) {
+  const { t } = useTranslation();
   const [value, setValue] = useState<ProfileInput>({
     ...initial,
     interests: [...initial.interests],
@@ -200,16 +196,16 @@ export default function Onboarding({
         <Pressable
           onPress={onExit}
           accessibilityRole="button"
-          accessibilityLabel="Exit profile setup"
+          accessibilityLabel={t("Exit profile setup")}
         >
           <Text style={o.logo}>makein✳</Text>
         </Pressable>
         <Badge>
           {demo
-            ? "DEMO PROFILE"
+            ? t("DEMO PROFILE")
             : editing
-              ? "YOUR PROFILE"
-              : "YOUR NEXT CHAPTER"}
+              ? t("YOUR PROFILE")
+              : t("YOUR NEXT CHAPTER")}
         </Badge>
       </View>
       <ScrollView
@@ -225,10 +221,12 @@ export default function Onboarding({
           ))}
         </View>
         <Text style={[shared.label, { marginTop: 32, marginBottom: 18 }]}>
-          A LITTLE ABOUT YOU · {String(step + 1).padStart(2, "0")} / 10
+          {t("A LITTLE ABOUT YOU · {{step}} / 10", {
+            step: String(step + 1).padStart(2, "0"),
+          })}
         </Text>
         <Text accessibilityRole="header" style={shared.heading}>
-          {steps[step][0]}
+          {t(steps[step][0])}
         </Text>
         <Text
           style={[
@@ -236,15 +234,15 @@ export default function Onboarding({
             { marginTop: 12, marginBottom: 36, fontSize: 15 },
           ]}
         >
-          {steps[step][1]}
+          {t(steps[step][1])}
         </Text>
         <View style={{ gap: 24, minHeight: 195 }}>
           {step === 0 && (
             <Field
-              label="First name"
+              label={t("First name")}
               value={value.name}
               onChangeText={(v) => set("name", v)}
-              placeholder="Your first name"
+              placeholder={t("Your first name")}
               maxLength={40}
               autoCapitalize="words"
             />
@@ -252,14 +250,18 @@ export default function Onboarding({
           {step === 1 && (
             <>
               <Field
-                label="Date of birth · YYYY-MM-DD"
+                label={t("Date of birth · YYYY-MM-DD")}
                 value={value.birthDate}
                 onChangeText={(v) => set("birthDate", v)}
                 placeholder="1998-08-24"
                 keyboardType="numbers-and-punctuation"
                 maxLength={10}
               />
-              <Notice text="Your birth date stays private. Only your age appears on your profile." />
+              <Notice
+                text={t(
+                  "Your birth date stays private. Only your age appears on your profile.",
+                )}
+              />
             </>
           )}
           {step === 2 && (
@@ -279,10 +281,10 @@ export default function Onboarding({
           )}
           {step === 4 && (
             <Field
-              label="City"
+              label={t("City")}
               value={value.location}
               onChangeText={(v) => set("location", v)}
-              placeholder="e.g. Bengaluru"
+              placeholder={t("e.g. Bengaluru")}
               maxLength={80}
             />
           )}
@@ -304,10 +306,12 @@ export default function Onboarding({
           {step === 7 && (
             <>
               <Field
-                label="Your bio"
+                label={t("Your bio")}
                 value={value.bio}
                 onChangeText={(v) => set("bio", v)}
-                placeholder="Usually planning a weekend escape or hunting for the city’s best dosa…"
+                placeholder={t(
+                  "Usually planning a weekend escape or hunting for the city’s best dosa…",
+                )}
                 multiline
                 maxLength={500}
               />
@@ -330,7 +334,9 @@ export default function Onboarding({
                     />
                     <Pressable
                       accessibilityRole="button"
-                      accessibilityLabel={`Remove photo ${i + 1}`}
+                      accessibilityLabel={t("Remove photo {{number}}", {
+                        number: i + 1,
+                      })}
                       onPress={() =>
                         set(
                           "photos",
@@ -353,16 +359,20 @@ export default function Onboarding({
                       onPress={pick}
                       busy={uploading}
                     >
-                      Choose a photo
+                      {t("Choose a photo")}
                     </Button>
                   )}
                   <Text style={shared.muted}>
                     {demo
-                      ? "Demo mode does not upload personal photos. Add a persistent HTTPS image URL to try a different photo."
-                      : "Photo uploads need Firebase Storage. If uploads are unavailable, add a persistent HTTPS image URL below. Your selected photo is saved only after a successful upload."}
+                      ? t(
+                          "Demo mode does not upload personal photos. Add a persistent HTTPS image URL to try a different photo.",
+                        )
+                      : t(
+                          "Photo uploads need Firebase Storage. If uploads are unavailable, add a persistent HTTPS image URL below. Your selected photo is saved only after a successful upload.",
+                        )}
                   </Text>
                   <Field
-                    label="HTTPS photo URL"
+                    label={t("HTTPS photo URL")}
                     placeholder="https://…"
                     value={url}
                     autoCapitalize="none"
@@ -374,7 +384,7 @@ export default function Onboarding({
                     onPress={addUrl}
                     disabled={!url.trim()}
                   >
-                    Add photo URL
+                    {t("Add photo URL")}
                   </Button>
                 </>
               )}
@@ -383,18 +393,18 @@ export default function Onboarding({
           {step === 9 && (
             <>
               <Field
-                label="Prompt"
+                label={t("Prompt")}
                 value={value.prompts[0]?.question || ""}
                 onChangeText={(v) =>
                   set("prompts", [
                     { question: v, answer: value.prompts[0]?.answer || "" },
                   ])
                 }
-                placeholder="My perfect Sunday looks like…"
+                placeholder={t("My perfect Sunday looks like…")}
                 maxLength={100}
               />
               <Field
-                label="Your answer"
+                label={t("Your answer")}
                 value={value.prompts[0]?.answer || ""}
                 onChangeText={(v) =>
                   set("prompts", [
@@ -404,12 +414,14 @@ export default function Onboarding({
                     },
                   ])
                 }
-                placeholder="Slow coffee, a bookstore, and absolutely no alarms."
+                placeholder={t(
+                  "Slow coffee, a bookstore, and absolutely no alarms.",
+                )}
                 multiline
                 maxLength={200}
               />
               <Text style={shared.muted}>
-                Optional. A good story beats a perfect answer.
+                {t("Optional. A good story beats a perfect answer.")}
               </Text>
             </>
           )}
@@ -429,7 +441,7 @@ export default function Onboarding({
                 setError("");
               }}
             >
-              Back
+              {t("Back")}
             </Button>
           )}
           <View style={{ flex: 1 }}>
@@ -441,9 +453,9 @@ export default function Onboarding({
             >
               {step === 9
                 ? editing
-                  ? "Save profile"
-                  : "Let’s make a connection"
-                : "Continue"}
+                  ? t("Save profile")
+                  : t("Let’s make a connection")
+                : t("Continue")}
             </Button>
           </View>
         </View>
