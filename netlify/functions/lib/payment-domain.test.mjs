@@ -67,6 +67,19 @@ test('recurring ₹99 captured invoice extends only to its paid billing end', ()
   assert.equal(reconcileMembership(snapshot({ subscription: { ...subscription, status: 'active', current_end: end / 1000, charge_at: end / 1000 }, invoices: [recurring], payments: [paid], now: trialEnd + 1000 })).membership.currentPeriodEnd, end);
 });
 
+test('a new paid subscription does not inherit cancellation from an expired previous subscription', () => {
+  const end = Date.parse('2024-03-29T08:15:00Z');
+  const result = reconcileMembership(snapshot({
+    binding: { uid: 'alice', subscriptionId: 'sub_new', attemptId: 'new_attempt', trial: false, trialEnd: 0 },
+    subscription: { id: 'sub_new', plan_id: plan.id, quantity: 1, notes: { uid: 'alice', attemptId: 'new_attempt' }, status: 'active', current_end: end / 1000, charge_at: end / 1000 },
+    invoices: [{ ...upfront, id: 'inv_new', subscription_id: 'sub_new', order_id: 'order_new', payment_id: 'pay_new', amount: 9900, amount_paid: 9900, billing_start: trialEnd / 1000, billing_end: end / 1000, line_items: [{ type: 'plan', amount: 9900, currency: 'INR', quantity: 1 }] }],
+    payments: [{ ...payment, id: 'pay_new', invoice_id: 'inv_new', order_id: 'order_new', amount: 9900 }],
+    previous: { status: 'cancelled', subscriptionId: 'sub_alice', currentPeriodEnd: trialEnd },
+    now: trialEnd + 1000,
+  }));
+  assert.deepEqual(result.membership, { status: 'active', subscriptionId: 'sub_new', currentPeriodEnd: end, renewalAt: end });
+});
+
 test('cancellation before first renewal retains verified trial expiry', () => {
   const result = reconcileMembership(snapshot({ subscription: { ...subscription, status: 'cancelled', current_end: null } }));
   assert.deepEqual(result.membership, { status: 'cancelled', subscriptionId: 'sub_alice', currentPeriodEnd: trialEnd });

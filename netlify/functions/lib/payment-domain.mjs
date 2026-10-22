@@ -58,7 +58,7 @@ export function reconcileMembership({ binding, subscription, plan, invoices, pay
       expiry = Math.max(expiry, end);
     }
   }
-  const cancelled = cancelRequested || previous?.status === 'cancelled' || ['cancelled', 'completed', 'expired'].includes(subscription.status);
+  const cancelled = cancelRequested || (previous?.subscriptionId === subscription.id && previous.status === 'cancelled') || ['cancelled', 'completed', 'expired'].includes(subscription.status);
   const membership = { status: cancelled ? 'cancelled' : expiry > now ? 'active' : 'inactive', currentPeriodEnd: expiry, subscriptionId: subscription.id };
   if (!cancelled && expiry > now && ['authenticated', 'active', 'pending'].includes(subscription.status) && subscription.charge_at * 1000 >= expiry) membership.renewalAt = subscription.charge_at * 1000;
   return { membership, trialUsed };

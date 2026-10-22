@@ -17,11 +17,13 @@ Implemented locally in Netlify functions and `src/lib/payments.ts`, with disable
 
 TDD red/green evidence: initial stub implementations failed eight domain assertions and all nine initial service tests. The implementation then passed the focused tests. A further regression test exposed cancellation state being persisted too late when invoice fetch fails; after correction that test passed as well.
 
-Latest focused run: **20 tests passed, 0 failed** using `rtk proxy node --test netlify/functions/lib/payment-domain.test.mjs netlify/functions/lib/payment-service.test.mjs`.
+Latest focused run: **21 tests passed, 0 failed** using `rtk proxy node --test netlify/functions/lib/payment-domain.test.mjs netlify/functions/lib/payment-service.test.mjs`.
 
 Tests cover leap/non-leap month-end arithmetic, exact raw signature bytes and invalid lengths, invoice/payment/owner/plan/currency binding, captured introductory and recurring access, authentication without capture, unpaid cancellation, paid cancellation retention, stale/replayed state, checkout concurrency and retries, past trial history, unavailable configuration, origin/auth/profile gating, ambiguous-create lock and cancellation reconciliation failure. Full `rtk proxy npm test` passed **27 tests, 0 failures**. TypeScript `rtk proxy npx tsc --noEmit` and targeted `rtk proxy npx eslint src/lib/payments.ts netlify/functions --no-ignore` also exited 0.
 
 External Firebase/Razorpay boundaries use isolated in-memory data and provider fixtures for focused tests. Actual Firestore transaction integration, real UPI intent/QR checkout, test capture, renewal and live merchant flows have not been verified by this payment subtask.
+
+Independent review identified an expired cancelled membership leaking its status into a newly paid subscription. The regression test first reproduced the incorrect `cancelled` result and missing renewal date, then passed after prior cancellation was scoped to the same subscription ID. Existing same-subscription cancellation/replay tests also remain green. Payment enablement remains deferred at the user's request.
 
 ## Remaining prerequisites and limits
 
