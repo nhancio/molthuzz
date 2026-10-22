@@ -18,7 +18,7 @@
 - Android APK preview submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/6cefc712-9089-489c-a076-76b07a9a5b8f
 - Signed iOS production build3 submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/3562bd5f-ac01-49a8-8004-d2366af4c40c
 - iOS TestFlight upload scheduled after the build: https://expo.dev/accounts/nithindidigam/projects/makein/submissions/8904c4cc-3b20-4554-9cc0-4b9fda386ca4
-- Build pages report current cloud status. No store publication or public TestFlight access is claimed.
+- Both premium jobs were IN_QUEUE at the final status check. Build pages report current cloud status. No store publication or public TestFlight access is claimed.
 - Earlier multilingual iOS build2 finished successfully. The older queued Android build was cancelled and replaced with this premium build.
 
 ## Verification
@@ -26,7 +26,7 @@
 - Catalog tests verify complete keys, interpolation, DELETE token, price/age/date numbers, INR symbols and regional translations; tests also cover preference persistence/device negotiation/write failure and instant i18next switching/fallback/member-name interpolation. Static JSX coverage prevents untranslated owned copy and translation of known member fields.
 - Earlier 16 Firestore/Storage emulator cases and targeted cleanup retry checks passed; service/rules unchanged by language feature.
 - Independent premium-native review caught raw JSX whitespace outside Text; removed both instances and verified the regression red/green. Scoped final review also cleared the onboarding Back helper/listener, ready guards and single conversation navigation. Native route/session, swipe commit/retry, keyboard-aware composition and pending sheet dismissal were inspected statically; native execution remains pending.
-- Standalone landing HTTP200 verified; old /discover route404, no Expo browser bundle. Landing build/link tests2/2 previously pass.
+- Standalone landing HTTP200 verified; old /discover route404, no Expo browser bundle. Landing build/link tests 2/2 pass after updating the premium Android link; production link verified.
 
 ## Remaining release checks
 - Physical Android/iOS Google sign-in, script rendering, keyboard and photo-upload QA. No local simulator installed; EAS Simulator unavailable on the account.

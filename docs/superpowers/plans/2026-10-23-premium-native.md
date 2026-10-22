@@ -39,4 +39,4 @@
 - [x] Lift controller into MakeInProvider. Expose entry gate, ready/entry destination, renderTab, conversation content/title/safety and membership action. Root navigator always mounted; guards redirect safely.
 - [x] NativeTabs with real OS icons, nested Stack headers and compact language/member actions; root conversation push and native Back. Respect safe-area ownership and preserve load/auth/save failures.
 - [x] Write route/guard tests, run TS/lint/full tests/native exports, independent scoped review/fixes.
-- [ ] Submit updated native builds, push current feature branch and update existing draft PR. Report actual build status and device-QA limitation.
+- [x] Submit updated native builds, push current feature branch and update existing draft PR. Report actual build status and device-QA limitation.
