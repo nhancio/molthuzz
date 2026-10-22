@@ -24,6 +24,7 @@ import {
 import Welcome from "./Welcome";
 import Onboarding from "./Onboarding";
 import Discovery from "./Discovery";
+import { deleteAccountSafely } from "./accountDeletion";
 import { Chat, Conversations, Likes } from "./Connections";
 import { AccountScreen, Legal, MembershipScreen } from "./Account";
 import type {
@@ -1040,9 +1041,11 @@ export default function MakeIn() {
         <Text style={shared.body}>
           This permanently removes your profile, likes, matches, conversation
           data and sign-in account. You’ll need to sign in with Google again to
-          confirm ownership. Any existing subscription is checked for
-          cancellation before deletion; if the provider cannot confirm it,
-          deletion stops.
+          confirm ownership. When payments are connected, we first ask the
+          provider to cancel any subscription or pending mandate, or confirm
+          none exists. A known subscription also requires this check if payments
+          are currently unavailable. If the provider cannot confirm
+          cancellation, deletion stops.
         </Text>
         {membership?.status === "active" && (
           <Notice
@@ -1064,15 +1067,12 @@ export default function MakeIn() {
           onPress={() =>
             run(async () => {
               if (!user) return;
-              await reauthenticateGoogle();
-              if (
-                membership?.subscriptionId &&
-                (membership.status === "active" ||
-                  membership.status === "cancelled")
-              )
-                await cancelMembership(user);
-              await deleteAccountData(user.uid);
-              await deleteAuthUser();
+              await deleteAccountSafely(user, membership, paymentConfigured, {
+                reauthenticate: reauthenticateGoogle,
+                cancelBilling: cancelMembership,
+                deleteData: deleteAccountData,
+                deleteAuth: deleteAuthUser,
+              });
               setDialog(null);
               setProfile(null);
             })

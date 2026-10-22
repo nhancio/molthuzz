@@ -10,7 +10,7 @@ The new Expo Router app is implemented in `src/app`, `src/screens`, `src/compone
 - Incoming likes, mutual matches, conversations, matched chat, profile editing and account controls through the contract-backed Firebase services.
 - Clearly labelled, isolated fictional demo profiles, incoming likes, mutual matches and local practice messages. No demo action invokes billing, sends real messages or publishes a profile.
 - Membership pricing and disclosure: ₹2 first calendar month then ₹99/month INR with automatic renewal. Real interaction writes require a currently active server entitlement; payment unavailability is shown honestly. Cancellation preserves the paid period.
-- Report, block, end-match, sign-out, account deletion and basic terms/privacy screens. Active renewal must be cancelled before deletion. Existing active/cancelled subscription IDs are also passed through confirmed provider cancellation before profile/auth removal; errors stop deletion.
+- Report, block, end-match, sign-out, account deletion and basic terms/privacy screens. Active renewal must be cancelled before deletion. When billing is configured, deletion always confirms cancellation or absence of billing with the provider, including pending mandates before an entitlement exists. A known subscription ID also requires cancellation confirmation when billing is currently disabled. Errors stop profile/auth removal.
 - Image library upload through `data.uploadPhoto`, plus a truthful persistent HTTPS image URL fallback. Demo mode does not request personal library uploads.
 
 ## Verification
@@ -22,3 +22,7 @@ Browser integration identified a retained native-web modal overlay after opening
 ## Product limits
 
 Demo state intentionally lasts only for the current page session and is reset on leaving/reloading. Practice chat does not fabricate responses from a real person. Membership activation is observed from the server; opening or closing checkout does not activate it. Live sign-in, storage, discovery and payments depend on the configured providers and permission rules owned by the other tasks.
+
+## Billing deletion regression verification
+
+The account deletion sequence is implemented in `src/screens/accountDeletion.ts` and exercised by `node --experimental-strip-types --test src/screens/accountDeletion.test.ts`. Five checks cover missing/inactive entitlements with configured billing, known subscription IDs in all statuses with disabled billing, cancellation failure preserving data/auth, disabled fresh-app deletion, and reauthentication failure. The previous status-gated condition failed three checks; unconditional provider confirmation whenever billing is configured or a subscription ID exists passes all five.
