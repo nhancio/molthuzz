@@ -21,5 +21,10 @@
 ## Explicitly deferred or unverified
 - User explicitly deferred Razorpay connection. UPI AutoPay integration code is prepared and disabled; no charge/mandate/live checkout was created. Exact ₹2 upfront and ₹99 future UPI billing still requires merchant testing because current Razorpay Add-ons documentation is inconsistent.
 - Live Storage bucket is not provisioned on Spark. Existing Google photos/persistent HTTPS URLs work as profile photos; native upload requires Storage provisioning/billing.
-- Physical Android/iOS device behavior and Google provider round trip on devices remain unverified. No App Store/Play Store publication is claimed.
+- Live web Google sign-in round trip verified in the requested Nhancio Chrome profile; it reaches adult onboarding. Physical Android/iOS behavior remains unverified. No App Store/Play Store publication is claimed.
 - Discovery scans first 100 active profiles and needs server pagination to grow.
+
+## Source review
+- Draft PR: https://github.com/nhancio/molthuzz/pull/1
+- Final web deploy: 6ada612a85414e89634099fe (HTTP200 verified).
+- Disabled checkout endpoint returns503 with truthful setup message.
