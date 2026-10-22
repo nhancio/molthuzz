@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Text } from "../components/LocalizedText";
-import React, { useRef, useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { BackHandler, Pressable, ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -13,6 +13,7 @@ import { colors, fonts, shared } from "../theme";
 import { ageFromBirthDate, validateProfile } from "../lib/model";
 import { uploadPhoto } from "../lib/data";
 import type { ProfileInput, Gender, Intent } from "../lib/contracts";
+import { setupBackAction } from "./setup-back";
 const genders: Gender[] = ["Woman", "Man", "Non-binary"];
 const intents: Intent[] = [
   "A relationship",
@@ -87,6 +88,29 @@ export default function Onboarding({
   const [uploading, setUploading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [dateDraft, setDateDraft] = useState(new Date(2000, 0, 1));
+  const goBack = useCallback(() => {
+    switch (setupBackAction({ busy, uploading, datePickerOpen: showDatePicker, step })) {
+      case "stay":
+        break;
+      case "dismiss-date":
+        setShowDatePicker(false);
+        break;
+      case "previous":
+        setStep((current) => Math.max(0, current - 1));
+        setError("");
+        scroll.current?.scrollTo({ y: 0, animated: false });
+        break;
+      case "exit":
+        onExit();
+        break;
+    }
+    return true;
+  }, [busy, uploading, showDatePicker, step, onExit]);
+  useEffect(() => {
+    if (process.env.EXPO_OS !== "android") return;
+    const subscription = BackHandler.addEventListener("hardwareBackPress", goBack);
+    return () => subscription.remove();
+  }, [goBack]);
   const today = new Date();
   const latestBirthDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
   const earliestBirthDate = new Date(today.getFullYear() - 101, today.getMonth(), today.getDate() + 1);
@@ -514,12 +538,7 @@ export default function Onboarding({
               secondary
               compact
               disabled={busy || uploading}
-              onPress={() => {
-                setStep((x) => x - 1);
-                setError("");
-                setShowDatePicker(false);
-                scroll.current?.scrollTo({ y: 0, animated: false });
-              }}
+              onPress={goBack}
             >
               {t("Back")}
             </Button>
