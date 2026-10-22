@@ -17,11 +17,11 @@
 - Android signing keystore remains in ignored private credentials; its SHA-1 is registered with Firebase. iOS App Store signing is configured under Nhancio, team76G23XAVL3. ASC app6825923575.
 - User deferred Razorpay/UPI connection. Payment integration remains disabled; no charge or mandate created. ₹2 first calendar month then ₹99/month is the planned membership.
 
-## Latest single-form native builds
-- Android APK preview submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/36b70e86-9a54-4d81-b88b-ecb3e8083011
-- Signed iOS production build4 submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/97009cf1-e8e8-4786-a962-de2b95f0dfbf
-- iOS TestFlight upload scheduled after the build: https://expo.dev/accounts/nithindidigam/projects/makein/submissions/9e3baed0-380b-4b13-81ca-25728a035a66
-- The earlier premium iOS build3 finished. Its queued Android preview was cancelled for the single-form/multi-photo replacement. Both replacement builds and the automatic iOS submission have been accepted by EAS; build pages report current status. No store publication or public TestFlight access is claimed.
+## Latest system-control native builds
+- Android APK preview submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/0ba810ac-81ae-492c-b452-b171048f8a12
+- Signed iOS production build5 submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/4edb746f-5520-47ef-813d-f37b46dca508
+- iOS TestFlight upload scheduled after the build: https://expo.dev/accounts/nithindidigam/projects/makein/submissions/904e6c88-b13e-4f6a-b62e-f9b5cef16dab
+- The earlier single-form iOS build4 finished. Its queued Android preview was cancelled for the system-control replacement. Both replacement builds and the automatic iOS submission have been accepted by EAS; build pages report current status. No store publication or public TestFlight access is claimed.
 - Earlier multilingual iOS build2 also finished successfully.
 
 ## Verification

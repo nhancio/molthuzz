@@ -26,4 +26,4 @@ Own screens/Onboarding.tsx, app/(tabs)/_layout.tsx, components/LanguagePicker.ts
 - [x] iOS DOB inline native wheel like Aura+, Android native date dialog; no free text date field. Preserve explicit empty DOB validation and adult bounds.
 - [x] Let iOS tab bar use native transparent/glass material and minimize behavior; Android native Material tabs with icons/labels retained.
 - [x] Use native IconButton for ordinary close/header/send/filter/like/pass actions; keep profile/card gesture/list hit areas as RN interactions where appropriate.
-- [ ] Typecheck/lint/tests/native exports; independent review; updated native builds and PR/landing links.
+- [x] Typecheck/lint/tests/native exports; independent review; updated native builds and PR/landing links.
