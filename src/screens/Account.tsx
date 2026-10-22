@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Text } from "../components/LocalizedText";
 import React from "react";
-import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { ScrollView, useWindowDimensions, View } from "react-native";
 import { Image } from "expo-image";
 import { Host, List, ListItem, RNHostView, Text as NativeText } from "@expo/ui";
 import type { Membership, Profile } from "../lib/contracts";
@@ -31,14 +31,47 @@ export function AccountScreen({
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
   const settings = [
-    { name: "Privacy policy", icon: "lock-closed-outline" as const, action: onPrivacy },
-    { name: "Terms of use", icon: "document-text-outline" as const, action: onTerms },
-    { name: demo ? "Leave demo" : "Sign out", icon: "log-out-outline" as const, action: onSignOut },
-    ...(!demo ? [{ name: "Delete account", icon: "trash-outline" as const, action: onDelete }] : []),
+    {
+      name: "Privacy policy",
+      icon: "lock-closed-outline" as const,
+      action: onPrivacy,
+    },
+    {
+      name: "Terms of use",
+      icon: "document-text-outline" as const,
+      action: onTerms,
+    },
+    {
+      name: demo ? "Leave demo" : "Sign out",
+      icon: "log-out-outline" as const,
+      action: onSignOut,
+    },
+    ...(!demo
+      ? [
+          {
+            name: "Delete account",
+            icon: "trash-outline" as const,
+            action: onDelete,
+          },
+        ]
+      : []),
   ];
-  const accessory = (name: React.ComponentProps<typeof Icon>["name"], destructive = false) => {
-    const icon = <Icon name={name} size={20} color={destructive ? colors.red : colors.muted} />;
-    return process.env.EXPO_OS === "android" ? <RNHostView matchContents>{icon}</RNHostView> : icon;
+  const accessory = (
+    name: React.ComponentProps<typeof Icon>["name"],
+    destructive = false,
+  ) => {
+    const icon = (
+      <Icon
+        name={name}
+        size={20}
+        color={destructive ? colors.red : colors.muted}
+      />
+    );
+    return process.env.EXPO_OS === "android" ? (
+      <RNHostView matchContents>{icon}</RNHostView>
+    ) : (
+      icon
+    );
   };
 
   return (
@@ -52,46 +85,101 @@ export function AccountScreen({
             source={profile.photos[0]}
             contentFit="cover"
             accessibilityLabel={profile.name}
-            style={{ width: 88, height: 108, borderRadius: 18, borderCurve: "continuous", backgroundColor: colors.soft }}
+            style={{
+              width: 88,
+              height: 108,
+              borderRadius: 18,
+              borderCurve: "continuous",
+              backgroundColor: colors.soft,
+            }}
           />
           <View style={{ flex: 1, gap: 8, paddingTop: 4 }}>
-            <Text selectable accessibilityRole="header" style={{ fontFamily: fonts.semi, fontWeight: "600", fontSize: 25, lineHeight: 32, color: colors.ink }}>
+            <Text
+              selectable
+              accessibilityRole="header"
+              style={{
+                fontFamily: fonts.semi,
+                fontWeight: "600",
+                fontSize: 25,
+                lineHeight: 32,
+                color: colors.ink,
+              }}
+            >
               {profile.name}, {profile.age}
             </Text>
-            <Text selectable style={shared.muted}>{profile.location}</Text>
+            <Text selectable style={shared.muted}>
+              {profile.location}
+            </Text>
             <Badge>{demo ? t("DEMO PROFILE") : t("YOUR PROFILE")}</Badge>
           </View>
         </View>
-        <Button secondary onPress={onEdit} icon="create-outline">{t("Edit profile")}</Button>
+        <Button secondary onPress={onEdit} icon="create-outline">
+          {t("Edit profile")}
+        </Button>
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        onPress={onMembership}
-        style={({ pressed }) => [shared.panel, { backgroundColor: colors.lime, borderColor: colors.lime, gap: 14, opacity: pressed ? 0.85 : 1 }]}
+      <View
+        style={[
+          shared.panel,
+          { backgroundColor: colors.lime, borderColor: colors.lime, gap: 14 },
+        ]}
       >
-        <View style={[shared.row, { gap: 12, justifyContent: "space-between" }]}>
-          <Text style={[shared.label, { color: "#20251F", flex: 1 }]}>{t("MAKEIN MEMBERSHIP")}</Text>
+        <View
+          style={[shared.row, { gap: 12, justifyContent: "space-between" }]}
+        >
+          <Text style={[shared.label, { color: "#20251F", flex: 1 }]}>
+            {t("MAKEIN MEMBERSHIP")}
+          </Text>
           <Icon name="arrow-forward" color="#20251F" size={21} />
         </View>
-        <Text accessibilityRole="header" style={{ fontFamily: fonts.serif, fontSize: 29, lineHeight: 35, color: "#20251F" }}>
-          {active ? t("Make room for connection.") : t("A small step. More possibility.")}
+        <Text
+          accessibilityRole="header"
+          style={{
+            fontFamily: fonts.serif,
+            fontSize: 29,
+            lineHeight: 35,
+            color: "#20251F",
+          }}
+        >
+          {active
+            ? t("Make room for connection.")
+            : t("A small step. More possibility.")}
         </Text>
-        <Text style={[shared.body, { color: "#20251F", fontSize: 15, lineHeight: 23 }]}>
+        <Text
+          style={[
+            shared.body,
+            { color: "#20251F", fontSize: 15, lineHeight: 23 },
+          ]}
+        >
           {demo
             ? t("Explore membership pricing. Demo mode is always free.")
             : active
               ? t("View your membership and renewal details.")
-              : t("Planned membership: ₹2 first calendar month, then ₹99/month. Auto-renews; cancel anytime. Payments are not active yet.")}
+              : t(
+                  "Planned membership: ₹2 first calendar month, then ₹99/month. Auto-renews; cancel anytime. Payments are not active yet.",
+                )}
         </Text>
-      </Pressable>
+        <Button secondary onPress={onMembership}>
+          {t("Membership")}
+        </Button>
+      </View>
 
-      <View style={{ borderRadius: 20, borderCurve: "continuous", overflow: "hidden", backgroundColor: colors.white }}>
+      <View
+        style={{
+          borderRadius: 20,
+          borderCurve: "continuous",
+          overflow: "hidden",
+          backgroundColor: colors.white,
+        }}
+      >
         <Host
           ignoreSafeArea="all"
           colorScheme="light"
           seedColor={colors.ink}
-          style={{ width: "100%", height: (settings.length * 64 + 70) * Math.max(1, fontScale) }}
+          style={{
+            width: "100%",
+            height: (settings.length * 64 + 70) * Math.max(1, fontScale),
+          }}
         >
           <List>
             {settings.map((item) => (
@@ -100,9 +188,20 @@ export function AccountScreen({
                 onPress={item.action}
                 leading={accessory(item.icon, item.name === "Delete account")}
                 trailing={accessory("chevron-forward")}
-                colors={{ containerColor: colors.white, contentColor: colors.ink }}
+                colors={{
+                  containerColor: colors.white,
+                  contentColor: colors.ink,
+                }}
               >
-                <NativeText textStyle={{ fontSize: 16, lineHeight: 24, ...(item.name === "Delete account" ? { color: colors.red } : {}) }}>
+                <NativeText
+                  textStyle={{
+                    fontSize: 16,
+                    lineHeight: 24,
+                    ...(item.name === "Delete account"
+                      ? { color: colors.red }
+                      : {}),
+                  }}
+                >
                   {t(item.name)}
                 </NativeText>
               </ListItem>
@@ -111,7 +210,11 @@ export function AccountScreen({
         </Host>
       </View>
       {demo && (
-        <Notice text={t("This profile, your likes and practice conversations are local to this demo session. They are not published or sent to other people.")} />
+        <Notice
+          text={t(
+            "This profile, your likes and practice conversations are local to this demo session. They are not published or sent to other people.",
+          )}
+        />
       )}
     </ScrollView>
   );
@@ -144,7 +247,12 @@ export function MembershipScreen({
         {t("More possibilities. One simple plan.")}
       </Text>
       <View
-        style={{ padding: 25, backgroundColor: colors.lime, borderRadius: 22, borderCurve: "continuous" }}
+        style={{
+          padding: 25,
+          backgroundColor: colors.lime,
+          borderRadius: 22,
+          borderCurve: "continuous",
+        }}
       >
         <View style={[shared.row, { alignItems: "baseline", gap: 5 }]}>
           <Text
@@ -152,7 +260,16 @@ export function MembershipScreen({
           >
             ₹2
           </Text>
-          <Text style={{ fontFamily: fonts.medium, fontSize: 15, lineHeight: 23, flex: 1, flexShrink: 1, color: "#20251F" }}>
+          <Text
+            style={{
+              fontFamily: fonts.medium,
+              fontSize: 15,
+              lineHeight: 23,
+              flex: 1,
+              flexShrink: 1,
+              color: "#20251F",
+            }}
+          >
             {t("first calendar month")}
           </Text>
         </View>
@@ -300,7 +417,12 @@ export function Legal({ kind }: { kind: "terms" | "privacy" }) {
       {sections.map(([title, text]) => (
         <View key={title} style={{ gap: 7 }}>
           <Text
-            style={{ fontFamily: fonts.semi, fontWeight: "600", fontSize: 16, color: colors.ink }}
+            style={{
+              fontFamily: fonts.semi,
+              fontWeight: "600",
+              fontSize: 16,
+              color: colors.ink,
+            }}
           >
             {t(title)}
           </Text>

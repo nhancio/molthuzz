@@ -14,7 +14,7 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text, TextInput } from "../components/LocalizedText";
 import type { Card, Match, Message } from "../lib/contracts";
-import { Badge, Button, Empty, Icon } from "../components/UI";
+import { Badge, Button, Empty, Icon, IconButton } from "../components/UI";
 import { colors, fonts, shared } from "../theme";
 
 function MemberPhoto({
@@ -308,14 +308,11 @@ export function Chat({
             },
           ]}
         >
-          <Pressable
+          <IconButton
+            label={t("Back to matches")}
+            icon="arrow-back"
             onPress={onBack}
-            accessibilityRole="button"
-            accessibilityLabel={t("Back to matches")}
-            style={n.headerAction}
-          >
-            <Icon name="arrow-back" />
-          </Pressable>
+          />
           <MemberPhoto
             uri={match.photos[other]}
             style={[n.avatar, { width: 43, height: 43 }]}
@@ -332,14 +329,11 @@ export function Chat({
                 : t("Your connection")}
             </Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("Conversation safety options")}
-            style={n.headerAction}
+          <IconButton
+            label={t("Conversation safety options")}
+            icon="ellipsis-horizontal"
             onPress={onSafety}
-          >
-            <Icon name="ellipsis-horizontal" />
-          </Pressable>
+          />
         </View>
       )}
       <FlatList
@@ -415,27 +409,14 @@ export function Chat({
           value={text}
           onChangeText={setText}
         />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t("Send message")}
-          accessibilityState={{
-            disabled: sendBusy || !text.trim(),
-            busy: sendBusy,
-          }}
-          disabled={sendBusy || !text.trim()}
+        <IconButton
+          label={t("Send message")}
+          icon="arrow-up"
+          size={22}
+          busy={sendBusy}
+          disabled={!text.trim()}
           onPress={send}
-          android_ripple={{ color: "#20241F18" }}
-          style={({ pressed }) => [
-            n.send,
-            { opacity: sendBusy || !text.trim() ? 0.4 : pressed ? 0.7 : 1 },
-          ]}
-        >
-          {sendBusy ? (
-            <ActivityIndicator color={colors.ink} />
-          ) : (
-            <Icon name="arrow-up" size={22} />
-          )}
-        </Pressable>
+        />
       </View>
       <Text
         style={[
@@ -496,12 +477,7 @@ const n = StyleSheet.create({
     borderRadius: 29,
     backgroundColor: colors.soft,
   },
-  headerAction: {
-    minWidth: 48,
-    minHeight: 48,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+
   message: {
     maxWidth: "86%",
     borderRadius: 20,
@@ -517,14 +493,5 @@ const n = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     padding: 5,
-  },
-  send: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.lime,
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
   },
 });

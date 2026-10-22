@@ -5,8 +5,9 @@
 - Adult onboarding, Google sign-in, profiles/photos/preferences, discovery/swipes/likes, mutual matches, chat, editing, block/report/unmatch and retryable account deletion. Labelled fictional demo is isolated from real data.
 - Offline i18next interface in English, Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali and Gujarati: 355 strings per language, persistent global language picker, device default/English fallback, locale-aware membership dates and Indian-script typography. Member-authored content and canonical stored options remain intact.
 - Profile setup/editing now uses one vertical form with a single Save action and first-invalid-field scrolling; the ten-step wizard is removed. Multiple photos can be selected at once, with ordered previews, main-photo selection, removal and partial-failure retry. Original source size/type is not rejected before native JPEG conversion/downsampling; final objects retain secure 8MiB MIME/owner rules.
+- System-control pass uses Aura+ native iOS tabs/DOB as a read-only reference. MakeIn retains SDK58-native implementations on both platforms: shared action buttons and ordinary icon actions are SwiftUI/Compose; single choice is a native menu and multiple choice native switches/checkboxes. iOS tab background/material/fonts follow the OS defaults; Android uses its Material bar.
 - Compact opening puts Google/demo actions before optional artwork, uses system-size typography and a drawn nonemoji mark. Native splash remains while bundled branding loads; loading UI is compact.
-- Premium native UI: real Expo Router tabs and per-tab stacks; native conversation headers/back, SwiftUI/Compose sheets and language pickers, platform date picker, grouped settings, SF/Material icons, system typography, photo/gradient discovery cards, UI-thread gestures, reduced-motion support, haptic commit feedback and keyboard-controller forms/chat. Failed saves and sends preserve drafts.
+- Premium native UI: real Expo Router tabs and per-tab stacks; native conversation headers/back, SwiftUI/Compose buttons, menus, toggles/checkboxes, sheets and language pickers, inline iOS date wheel and Android system date dialog, grouped settings, SF/Material icons, system typography, photo/gradient discovery cards, UI-thread gestures, reduced-motion support, haptic commit feedback and keyboard-controller forms/chat. Failed saves and sends preserve drafts.
 - Draft PR: https://github.com/nhancio/molthuzz/pull/1 on feat/makein-dating.
 
 ## Infrastructure
@@ -24,10 +25,10 @@
 - Earlier multilingual iOS build2 also finished successfully.
 
 ## Verification
-- TypeScript pass, Expo lint pass with --no-cache (removed stale missing-catalog diagnostics), 61/61 tests pass, native Android/iOS Hermes exports pass.
+- TypeScript pass, Expo lint pass with --no-cache (removed stale missing-catalog diagnostics), 64/64 tests pass, native Android/iOS Hermes exports pass.
 - Catalog tests verify complete keys, interpolation, DELETE token, price/age/date numbers, INR symbols and regional translations; tests also cover preference persistence/device negotiation/write failure and instant i18next switching/fallback/member-name interpolation. Static JSX coverage prevents untranslated owned copy and translation of known member fields.
 - Earlier 16 Firestore/Storage emulator cases and targeted cleanup retry checks passed; service/rules unchanged by language feature.
-- Independent current review cleared native photo decoder bounds/output size/cleanup, compact opening/splash, single-form validation, ordered partial-failure upload retry, main-photo changes, synchronous operation guards and keyboard-aware composition. New test coverage exercises normalization/error cleanup/output bounds, model-first error targets, unresolved-photo save blocking, gallery order and retry without duplicating successful uploads. Native execution remains pending.
+- Independent current review cleared native photo decoder bounds/output size/cleanup, compact opening/splash, single-form validation, ordered partial-failure upload retry, main-photo changes, synchronous operation guards and keyboard-aware composition. New test coverage exercises normalization/error cleanup/output bounds, model-first error targets, unresolved-photo save blocking, gallery order and retry without duplicating successful uploads. Native execution remains pending. Native-control review also cleared toolkit-child ownership, multiline hosts, busy/disabled guards, canonical menu/checkbox callbacks, max8 selection with deselection, inline DOB, tab material defaults and glyph sizing. Root composition waits for fonts so Compose can resolve the Material family; root import includes only the required icon font.
 - Standalone landing HTTP200 verified; old /discover route404, no Expo browser bundle. Landing build/link tests 2/2 pass after updating the premium Android link; production link verified.
 
 ## Remaining release checks
@@ -44,3 +45,8 @@
 - Six photos remain the profile limit. Any size refers to selected source file bytes/dimensions being optimized before upload. An unlimited photo count would require changing profile/rule contracts and gallery layout.
 - HTTPS preview entry remains only in the fictional demo. Real members use native photo selection/upload; advanced URL entry would need restoring if requested.
 - Proceeded directly under the explicit requested changes. If the revised visual direction is wrong, the screens need revision.
+
+## Native-control decisions
+- Used MakeIn installed SDK58 declarations rather than copying Aura+ SDK57 declarations. Native integration revisions may be needed if device behavior differs.
+- Kept specialized swipe/card/list hit areas as React Native interactions while ordinary controls use native widgets. Broader gesture/UI work would be required if these interactions also need changing.
+- Kept birth date empty until interaction or Done confirms the initial wheel value. This adds one confirmation when the proposed default date is correct.

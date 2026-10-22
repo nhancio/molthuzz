@@ -1,32 +1,22 @@
 import React from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 import { Stack } from "expo-router/stack";
 import { useTranslation } from "react-i18next";
 import { useMakeIn } from "../screens/MakeIn";
 import { type AppTab } from "../screens/native-navigation";
 import { LanguagePicker } from "./LanguagePicker";
-import { Icon } from "./UI";
+import { IconButton } from "./UI";
 import { colors } from "../theme";
 export function HeaderActions() {
   const { openMembership } = useMakeIn();
   const { t } = useTranslation();
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t("Membership")}
+      <IconButton
+        label={t("Membership")}
+        icon="sparkles-outline"
         onPress={openMembership}
-        hitSlop={4}
-        style={({ pressed }) => ({
-          minWidth: 44,
-          minHeight: 44,
-          alignItems: "center",
-          justifyContent: "center",
-          opacity: pressed ? 0.55 : 1,
-        })}
-      >
-        <Icon name="sparkles-outline" size={21} />
-      </Pressable>
+      />
       <LanguagePicker compact />
     </View>
   );

@@ -16,14 +16,14 @@
 
 ### Task1 shared native controls — worker
 Own components/UI.tsx, new native-control helper files and native-icons.tsx if needed.
-- [ ] Replace shared primary/secondary Button with genuine SwiftUI/Compose Button, preserve callbacks, disabled/busy/icons/compact behavior and intrinsic height for multiline/accessibility text.
-- [ ] Expose IconButton({icon,label,onPress,disabled?,busy?,size?}) for native icon actions, same platform semantics; no ordinary RN children directly in native trees.
-- [ ] Replace single-choice Chips with native Picker/menu and multiple-choice Chips with native checkbox/toggle rows, translated labels but canonical values unchanged. Optional disabled prop supported.
-- [ ] Inspect installed implementation/types; scoped lint/types and existing tests; meaningful contract check if nontrivial decision logic added. Commit only owned scope.
+- [x] Replace shared primary/secondary Button with genuine SwiftUI/Compose Button, preserve callbacks, disabled/busy/icons/compact behavior and intrinsic height for multiline/accessibility text.
+- [x] Expose IconButton({icon,label,onPress,disabled?,busy?,size?}) for native icon actions, same platform semantics; no ordinary RN children directly in native trees.
+- [x] Replace single-choice Chips with native Picker/menu and multiple-choice Chips with native checkbox/toggle rows, translated labels but canonical values unchanged. Optional disabled prop supported.
+- [x] Inspect installed implementation/types; scoped lint/types and existing tests; meaningful contract check if nontrivial decision logic added. Commit only owned scope.
 
 ### Task2 native DOB/navigation/actions — parent
 Own screens/Onboarding.tsx, app/(tabs)/_layout.tsx, components/LanguagePicker.tsx/app-navigation.tsx, affected action callers and docs.
-- [ ] iOS DOB inline native wheel like Aura+, Android native date dialog; no free text date field. Preserve explicit empty DOB validation and adult bounds.
-- [ ] Let iOS tab bar use native transparent/glass material and minimize behavior; Android native Material tabs with icons/labels retained.
-- [ ] Use native IconButton for ordinary close/header/send/filter/like/pass actions; keep profile/card gesture/list hit areas as RN interactions where appropriate.
+- [x] iOS DOB inline native wheel like Aura+, Android native date dialog; no free text date field. Preserve explicit empty DOB validation and adult bounds.
+- [x] Let iOS tab bar use native transparent/glass material and minimize behavior; Android native Material tabs with icons/labels retained.
+- [x] Use native IconButton for ordinary close/header/send/filter/like/pass actions; keep profile/card gesture/list hit areas as RN interactions where appropriate.
 - [ ] Typecheck/lint/tests/native exports; independent review; updated native builds and PR/landing links.

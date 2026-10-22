@@ -12,10 +12,10 @@ export default function TabLayout() {
     <NativeTabs
       tintColor={colors.ink}
       indicatorColor={colors.lime}
-      backgroundColor={colors.paper}
-      labelStyle={{ fontSize: 11, fontWeight: "500" }}
-      disableTransparentOnScrollEdge
-      minimizeBehavior="never"
+      backgroundColor={
+        process.env.EXPO_OS === "android" ? colors.paper : undefined
+      }
+      minimizeBehavior="onScrollDown"
     >
       <NativeTabs.Trigger name="discover">
         <NativeTabs.Trigger.Icon

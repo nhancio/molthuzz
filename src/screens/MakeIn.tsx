@@ -13,7 +13,7 @@ import React, {
 import { usePathname, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { entryGate, tabPath, type AppTab } from "./native-navigation";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { colors, shared } from "../theme";
 import { BrandMark } from "../components/brand-mark";
 import {
@@ -498,20 +498,9 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
                 ].includes(error)
               }
             />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={t("Dismiss notice")}
-              onPress={() => setError("")}
-            >
-              <Text
-                style={[
-                  shared.muted,
-                  { textAlign: "right", marginTop: 4, fontSize: 10 },
-                ]}
-              >
-                {t("Dismiss")}
-              </Text>
-            </Pressable>
+            <Button secondary compact onPress={() => setError("")}>
+              {t("Dismiss")}
+            </Button>
           </View>
         ) : null}
       </>

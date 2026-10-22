@@ -4,14 +4,13 @@ import React, { useCallback, useRef, useState } from "react";
 import * as Haptics from "expo-haptics";
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
 } from "react-native";
 import type { Card } from "../lib/contracts";
-import { Button, Empty, Icon } from "../components/UI";
+import { Button, Empty, IconButton } from "../components/UI";
 import ProfileCard from "../components/ProfileCard";
 import { colors, shared } from "../theme";
 import {
@@ -100,15 +99,11 @@ export default function Discovery({
               {t("Your next hello.")}
             </Text>
           </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t("Discovery filters")}
+          <IconButton
+            label={t("Discovery filters")}
+            icon="options-outline"
             onPress={onFilters}
-            android_ripple={{ color: "#20241F10" }}
-            style={({ pressed }) => [d.filter, { opacity: pressed ? 0.65 : 1 }]}
-          >
-            <Icon name="options-outline" />
-          </Pressable>
+          />
         </View>
         <View style={{ marginTop: DISCOVERY_CARD_GAP }}>
           {loading ? (
@@ -135,67 +130,32 @@ export default function Discovery({
                 }
               >
                 <View style={d.actions}>
-                  <Pressable
+                  <IconButton
+                    label={t("Pass profile")}
+                    icon="close"
+                    size={27}
                     disabled={interactionBusy}
                     onPress={() => {
                       void decide("pass").catch(() => {});
                     }}
-                    accessibilityRole="button"
-                    accessibilityLabel={t("Pass profile")}
-                    android_ripple={{ color: "#20241F12" }}
-                    style={({ pressed }) => [
-                      d.action,
-                      {
-                        backgroundColor: pressed ? colors.soft : colors.white,
-                        borderWidth: 1,
-                        borderColor: colors.line,
-                        opacity: interactionBusy ? 0.4 : 1,
-                      },
-                    ]}
-                  >
-                    <Icon name="close" size={27} />
-                  </Pressable>
-                  <Pressable
+                  />
+                  <IconButton
+                    label={t("View profile")}
+                    icon="person-outline"
+                    size={22}
+                    disabled={interactionBusy}
                     onPress={() => onOpen(card)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t("View profile")}
+                  />
+                  <IconButton
+                    label={t("Like profile")}
+                    icon="heart"
+                    size={27}
                     disabled={interactionBusy}
-                    android_ripple={{ color: "#20241F12" }}
-                    style={({ pressed }) => [
-                      d.action,
-                      {
-                        width: 48,
-                        height: 48,
-                        backgroundColor: colors.soft,
-                        opacity: pressed ? 0.65 : 1,
-                      },
-                    ]}
-                  >
-                    <Icon name="person-outline" size={21} />
-                  </Pressable>
-                  <Pressable
-                    disabled={interactionBusy}
+                    busy={interactionBusy}
                     onPress={() => {
                       void decide("like").catch(() => {});
                     }}
-                    accessibilityRole="button"
-                    accessibilityLabel={t("Like profile")}
-                    android_ripple={{ color: "#20241F18" }}
-                    style={({ pressed }) => [
-                      d.action,
-                      {
-                        backgroundColor: colors.lime,
-                        transform: [{ scale: pressed ? 0.97 : 1 }],
-                        opacity: interactionBusy ? 0.4 : 1,
-                      },
-                    ]}
-                  >
-                    {interactionBusy ? (
-                      <ActivityIndicator color={colors.ink} />
-                    ) : (
-                      <Icon name="heart" size={27} />
-                    )}
-                  </Pressable>
+                  />
                 </View>
                 <Text
                   style={[
@@ -238,29 +198,12 @@ const d = StyleSheet.create({
     alignItems: "center",
     gap: 12,
   },
-  filter: {
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: colors.line,
-    width: 48,
-    height: 48,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+
   controls: { paddingTop: 12 },
   actions: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 26,
-  },
-  action: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    overflow: "hidden",
-    justifyContent: "center",
-    alignItems: "center",
   },
 });

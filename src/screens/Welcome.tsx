@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { ScrollView, View } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -110,29 +110,11 @@ export default function Welcome({
             ]}
           >
             {(["terms", "privacy"] as const).map((kind) => (
-              <Pressable
-                key={kind}
-                accessibilityRole="link"
-                onPress={() => onLegal(kind)}
-                style={{
-                  minHeight: 44,
-                  justifyContent: "center",
-                  paddingHorizontal: 8,
-                }}
-              >
-                <Text
-                  style={[
-                    shared.muted,
-                    {
-                      fontSize: 12,
-                      color: colors.ink,
-                      textDecorationLine: "underline",
-                    },
-                  ]}
-                >
+              <View key={kind} style={{ flex: 1 }}>
+                <Button secondary compact onPress={() => onLegal(kind)}>
                   {t(kind === "terms" ? "Terms" : "Privacy Policy")}
-                </Text>
-              </Pressable>
+                </Button>
+              </View>
             ))}
           </View>
         </View>

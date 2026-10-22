@@ -6,6 +6,7 @@ import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import {
   useFonts,
   InstrumentSerif_400Regular,
@@ -55,10 +56,15 @@ function Navigation() {
   );
 }
 export default function Layout() {
-  const [fontsLoaded, fontError] = useFonts({ InstrumentSerif_400Regular });
+  const [fontsLoaded, fontError] = useFonts({
+    InstrumentSerif_400Regular,
+    ...MaterialIcons.font,
+  });
   useEffect(() => {
     if (fontsLoaded || fontError) void SplashScreen.hideAsync().catch(() => {});
   }, [fontsLoaded, fontError]);
+  // Compose resolves its icon font on first composition, after Expo registers it.
+  if (!fontsLoaded && !fontError) return null;
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

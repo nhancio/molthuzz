@@ -14,7 +14,7 @@ The Android build link reports its current cloud build status and exposes the AP
 
 ## Native experience
 
-Expo Router provides real OS tabs, per-tab navigation stacks and a native chat header/back action. The compact opening screen places sign-in before decorative artwork and uses a drawn logo mark rather than an emoji. The premium ivory, ink and lime design uses system typography, SF Symbols on iOS and Material icons on Android, native SwiftUI/Compose sheets and language pickers, a platform date picker, grouped account settings and keyboard-aware forms/chat. Photo cards use expo-image, gradients and UI-thread swipe gestures with reduced-motion support and one haptic per accepted decision. Failed saves and messages preserve drafts.
+Using the local Aura+ app as a read-only native-control reference, Expo Router provides real OS tabs, per-tab navigation stacks and a native chat header/back action. The compact opening screen places sign-in before decorative artwork and uses a drawn logo mark rather than an emoji. The premium ivory, ink and lime design uses system typography, SF Symbols on iOS and Material icons on Android, native SwiftUI/Compose buttons, menus, selection controls and sheets, an inline iOS date wheel/Android date dialog, grouped account settings and keyboard-aware forms/chat. Photo cards use expo-image, gradients and UI-thread swipe gestures with reduced-motion support and one haptic per accepted decision. Failed saves and messages preserve drafts.
 
 This implementation follows the [Expo native UI skill](https://github.com/expo/skills/blob/main/plugins/expo/skills/expo-native-ui/SKILL.md). Native-device rendering, keyboard and navigation behavior still require device QA.
 
@@ -58,7 +58,7 @@ npm run export:native
 
 The full security suite also covers Storage when started with `firebase emulators:exec --only firestore,storage --project demo-makein` and the same `scripts/firestore-rules.test.mjs` command. This laptop has Java 25 at the path above; the default Java 17 cannot run the current Firestore emulator.
 
-`npm test` covers profile/birth-date rules, deliberate swipes, preference filtering, membership periods, payment signatures/ownership/replay/retry/cancellation, and deletion sequencing. Emulator tests execute production onboarding, likes/matching, incoming likes, blocks/reports and interrupted cleanup. Typecheck, lint and Android/iOS exports are the native checks. The current suite has 61 cases, including native session/route gates, onboarding Back priorities and gesture commit/retry behavior. Earlier browser checks exercised the predecessor demo; they do not validate this native redesign. Physical-device login, rendering and app-store release remain separate checks.
+`npm test` covers profile/birth-date rules, deliberate swipes, preference filtering, membership periods, payment signatures/ownership/replay/retry/cancellation, and deletion sequencing. Emulator tests execute production onboarding, likes/matching, incoming likes, blocks/reports and interrupted cleanup. Typecheck, lint and Android/iOS exports are the native checks. The current suite has 64 cases, including native session/route gates, onboarding Back priorities and gesture commit/retry behavior. Earlier browser checks exercised the predecessor demo; they do not validate this native redesign. Physical-device login, rendering and app-store release remain separate checks.
 
 ## App languages
 
