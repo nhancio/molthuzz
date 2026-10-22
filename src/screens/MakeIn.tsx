@@ -2,19 +2,22 @@ import { useTranslation } from "react-i18next";
 import { Text } from "../components/LocalizedText";
 /* Effects synchronize external Firebase sessions and reset their loading UI. */
 /* eslint-disable react-hooks/set-state-in-effect */
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Image,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
-import { colors, fonts, shared } from "../theme";
+import React, {
+  createContext,
+  use,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { usePathname, useRouter } from "expo-router";
+import { Image } from "expo-image";
+import { entryGate, tabPath, type AppTab } from "./native-navigation";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { colors, shared } from "../theme";
 import {
   Badge,
   Button,
-  Chips,
   Empty,
   Field,
   Icon,
@@ -73,7 +76,26 @@ import {
   startCheckout,
 } from "../lib/payments";
 
-type Tab = "discover" | "likes" | "matches" | "profile";
+type Tab = AppTab;
+type MakeInContextValue = {
+  ready: boolean;
+  destination: ReturnType<typeof tabPath>;
+  entry: React.ReactNode;
+  renderTab: (tab: Tab) => React.ReactNode;
+  renderConversation: () => React.ReactNode;
+  conversationTitle: string;
+  hasConversation: boolean;
+  conversationSafety: () => void;
+  openMembership: () => void;
+  matchCount: number;
+  demo: boolean;
+};
+const MakeInContext = createContext<MakeInContextValue | null>(null);
+export function useMakeIn() {
+  const context = use(MakeInContext);
+  if (!context) throw new Error("MakeInProvider is missing");
+  return context;
+}
 type Dialog =
   | "membership"
   | "filters"
@@ -85,27 +107,20 @@ type Dialog =
   | "match"
   | null;
 const initialFilters: Filters = { minAge: 18, maxAge: 100, location: "" };
-const tabs: {
-  id: Tab;
-  name: string;
-  icon: React.ComponentProps<typeof Icon>["name"];
-}[] = [
-  { id: "discover", name: "Discover", icon: "compass-outline" },
-  { id: "likes", name: "Likes you", icon: "heart-outline" },
-  { id: "matches", name: "Connections", icon: "chatbubbles-outline" },
-  { id: "profile", name: "Your profile", icon: "person-outline" },
-];
 function messageOf(e: unknown) {
   return e instanceof Error
     ? e.message
     : "Something went wrong. Please try again.";
 }
-export default function MakeIn() {
+export function MakeInProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const { t, i18n } = useTranslation();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [demo, setDemo] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileOwner, setProfileOwner] = useState<string | null>(null);
   const [input, setInput] = useState<ProfileInput>(emptyProfileInput);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -137,6 +152,9 @@ export default function MakeIn() {
   const [profileReload, setProfileReload] = useState(0);
   const uid = demo ? "demo-you" : user?.uid || "";
   const active = demo || membershipActive(membership);
+  useEffect(() => {
+    if (pathname !== "/conversation") setChat(null);
+  }, [pathname]);
   const run = useCallback(async (fn: () => Promise<void>, rethrow = false) => {
     if (mutation.current) return;
     mutation.current = true;
@@ -164,6 +182,11 @@ export default function MakeIn() {
     if (demo) return;
     let current = true;
     setProfile(null);
+    setProfileOwner(null);
+    setSelected(null);
+    setDialog(null);
+    setSafety(null);
+    setNewMatch(null);
     setCards([]);
     setMatches([]);
     setIncoming([]);
@@ -182,6 +205,7 @@ export default function MakeIn() {
       .then(([p, a]) => {
         if (!current) return;
         setProfile(p);
+        setProfileOwner(user.uid);
         if (p) {
           const { age: _age, status: _status, ...editable } = p;
           setInput({ ...editable, birthDate: a?.birthDate || "" });
@@ -264,6 +288,11 @@ export default function MakeIn() {
   function enterDemo() {
     setDemo(true);
     setProfile(demoProfile);
+    setProfileOwner("demo-you");
+    setSelected(null);
+    setDialog(null);
+    setSafety(null);
+    setNewMatch(null);
     setInput(demoProfileInput);
     setCards([...demoCards]);
     setIncoming(demoCards.slice(0, 3));
@@ -340,6 +369,7 @@ export default function MakeIn() {
         setProfile(await saveProfile(user.uid, p));
         setInput(p);
       }
+      setProfileOwner(uid);
       setEditing(false);
     }, true);
   }
@@ -350,6 +380,8 @@ export default function MakeIn() {
       setCards([]);
       setMatches([]);
       setDemoMessages({});
+      setChat(null);
+      setProfileOwner(null);
       setSelected(null);
       setDialog(null);
       setEditing(false);
@@ -389,682 +421,683 @@ export default function MakeIn() {
   const filtered = profile ? filterCards(cards, profile, filters) : [];
   const legalSheet = (
     <Sheet
+        dismissible={!busy}
       title={
         dialog === "privacy"
           ? t("Your privacy matters.")
           : t("A few things to know.")
       }
       visible={dialog === "terms" || dialog === "privacy"}
-      onClose={() => setDialog(null)}
+      onClose={() =>
+        setDialog((current) =>
+          current === "terms" || current === "privacy" ? null : current,
+        )
+      }
     >
       <Legal kind={dialog === "privacy" ? "privacy" : "terms"} />
     </Sheet>
   );
-  if (!authReady)
-    return (
-      <View style={shared.page}>
-        <Empty
-          title={t("A fresh beginning.")}
-          text={t("Getting things ready…")}
-          action={<ActivityIndicator color={colors.ink} />}
-        />
-      </View>
-    );
-  if (!user && !demo)
+  const gate = entryGate({
+    authReady,
+    uid,
+    profileOwner,
+    hasProfile: !!profile,
+    editing,
+    loadFailed,
+  });
+  function closeDialog(kind: Dialog, next: Dialog = null) {
+    setDialog((current) => (current === kind ? next : current));
+  }
+  function openConversation(match: Match) {
+    setChat(match);
+    setError("");
+    router.navigate("/conversation");
+  }
+  function backToMatches() {
+    if (router.canGoBack()) router.back();
+    else router.replace(tabPath("matches"));
+  }
+  function conversationSafety() {
+    if (!chat) return;
+    const other = chat.members.find((member) => member !== uid);
+    if (other) openSafety(other, chat.names[other]);
+  }
+  function renderNotice() {
     return (
       <>
-        <Welcome
-          onGoogle={() => run(signInGoogle)}
-          onDemo={enterDemo}
-          onLegal={setDialog}
-          busy={busy}
-          error={error}
-        />
-        {legalSheet}
-      </>
-    );
-  if (loading && !profile)
-    return (
-      <View style={shared.page}>
-        <Empty
-          title={t("A moment for you.")}
-          text={t("Loading your profile…")}
-          action={<ActivityIndicator color={colors.ink} />}
-        />
-      </View>
-    );
-  if (loadFailed)
-    return (
-      <View style={shared.page}>
-        <Empty
-          title={t("Couldn’t load your profile.")}
-          text={
-            i18n.exists(error, { lng: "en" })
-              ? t(error)
-              : t("Something went wrong. Please try again.")
-          }
-          action={
-            <View style={{ gap: 12 }}>
-              <Button
-                onPress={() => {
-                  // Firebase User methods live on its prototype; retry loading without replacing it.
-                  setLoading(true);
-                  setLoadFailed(false);
-                  setProfileReload((version) => version + 1);
-                }}
-              >
-                {t("Try again")}
-              </Button>
-              <Button secondary onPress={leave}>
-                {t("Sign out")}
-              </Button>
-            </View>
-          }
-        />
-      </View>
-    );
-  if (!profile || editing)
-    return (
-      <Onboarding
-        initial={input}
-        uid={user?.uid}
-        demo={demo}
-        editing={editing}
-        onSave={save}
-        onExit={editing ? () => setEditing(false) : leave}
-        busy={busy}
-      />
-    );
-  return (
-    <View style={shared.page}>
-      <View style={a.root}>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={a.topbar}>
-            <Text style={a.logo}>makein✳</Text>
+        {error ? (
+          <View style={{ marginBottom: 20 }}>
+            <Notice
+              text={error}
+              error={
+                ![
+                  "Demo report recorded in this session. No real report was submitted.",
+                  "Your report was submitted.",
+                ].includes(error)
+              }
+            />
             <Pressable
               accessibilityRole="button"
-              onPress={() => (demo ? leave() : setDialog("membership"))}
+              accessibilityLabel={t("Dismiss notice")}
+              onPress={() => setError("")}
             >
-              <Badge dark>
-                {demo
-                  ? t("DEMO · EXIT ↗")
-                  : active
-                    ? t("MEMBER ✳")
-                    : paymentConfigured
-                      ? t("JOIN FOR ₹2 ↗")
-                      : t("MEMBERSHIP · SOON")}
-              </Badge>
+              <Text
+                style={[
+                  shared.muted,
+                  { textAlign: "right", marginTop: 4, fontSize: 10 },
+                ]}
+              >
+                {t("Dismiss")}
+              </Text>
             </Pressable>
           </View>
-          {demo && (
-            <View style={a.demoBar}>
-              <Text
-                style={{
-                  fontFamily: fonts.medium,
-                  fontSize: 10,
-                  textAlign: "center",
-                  color: colors.ink,
-                }}
-              >
-                {t(
-                  "DEMO EXPERIENCE · Fictional profiles. Local likes and practice chats.",
-                )}
-              </Text>
-            </View>
-          )}
-          <View style={a.main}>
-            {error ? (
-              <View style={{ marginBottom: 20 }}>
-                <Notice
-                  text={error}
-                  error={
-                    ![
-                      "Demo report recorded in this session. No real report was submitted.",
-                      "Your report was submitted.",
-                    ].includes(error)
-                  }
-                />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={t("Dismiss notice")}
-                  onPress={() => setError("")}
+        ) : null}
+      </>
+    );
+  }
+  function entryContent() {
+    if (gate === "starting")
+      return (
+        <View style={shared.page}>
+          <Empty
+            title={t("A fresh beginning.")}
+            text={t("Getting things ready…")}
+            action={<ActivityIndicator color={colors.ink} />}
+          />
+        </View>
+      );
+    if (gate === "welcome")
+      return (
+        <>
+          <Welcome
+            onGoogle={() => run(signInGoogle)}
+            onDemo={enterDemo}
+            onLegal={setDialog}
+            busy={busy}
+            error={error}
+          />
+        </>
+      );
+    if (gate === "loading")
+      return (
+        <View style={shared.page}>
+          <Empty
+            title={t("A moment for you.")}
+            text={t("Loading your profile…")}
+            action={<ActivityIndicator color={colors.ink} />}
+          />
+        </View>
+      );
+    if (gate === "error")
+      return (
+        <View style={shared.page}>
+          <Empty
+            title={t("Couldn’t load your profile.")}
+            text={
+              i18n.exists(error, { lng: "en" })
+                ? t(error)
+                : t("Something went wrong. Please try again.")
+            }
+            action={
+              <View style={{ gap: 12 }}>
+                <Button
+                  onPress={() => {
+                    // Firebase User methods live on its prototype; retry loading without replacing it.
+                    setLoading(true);
+                    setLoadFailed(false);
+                    setProfileReload((version) => version + 1);
+                  }}
                 >
-                  <Text
-                    style={[
-                      shared.muted,
-                      { textAlign: "right", marginTop: 4, fontSize: 10 },
-                    ]}
-                  >
-                    {t("Dismiss")}
-                  </Text>
-                </Pressable>
+                  {t("Try again")}
+                </Button>
+                <Button secondary onPress={leave}>
+                  {t("Sign out")}
+                </Button>
               </View>
-            ) : null}
-            {tab === "discover" && (
-              <Discovery
-                cards={filtered}
-                demo={demo}
-                busy={busy}
-                loading={loading}
-                onDecision={decide}
-                onOpen={setSelected}
-                onFilters={() => {
-                  setFilterDraft(filters);
-                  setDialog("filters");
-                }}
-                onReset={refresh}
-              />
-            )}
-            {tab === "likes" && (
-              <Likes
-                cards={incoming}
-                demo={demo}
-                loading={loading}
-                onOpen={setSelected}
-                onRefresh={refresh}
-              />
-            )}
-            {tab === "matches" &&
-              (chat ? (
-                <Chat
-                  match={chat}
-                  uid={uid}
-                  messages={messages}
-                  demo={demo}
-                  busy={busy}
-                  loading={chatLoading}
-                  onBack={() => setChat(null)}
-                  onSafety={() => {
-                    const id = chat.members.find((m) => m !== uid)!;
-                    openSafety(id, chat.names[id]);
-                  }}
-                  onSend={(text) =>
-                    run(async () => {
-                      if (!active) {
-                        setDialog("membership");
-                        throw Error(
-                          "An active membership is required to send messages.",
-                        );
-                      }
-                      if (demo)
-                        setDemoMessages((old) => ({
-                          ...old,
-                          [chat.id]: [
-                            ...(old[chat.id] || []),
-                            { id: `practice-${Date.now()}`, sender: uid, text },
-                          ],
-                        }));
-                      else await sendMessage(chat.id, uid, text);
-                    }, true)
-                  }
-                />
-              ) : (
-                <Conversations
-                  matches={matches}
-                  uid={uid}
-                  demo={demo}
-                  onOpen={setChat}
-                />
-              ))}
-            {tab === "profile" && (
-              <AccountScreen
-                profile={profile}
-                demo={demo}
-                active={active}
-                onEdit={() => setEditing(true)}
-                onMembership={() => setDialog("membership")}
-                onTerms={() => setDialog("terms")}
-                onPrivacy={() => setDialog("privacy")}
-                onDelete={() => {
-                  setConfirmDelete("");
-                  setDialog("delete");
-                }}
-                onSignOut={leave}
-              />
-            )}
-          </View>
-          <View style={a.bottom}>
-            {tabs.map((item) => (
-              <Pressable
-                key={item.id}
-                accessibilityRole="button"
-                accessibilityLabel={t(item.name)}
-                accessibilityState={{ selected: item.id === tab }}
-                onPress={() => {
-                  setTab(item.id);
-                  setChat(null);
-                  setError("");
-                }}
-                style={{ alignItems: "center", gap: 6, flex: 1 }}
-              >
-                <View
-                  style={[
-                    a.mobileIcon,
-                    item.id === tab && { backgroundColor: colors.lime },
-                  ]}
-                >
-                  <Icon name={item.icon} size={21} />
-                </View>
-                <Text
-                  style={{
-                    fontFamily: item.id === tab ? fonts.semi : fonts.regular,
-                    fontSize: 9,
-                    color: colors.ink,
-                  }}
-                >
-                  {item.id === "profile"
-                    ? t("You")
-                    : item.id === "matches"
-                      ? t("Chats")
-                      : t(item.name)}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
+            }
+          />
         </View>
-      </View>
-      {legalSheet}
-      <Sheet
-        title={t("Your kind of connection.")}
-        visible={dialog === "filters"}
-        onClose={() => setDialog(null)}
-      >
-        <Text style={shared.muted}>
-          {t(
-            "Set your age range and optional city. Your gender preferences are in Edit profile.",
-          )}
-        </Text>
-        <View style={[shared.row, { gap: 20 }]}>
-          <View style={{ flex: 1 }}>
-            <Field
-              label={t("Minimum age")}
-              keyboardType="number-pad"
-              value={String(filterDraft.minAge)}
-              onChangeText={(v) =>
-                setFilterDraft((f) => ({ ...f, minAge: Number(v) || 0 }))
-              }
-            />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Field
-              label={t("Maximum age")}
-              keyboardType="number-pad"
-              value={String(filterDraft.maxAge)}
-              onChangeText={(v) =>
-                setFilterDraft((f) => ({ ...f, maxAge: Number(v) || 0 }))
-              }
-            />
-          </View>
-        </View>
-        <Field
-          label={t("City · optional")}
-          value={filterDraft.location}
-          placeholder={t("Anywhere")}
-          onChangeText={(v) => setFilterDraft((f) => ({ ...f, location: v }))}
-        />
-        {error ? <Notice text={error} error /> : null}
-        <Button
-          onPress={() => {
-            if (
-              filterDraft.minAge < 18 ||
-              filterDraft.maxAge > 100 ||
-              filterDraft.minAge > filterDraft.maxAge
-            )
-              return setError(
-                "Choose an age range between 18 and 100, with minimum no higher than maximum.",
-              );
-            setFilters(filterDraft);
-            setDialog(null);
-            setError("");
-          }}
-        >
-          {t("Apply preferences")}
-        </Button>
-        <Button
-          secondary
-          compact
-          onPress={() => setFilterDraft(initialFilters)}
-        >
-          {t("Reset preferences")}
-        </Button>
-      </Sheet>
-      <Sheet
-        title={t("A little more possibility.")}
-        visible={dialog === "membership"}
-        onClose={() => setDialog(null)}
-      >
-        <MembershipScreen
-          membership={membership}
-          active={active && !demo}
+      );
+    if (gate === "onboarding")
+      return (
+        <Onboarding
+          initial={input}
+          uid={user?.uid}
           demo={demo}
-          configured={paymentConfigured}
+          editing={editing}
+          onSave={save}
+          onExit={editing ? () => setEditing(false) : leave}
           busy={busy}
-          onCheckout={() =>
-            run(async () => {
-              if (!user) throw Error("Sign in to start a real membership.");
-              await startCheckout(user);
-            })
-          }
-          onCancel={() => setDialog("cancel")}
         />
-        {error && <Notice text={error} error />}
-      </Sheet>
-      <Sheet
-        title={t("Stop future renewals?")}
-        visible={dialog === "cancel"}
-        onClose={() => setDialog("membership")}
-      >
-        <Text style={shared.body}>
-          {t(
-            "Your already paid access continues until the current period ends. Cancelling stops future automatic renewal payments.",
-          )}
-        </Text>
-        <Button
+      );
+    return null;
+  }
+  function renderTab(tab: Tab) {
+    if (gate !== "ready" || !profile) return null;
+    return (
+      <View collapsable={false} style={[shared.page, a.main]}>
+        {demo && (
+          <View style={a.demoBar}>
+            <Text style={[shared.muted, { fontSize: 10 }]}>
+              {t(
+                "DEMO EXPERIENCE · Fictional profiles. Local likes and practice chats.",
+              )}
+            </Text>
+          </View>
+        )}
+        {renderNotice()}
+        {tab === "discover" && (
+          <Discovery
+            cards={filtered}
+            demo={demo}
+            busy={busy}
+            loading={loading}
+            onDecision={decide}
+            onOpen={setSelected}
+            onFilters={() => {
+              setFilterDraft(filters);
+              setDialog("filters");
+            }}
+            onReset={refresh}
+          />
+        )}
+        {tab === "likes" && (
+          <Likes
+            cards={incoming}
+            demo={demo}
+            loading={loading}
+            onOpen={setSelected}
+            onRefresh={refresh}
+          />
+        )}
+        {tab === "matches" && (
+          <Conversations
+            matches={matches}
+            uid={uid}
+            demo={demo}
+            onOpen={openConversation}
+          />
+        )}
+        {tab === "profile" && (
+          <AccountScreen
+            profile={profile}
+            demo={demo}
+            active={active}
+            onEdit={() => {
+              setTab("profile");
+              setEditing(true);
+            }}
+            onMembership={() => setDialog("membership")}
+            onTerms={() => setDialog("terms")}
+            onPrivacy={() => setDialog("privacy")}
+            onDelete={() => {
+              setConfirmDelete("");
+              setDialog("delete");
+            }}
+            onSignOut={leave}
+          />
+        )}
+      </View>
+    );
+  }
+  function renderConversation() {
+    if (gate !== "ready" || !chat) return null;
+    return (
+      <View style={[shared.page, a.main]}>
+        {renderNotice()}
+        <Chat
+          nativeHeader
+          match={chat}
+          uid={uid}
+          messages={messages}
+          demo={demo}
           busy={busy}
-          onPress={() =>
+          loading={chatLoading}
+          onBack={backToMatches}
+          onSafety={() => {
+            const id = chat.members.find((m) => m !== uid)!;
+            openSafety(id, chat.names[id]);
+          }}
+          onSend={(text) =>
             run(async () => {
-              if (!user) return;
-              await cancelMembership(user);
-              setDialog("membership");
-            })
+              if (!active) {
+                setDialog("membership");
+                throw Error(
+                  "An active membership is required to send messages.",
+                );
+              }
+              if (demo)
+                setDemoMessages((old) => ({
+                  ...old,
+                  [chat.id]: [
+                    ...(old[chat.id] || []),
+                    { id: `practice-${Date.now()}`, sender: uid, text },
+                  ],
+                }));
+              else await sendMessage(chat.id, uid, text);
+            }, true)
           }
-        >
-          {t("Cancel automatic renewal")}
-        </Button>
-        <Button secondary onPress={() => setDialog("membership")}>
-          {t("Keep membership")}
-        </Button>
-        {error && <Notice text={error} error />}
-      </Sheet>
-      <Sheet
-        title={selected ? `${selected.name}, ${selected.age}` : ""}
-        visible={!!selected}
-        onClose={() => setSelected(null)}
-      >
-        {selected && (
-          <>
-            <View style={[shared.row, { gap: 8 }]}>
-              <Badge>
-                {selected.demo
-                  ? t("FICTIONAL DEMO PROFILE")
-                  : t(selected.intent)}
-              </Badge>
-            </View>
-            {selected.photos.map((photo, i) => (
-              <Image
-                key={`${photo}-${i}`}
-                source={{ uri: photo }}
-                style={{
-                  width: "100%",
-                  aspectRatio: 0.87,
-                  borderRadius: 19,
-                  backgroundColor: colors.soft,
-                }}
-              />
-            ))}
-            <View style={[shared.row, { gap: 7 }]}>
-              <Icon name="location-outline" size={17} />
-              <Text style={shared.muted}>
-                {selected.location} · {t(selected.gender)}
-              </Text>
-            </View>
-            <Text style={shared.body}>{selected.bio}</Text>
-            <View>
-              <Text style={[shared.label, { marginBottom: 12 }]}>
-                {t("LOOKING FOR")}
-              </Text>
-              <Text style={shared.body}>{t(selected.intent)}</Text>
-            </View>
-            <Chips
-              values={selected.interests}
-              selected={selected.interests}
-              onChange={() => {}}
-            />
-            {selected.prompts.map((p, i) => (
-              <View key={i} style={shared.panel}>
-                <Text style={shared.label}>{p.question.toUpperCase()}</Text>
-                <Text
-                  style={[
-                    shared.heading,
-                    { fontSize: 30, lineHeight: 35, marginTop: 15 },
-                  ]}
-                >
-                  {p.answer}
-                </Text>
+        />
+      </View>
+    );
+  }
+  return (
+    <MakeInContext.Provider
+      value={{
+        ready: gate === "ready",
+        destination: tabPath(tab),
+        entry: entryContent(),
+        renderTab,
+        renderConversation,
+        conversationTitle: chat
+          ? chat.names[chat.members.find((member) => member !== uid) || ""] ||
+            t("Your match")
+          : t("Your match"),
+        hasConversation: !!chat,
+        conversationSafety,
+        openMembership: () => setDialog("membership"),
+        matchCount: matches.length,
+        demo,
+      }}
+    >
+      {children}
+      {legalSheet}
+      {gate === "ready" && profile && (
+        <>
+          <Sheet
+        dismissible={!busy}
+            title={t("Your kind of connection.")}
+            visible={dialog === "filters"}
+            onClose={() => closeDialog("filters")}
+          >
+            <Text style={shared.muted}>
+              {t(
+                "Set your age range and optional city. Your gender preferences are in Edit profile.",
+              )}
+            </Text>
+            <View style={[shared.row, { gap: 20 }]}>
+              <View style={{ flex: 1 }}>
+                <Field
+                  label={t("Minimum age")}
+                  keyboardType="number-pad"
+                  value={String(filterDraft.minAge)}
+                  onChangeText={(v) =>
+                    setFilterDraft((f) => ({ ...f, minAge: Number(v) || 0 }))
+                  }
+                />
               </View>
-            ))}
+              <View style={{ flex: 1 }}>
+                <Field
+                  label={t("Maximum age")}
+                  keyboardType="number-pad"
+                  value={String(filterDraft.maxAge)}
+                  onChangeText={(v) =>
+                    setFilterDraft((f) => ({ ...f, maxAge: Number(v) || 0 }))
+                  }
+                />
+              </View>
+            </View>
+            <Field
+              label={t("City · optional")}
+              value={filterDraft.location}
+              placeholder={t("Anywhere")}
+              onChangeText={(v) =>
+                setFilterDraft((f) => ({ ...f, location: v }))
+              }
+            />
+            {error ? <Notice text={error} error /> : null}
             <Button
-              busy={busy}
-              onPress={() => decide("like", selected)}
-              icon="heart"
+              onPress={() => {
+                if (
+                  filterDraft.minAge < 18 ||
+                  filterDraft.maxAge > 100 ||
+                  filterDraft.minAge > filterDraft.maxAge
+                )
+                  return setError(
+                    "Choose an age range between 18 and 100, with minimum no higher than maximum.",
+                  );
+                setFilters(filterDraft);
+                setDialog(null);
+                setError("");
+              }}
             >
-              {incoming.some((c) => c.id === selected.id)
-                ? t("Like back")
-                : t("Like profile")}
+              {t("Apply preferences")}
             </Button>
             <Button
               secondary
-              onPress={() => openSafety(selected.id, selected.name)}
+              compact
+              onPress={() => setFilterDraft(initialFilters)}
             >
-              {t("Report or block")}
+              {t("Reset preferences")}
             </Button>
+          </Sheet>
+          <Sheet
+        dismissible={!busy}
+            title={t("A little more possibility.")}
+            visible={dialog === "membership"}
+            onClose={() => closeDialog("membership")}
+          >
+            <MembershipScreen
+              membership={membership}
+              active={active && !demo}
+              demo={demo}
+              configured={paymentConfigured}
+              busy={busy}
+              onCheckout={() =>
+                run(async () => {
+                  if (!user) throw Error("Sign in to start a real membership.");
+                  await startCheckout(user);
+                })
+              }
+              onCancel={() => setDialog("cancel")}
+            />
             {error && <Notice text={error} error />}
-          </>
-        )}
-      </Sheet>
-      <Sheet
-        title={
-          safety
-            ? t("Your connection with {{name}}", { name: safety.name })
-            : t("Safety options")
-        }
-        visible={dialog === "safety"}
-        onClose={() => setDialog(null)}
-      >
-        <Text style={shared.muted}>
-          {demo
-            ? t(
-                "These actions affect this demo session only. No real report is submitted.",
-              )
-            : t(
-                "Blocking removes this connection and stops further likes and messages between you.",
+          </Sheet>
+          <Sheet
+        dismissible={!busy}
+            title={t("Stop future renewals?")}
+            visible={dialog === "cancel"}
+            onClose={() => closeDialog("cancel", "membership")}
+          >
+            <Text style={shared.body}>
+              {t(
+                "Your already paid access continues until the current period ends. Cancelling stops future automatic renewal payments.",
               )}
-        </Text>
-        <Field
-          label={t("Reason for reporting")}
-          placeholder={t("Inappropriate behaviour")}
-          value={reason}
-          onChangeText={setReason}
-          maxLength={500}
-          multiline
-        />
-        <Button
-          secondary
-          busy={busy}
-          disabled={reason.trim().length < 5}
-          onPress={() => safetyAction("report")}
-          icon="flag-outline"
-        >
-          {t("Submit report")}
-        </Button>
-        <Button
-          secondary
-          busy={busy}
-          onPress={() => safetyAction("block")}
-          icon="ban-outline"
-        >
-          {t("Block profile")}
-        </Button>
-        {chat && (
-          <Button secondary busy={busy} onPress={() => safetyAction("unmatch")}>
-            {t("End this match")}
-          </Button>
-        )}
-        {error && <Notice error text={error} />}
-      </Sheet>
-      <Sheet
-        title={t("A mutual little spark.")}
-        visible={dialog === "match"}
-        onClose={() => setDialog(null)}
-      >
-        {newMatch && (
-          <>
-            <View style={{ alignItems: "center", paddingVertical: 15 }}>
-              <View style={[shared.row, { gap: 12 }]}>
-                <Image
-                  source={{ uri: profile.photos[0] }}
-                  style={a.matchPhoto}
-                />
-                <View style={a.matchHeart}>
-                  <Icon name="heart" size={28} />
-                </View>
-                <Image
-                  source={{ uri: newMatch.photos[0] }}
-                  style={a.matchPhoto}
-                />
-              </View>
-            </View>
-            <Text
-              style={[
-                shared.heading,
-                { textAlign: "center", fontSize: 40, lineHeight: 44 },
-              ]}
-            >
-              {t("You and {{name}} liked each other.", { name: newMatch.name })}
-            </Text>
-            <Text style={[shared.muted, { textAlign: "center" }]}>
-              {demo
-                ? t(
-                    "A fictional demo match. Your practice messages aren’t sent to anyone.",
-                  )
-                : t("A shared hello could be the beginning of something good.")}
             </Text>
             <Button
-              onPress={() => {
-                setDialog(null);
-                setTab("matches");
-                const match = matches.find((m) =>
-                  m.members.includes(newMatch.id),
-                );
-                if (match) setChat(match);
-              }}
+              busy={busy}
+              onPress={() =>
+                run(async () => {
+                  if (!user) return;
+                  await cancelMembership(user);
+                  setDialog("membership");
+                })
+              }
             >
-              {t("Say hello")}
+              {t("Cancel automatic renewal")}
             </Button>
-            <Button secondary onPress={() => setDialog(null)}>
-              {t("Keep discovering")}
+            <Button secondary onPress={() => setDialog("membership")}>
+              {t("Keep membership")}
             </Button>
-          </>
-        )}
-      </Sheet>
-      <Sheet
-        title={t("Delete your account?")}
-        visible={dialog === "delete"}
-        onClose={() => setDialog(null)}
-      >
-        <Text style={shared.body}>
-          {t(
-            "This permanently removes your profile, likes, matches, conversation data and sign-in account. You’ll need to sign in with Google again to confirm ownership. When payments are connected, we first ask the provider to cancel any subscription or pending mandate, or confirm none exists. A known subscription also requires this check if payments are currently unavailable. If the provider cannot confirm cancellation, deletion stops.",
-          )}
-        </Text>
-        {membership?.status === "active" && (
-          <Notice
-            error
-            text="Cancel automatic renewal in Membership before deleting your account. Deletion does not itself cancel billing."
-          />
-        )}
-        <Field
-          label={t("Type DELETE to confirm")}
-          keyboardType="ascii-capable"
-          value={confirmDelete}
-          onChangeText={setConfirmDelete}
-          autoCapitalize="characters"
-        />
-        <Button
-          disabled={
-            confirmDelete !== "DELETE" || membership?.status === "active"
-          }
-          busy={busy}
-          onPress={() =>
-            run(async () => {
-              if (!user) return;
-              await deleteAccountSafely(user, membership, paymentConfigured, {
-                reauthenticate: reauthenticateGoogle,
-                cancelBilling: cancelMembership,
-                deleteData: deleteAccountData,
-                deleteAuth: deleteAuthUser,
-              });
-              setDialog(null);
-              setProfile(null);
-            })
-          }
-        >
-          {t("Permanently delete account")}
-        </Button>
-        {error && <Notice error text={error} />}
-      </Sheet>
-    </View>
+            {error && <Notice text={error} error />}
+          </Sheet>
+          <Sheet
+        dismissible={!busy}
+            title={selected ? `${selected.name}, ${selected.age}` : ""}
+            visible={!!selected}
+            onClose={() => setSelected(null)}
+          >
+            {selected && (
+              <>
+                <View style={[shared.row, { gap: 8 }]}>
+                  <Badge>
+                    {selected.demo
+                      ? t("FICTIONAL DEMO PROFILE")
+                      : t(selected.intent)}
+                  </Badge>
+                </View>
+                {selected.photos.map((photo, i) => (
+                  <Image
+                    key={`${photo}-${i}`}
+                    source={{ uri: photo }}
+                    style={{
+                      width: "100%",
+                      aspectRatio: 0.87,
+                      borderRadius: 19,
+                      backgroundColor: colors.soft,
+                    }}
+                  />
+                ))}
+                <View style={[shared.row, { gap: 7 }]}>
+                  <Icon name="location-outline" size={17} />
+                  <Text style={shared.muted}>
+                    {selected.location} · {t(selected.gender)}
+                  </Text>
+                </View>
+                <Text style={shared.body}>{selected.bio}</Text>
+                <View>
+                  <Text style={[shared.label, { marginBottom: 12 }]}>
+                    {t("LOOKING FOR")}
+                  </Text>
+                  <Text style={shared.body}>{t(selected.intent)}</Text>
+                </View>
+                <View
+                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                >
+                  {selected.interests.map((interest) => (
+                    <Badge key={interest}>{t(interest)}</Badge>
+                  ))}
+                </View>
+                {selected.prompts.map((p, i) => (
+                  <View key={i} style={shared.panel}>
+                    <Text style={shared.label}>{p.question.toUpperCase()}</Text>
+                    <Text
+                      style={[
+                        shared.heading,
+                        { fontSize: 30, lineHeight: 35, marginTop: 15 },
+                      ]}
+                    >
+                      {p.answer}
+                    </Text>
+                  </View>
+                ))}
+                <Button
+                  busy={busy}
+                  onPress={() => decide("like", selected)}
+                  icon="heart"
+                >
+                  {incoming.some((c) => c.id === selected.id)
+                    ? t("Like back")
+                    : t("Like profile")}
+                </Button>
+                <Button
+                  secondary
+                  onPress={() => openSafety(selected.id, selected.name)}
+                >
+                  {t("Report or block")}
+                </Button>
+                {error && <Notice text={error} error />}
+              </>
+            )}
+          </Sheet>
+          <Sheet
+        dismissible={!busy}
+            title={
+              safety
+                ? t("Your connection with {{name}}", { name: safety.name })
+                : t("Safety options")
+            }
+            visible={dialog === "safety"}
+            onClose={() => closeDialog("safety")}
+          >
+            <Text style={shared.muted}>
+              {demo
+                ? t(
+                    "These actions affect this demo session only. No real report is submitted.",
+                  )
+                : t(
+                    "Blocking removes this connection and stops further likes and messages between you.",
+                  )}
+            </Text>
+            <Field
+              label={t("Reason for reporting")}
+              placeholder={t("Inappropriate behaviour")}
+              value={reason}
+              onChangeText={setReason}
+              maxLength={500}
+              multiline
+            />
+            <Button
+              secondary
+              busy={busy}
+              disabled={reason.trim().length < 5}
+              onPress={() => safetyAction("report")}
+              icon="flag-outline"
+            >
+              {t("Submit report")}
+            </Button>
+            <Button
+              secondary
+              busy={busy}
+              onPress={() => safetyAction("block")}
+              icon="ban-outline"
+            >
+              {t("Block profile")}
+            </Button>
+            {chat && (
+              <Button
+                secondary
+                busy={busy}
+                onPress={() => safetyAction("unmatch")}
+              >
+                {t("End this match")}
+              </Button>
+            )}
+            {error && <Notice error text={error} />}
+          </Sheet>
+          <Sheet
+        dismissible={!busy}
+            title={t("A mutual little spark.")}
+            visible={dialog === "match"}
+            onClose={() => closeDialog("match")}
+          >
+            {newMatch && (
+              <>
+                <View style={{ alignItems: "center", paddingVertical: 15 }}>
+                  <View style={[shared.row, { gap: 12 }]}>
+                    <Image
+                      source={{ uri: profile.photos[0] }}
+                      style={a.matchPhoto}
+                    />
+                    <View style={a.matchHeart}>
+                      <Icon name="heart" size={28} />
+                    </View>
+                    <Image
+                      source={{ uri: newMatch.photos[0] }}
+                      style={a.matchPhoto}
+                    />
+                  </View>
+                </View>
+                <Text
+                  style={[
+                    shared.heading,
+                    { textAlign: "center", fontSize: 40, lineHeight: 44 },
+                  ]}
+                >
+                  {t("You and {{name}} liked each other.", {
+                    name: newMatch.name,
+                  })}
+                </Text>
+                <Text style={[shared.muted, { textAlign: "center" }]}>
+                  {demo
+                    ? t(
+                        "A fictional demo match. Your practice messages aren’t sent to anyone.",
+                      )
+                    : t(
+                        "A shared hello could be the beginning of something good.",
+                      )}
+                </Text>
+                <Button
+                  onPress={() => {
+                    setDialog(null);
+                    setTab("matches");
+                    const match = matches.find((m) =>
+                      m.members.includes(newMatch.id),
+                    );
+                    if (match) openConversation(match);
+                    else router.navigate(tabPath("matches"));
+                  }}
+                >
+                  {t("Say hello")}
+                </Button>
+                <Button secondary onPress={() => setDialog(null)}>
+                  {t("Keep discovering")}
+                </Button>
+              </>
+            )}
+          </Sheet>
+          <Sheet
+        dismissible={!busy}
+            title={t("Delete your account?")}
+            visible={dialog === "delete"}
+            onClose={() => closeDialog("delete")}
+          >
+            <Text style={shared.body}>
+              {t(
+                "This permanently removes your profile, likes, matches, conversation data and sign-in account. You’ll need to sign in with Google again to confirm ownership. When payments are connected, we first ask the provider to cancel any subscription or pending mandate, or confirm none exists. A known subscription also requires this check if payments are currently unavailable. If the provider cannot confirm cancellation, deletion stops.",
+              )}
+            </Text>
+            {membership?.status === "active" && (
+              <Notice
+                error
+                text="Cancel automatic renewal in Membership before deleting your account. Deletion does not itself cancel billing."
+              />
+            )}
+            <Field
+              label={t("Type DELETE to confirm")}
+              keyboardType="ascii-capable"
+              value={confirmDelete}
+              onChangeText={setConfirmDelete}
+              autoCapitalize="characters"
+            />
+            <Button
+              disabled={
+                confirmDelete !== "DELETE" || membership?.status === "active"
+              }
+              busy={busy}
+              onPress={() =>
+                run(async () => {
+                  if (!user) return;
+                  await deleteAccountSafely(
+                    user,
+                    membership,
+                    paymentConfigured,
+                    {
+                      reauthenticate: reauthenticateGoogle,
+                      cancelBilling: cancelMembership,
+                      deleteData: deleteAccountData,
+                      deleteAuth: deleteAuthUser,
+                    },
+                  );
+                  setDialog(null);
+                  setProfile(null);
+                })
+              }
+            >
+              {t("Permanently delete account")}
+            </Button>
+            {error && <Notice error text={error} />}
+          </Sheet>
+        </>
+      )}
+    </MakeInContext.Provider>
   );
 }
 const a = StyleSheet.create({
-  root: { flex: 1 },
-  logo: {
-    fontFamily: fonts.serif,
-    fontSize: 31,
-    letterSpacing: -1.5,
-    color: colors.ink,
-  },
-  topbar: {
-    minHeight: 64,
-    paddingHorizontal: 22,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderColor: colors.line,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-  },
   demoBar: {
     backgroundColor: "#EAF0D5",
-    paddingHorizontal: 15,
-    paddingVertical: 7,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginBottom: 12,
   },
   main: {
     flex: 1,
     minHeight: 0,
-    maxWidth: 560,
     width: "100%",
-    alignSelf: "center",
-    paddingHorizontal: 18,
-    paddingTop: 16,
-  },
-  bottom: {
-    paddingTop: 8,
-    paddingBottom: 8,
-    borderTopWidth: 1,
-    borderColor: colors.line,
-    backgroundColor: colors.paper,
-    flexDirection: "row",
-    minHeight: 64,
-  },
-  mobileIcon: {
-    width: 50,
-    height: 31,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
+    paddingHorizontal: 16,
+    paddingTop: 10,
   },
   matchPhoto: {
-    width: 100,
-    height: 130,
-    borderRadius: 50,
+    width: 104,
+    height: 132,
+    borderRadius: 28,
     backgroundColor: colors.soft,
   },
   matchHeart: {
-    width: 55,
-    height: 55,
-    borderRadius: 30,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.lime,

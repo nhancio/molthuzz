@@ -17,6 +17,11 @@ test('native UI literals use the catalog and member-authored fields never enter 
           const text = node.text.replace(/\s+/g, ' ').trim();
           if (/[A-Za-z]{2}/.test(text) && !['makein', 'makein✳'].includes(text)) issues.push(`${location}: untranslated JSX ${text}`);
         }
+        if (ts.isJsxExpression(node) && node.expression && ts.isStringLiteral(node.expression) && /^\s+$/.test(node.expression.text)) {
+          const parent = node.parent;
+          const tag = ts.isJsxElement(parent) ? parent.openingElement.tagName.getText(source) : '';
+          if (!['Text', 'NativeText', 'Button', 'Badge'].includes(tag)) issues.push(`${location}: raw native whitespace outside Text`);
+        }
         if (ts.isJsxAttribute(node) && attributes.has(node.name.getText(source)) && node.initializer && ts.isStringLiteral(node.initializer) && /[A-Za-z]{2}/.test(node.initializer.text)) {
           const container = node.parent.parent;
           const translatedNotice = (ts.isJsxSelfClosingElement(container) || ts.isJsxOpeningElement(container)) && container.tagName.getText(source) === 'Notice' && Object.hasOwn(english, node.initializer.text);

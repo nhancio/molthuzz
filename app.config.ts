@@ -12,6 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     slug: 'makein',
     plugins: [
       ...(config.plugins || []),
+      'expo-image',
       ['expo-localization', {
         supportedLocales: ['en', 'hi', 'te', 'ta', 'kn', 'ml', 'mr', 'bn', 'gu'],
       }],
