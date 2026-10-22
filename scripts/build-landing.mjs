@@ -17,7 +17,7 @@ const releaseURL = (name, fallback) => {
 };
 const iosAvailable = Boolean(process.env.MAKEIN_IOS_URL?.trim());
 const tokens = {
-  ANDROID_URL: releaseURL('MAKEIN_ANDROID_URL', 'https://expo.dev/accounts/nithindidigam/projects/makein/builds/04f712cc-1fe3-4974-a50a-b1e9d8ea997d'),
+  ANDROID_URL: releaseURL('MAKEIN_ANDROID_URL', 'https://expo.dev/accounts/nithindidigam/projects/makein/builds/ebfc04c2-b459-4ea0-aea8-c93b7514de21'),
   IOS_URL: releaseURL('MAKEIN_IOS_URL', '#availability'),
   IOS_LABEL: iosAvailable ? 'iOS preview access' : 'iOS preview in preparation',
   IOS_STATUS: iosAvailable ? 'An iOS preview access link is available below. This does not imply App Store publication.' : 'iOS testing is being prepared. A TestFlight or App Store download is not available yet.',
