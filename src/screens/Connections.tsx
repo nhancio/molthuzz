@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Image,
+  KeyboardAvoidingView,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -197,7 +198,10 @@ export function Chat({
     }
   }
   return (
-    <View style={{ flex: 1, minHeight: 530 }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, minHeight: 0 }}
+      behavior={process.env.EXPO_OS === "ios" ? "padding" : undefined}
+    >
       <View
         style={[
           shared.row,
@@ -213,6 +217,12 @@ export function Chat({
           onPress={onBack}
           accessibilityRole="button"
           accessibilityLabel="Back to matches"
+          style={{
+            minWidth: 44,
+            minHeight: 44,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
         >
           <Icon name="arrow-back" />
         </Pressable>
@@ -231,12 +241,20 @@ export function Chat({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Conversation safety options"
+          style={{
+            minWidth: 44,
+            minHeight: 44,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
           onPress={onSafety}
         >
           <Icon name="ellipsis-horizontal" />
         </Pressable>
       </View>
       <ScrollView
+        style={{ flex: 1 }}
+        contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: messages.length ? "flex-start" : "center",
@@ -323,7 +341,7 @@ export function Chat({
           ? "Demo only. No real messages are sent."
           : "Stay curious. Be kind. Keep personal details private until you feel comfortable."}
       </Text>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 const n = StyleSheet.create({

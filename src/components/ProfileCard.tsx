@@ -14,12 +14,14 @@ import { Badge, Icon } from "./UI";
 import { colors, fonts, shared } from "../theme";
 export default function ProfileCard({
   card,
+  height,
   onOpen,
   onDecision,
   busy,
   onGestureStateChange,
 }: {
   card: Card;
+  height: number;
   onOpen: () => void;
   onDecision: (decision: "like" | "pass") => Promise<void>;
   busy: boolean;
@@ -77,6 +79,7 @@ export default function ProfileCard({
       style={[
         c.card,
         {
+          height,
           transform: [
             { translateX: position.x },
             { translateY: position.y },
@@ -191,9 +194,6 @@ export default function ProfileCard({
 const c = StyleSheet.create({
   card: {
     width: "100%",
-    aspectRatio: 0.75,
-    maxHeight: 560,
-    minHeight: 380,
     borderRadius: 25,
     overflow: "hidden",
     backgroundColor: "#B9BBAE",
@@ -232,8 +232,8 @@ const c = StyleSheet.create({
   },
   info: {
     backgroundColor: "#FFFFFF25",
-    width: 34,
-    height: 34,
+    width: 44,
+    height: 44,
     borderWidth: 1,
     borderColor: "#FFFFFF50",
     borderRadius: 18,
@@ -242,6 +242,7 @@ const c = StyleSheet.create({
   },
   caption: { position: "absolute", bottom: 27, left: 25, right: 20 },
   name: {
+    flexShrink: 1,
     fontFamily: fonts.serif,
     fontSize: 43,
     lineHeight: 47,

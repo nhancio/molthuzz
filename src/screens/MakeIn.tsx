@@ -7,7 +7,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { colors, fonts, shared } from "../theme";
@@ -101,7 +100,6 @@ function messageOf(e: unknown) {
     : "Something went wrong. Please try again.";
 }
 export default function MakeIn() {
-  const wide = useWindowDimensions().width >= 900;
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [demo, setDemo] = useState(false);
@@ -472,115 +470,21 @@ export default function MakeIn() {
   return (
     <View style={shared.page}>
       <View style={a.root}>
-        {wide && (
-          <View style={a.sidebar}>
-            <Text style={a.logo}>
-              makein<Text style={{ color: "#9BB329" }}>✳</Text>
-            </Text>
-            <Text
-              style={[
-                shared.label,
-                {
-                  fontSize: 8,
-                  letterSpacing: 1.5,
-                  marginTop: 6,
-                  marginLeft: 3,
-                },
-              ]}
-            >
-              SOMETHING GOOD STARTS HERE
-            </Text>
-            <View style={{ gap: 8, marginTop: 60 }}>
-              {tabs.map((item) => (
-                <Pressable
-                  key={item.id}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: tab === item.id }}
-                  onPress={() => {
-                    setTab(item.id);
-                    setChat(null);
-                    setError("");
-                  }}
-                  style={[
-                    a.nav,
-                    tab === item.id && { backgroundColor: colors.lime },
-                  ]}
-                >
-                  <Icon name={item.icon} size={21} />
-                  <Text
-                    style={{
-                      fontFamily: tab === item.id ? fonts.semi : fonts.regular,
-                      fontSize: 13,
-                    }}
-                  >
-                    {item.name}
-                  </Text>
-                  {item.id === "matches" && matches.length > 0 && (
-                    <View style={a.count}>
-                      <Text style={{ fontFamily: fonts.bold, fontSize: 10 }}>
-                        {matches.length}
-                      </Text>
-                    </View>
-                  )}
-                </Pressable>
-              ))}
-            </View>
-            <View style={{ flex: 1 }} />
-            <View style={a.sidebarNote}>
-              <Icon name="flower-outline" size={27} />
-              <Text
-                style={{
-                  fontFamily: fonts.serif,
-                  fontSize: 24,
-                  marginTop: 12,
-                  lineHeight: 27,
-                }}
-              >
-                Good energy.{"\n"}Great possibilities.
-              </Text>
-              <Text style={[shared.muted, { fontSize: 10, marginTop: 10 }]}>
-                Be kind. Be curious. Be you.
-              </Text>
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setTab("profile")}
-              style={[shared.row, { marginTop: 27, gap: 11 }]}
-            >
-              <Image source={{ uri: profile.photos[0] }} style={a.avatar} />
-              <View>
-                <Text style={{ fontFamily: fonts.semi, fontSize: 12 }}>
-                  {profile.name}
-                </Text>
-                <Text style={[shared.muted, { fontSize: 10 }]}>
-                  {demo ? "Demo explorer" : "Your profile"}
-                </Text>
-              </View>
-              <Icon name="chevron-forward" size={13} />
-            </Pressable>
-          </View>
-        )}
         <View style={{ flex: 1, minWidth: 0 }}>
-          <View style={[a.topbar, { paddingHorizontal: wide ? 44 : 22 }]}>
-            {!wide ? (
-              <Text style={[a.logo, { fontSize: 31 }]}>makein✳</Text>
-            ) : (
-              <Text style={[shared.label, { fontSize: 9 }]}>
-                {tab === "discover"
-                  ? "DISCOVER YOUR KIND OF CONNECTION"
-                  : tab === "likes"
-                    ? "A LITTLE SPARK GOES BOTH WAYS"
-                    : tab === "matches"
-                      ? "LET THE CONVERSATION BEGIN"
-                      : "MAKE YOURSELF AT HOME"}
-              </Text>
-            )}
+          <View style={a.topbar}>
+            <Text style={a.logo}>makein✳</Text>
             <Pressable
               accessibilityRole="button"
               onPress={() => (demo ? leave() : setDialog("membership"))}
             >
               <Badge dark>
-                {demo ? "DEMO · EXIT ↗" : active ? "MEMBER ✳" : "JOIN FOR ₹2 ↗"}
+                {demo
+                  ? "DEMO · EXIT ↗"
+                  : active
+                    ? "MEMBER ✳"
+                    : paymentConfigured
+                      ? "JOIN FOR ₹2 ↗"
+                      : "MEMBERSHIP · SOON"}
               </Badge>
             </Pressable>
           </View>
@@ -599,12 +503,7 @@ export default function MakeIn() {
               </Text>
             </View>
           )}
-          <View
-            style={[
-              a.main,
-              { paddingHorizontal: wide ? 44 : 21, paddingTop: wide ? 34 : 28 },
-            ]}
-          >
+          <View style={a.main}>
             {error ? (
               <View style={{ marginBottom: 20 }}>
                 <Notice text={error} error={!error.includes("report")} />
@@ -637,8 +536,6 @@ export default function MakeIn() {
                   setDialog("filters");
                 }}
                 onReset={refresh}
-                active={active}
-                onMembership={() => setDialog("membership")}
               />
             )}
             {tab === "likes" && (
@@ -709,46 +606,44 @@ export default function MakeIn() {
               />
             )}
           </View>
-          {!wide && (
-            <View style={a.bottom}>
-              {tabs.map((item) => (
-                <Pressable
-                  key={item.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={item.name}
-                  accessibilityState={{ selected: item.id === tab }}
-                  onPress={() => {
-                    setTab(item.id);
-                    setChat(null);
-                    setError("");
-                  }}
-                  style={{ alignItems: "center", gap: 6, flex: 1 }}
+          <View style={a.bottom}>
+            {tabs.map((item) => (
+              <Pressable
+                key={item.id}
+                accessibilityRole="button"
+                accessibilityLabel={item.name}
+                accessibilityState={{ selected: item.id === tab }}
+                onPress={() => {
+                  setTab(item.id);
+                  setChat(null);
+                  setError("");
+                }}
+                style={{ alignItems: "center", gap: 6, flex: 1 }}
+              >
+                <View
+                  style={[
+                    a.mobileIcon,
+                    item.id === tab && { backgroundColor: colors.lime },
+                  ]}
                 >
-                  <View
-                    style={[
-                      a.mobileIcon,
-                      item.id === tab && { backgroundColor: colors.lime },
-                    ]}
-                  >
-                    <Icon name={item.icon} size={21} />
-                  </View>
-                  <Text
-                    style={{
-                      fontFamily: item.id === tab ? fonts.semi : fonts.regular,
-                      fontSize: 9,
-                      color: colors.ink,
-                    }}
-                  >
-                    {item.id === "profile"
-                      ? "You"
-                      : item.id === "matches"
-                        ? "Chats"
-                        : item.name}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-          )}
+                  <Icon name={item.icon} size={21} />
+                </View>
+                <Text
+                  style={{
+                    fontFamily: item.id === tab ? fonts.semi : fonts.regular,
+                    fontSize: 9,
+                    color: colors.ink,
+                  }}
+                >
+                  {item.id === "profile"
+                    ? "You"
+                    : item.id === "matches"
+                      ? "Chats"
+                      : item.name}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
         </View>
       </View>
       {legalSheet}
@@ -1086,52 +981,17 @@ export default function MakeIn() {
   );
 }
 const a = StyleSheet.create({
-  root: { flex: 1, flexDirection: "row" },
-  sidebar: {
-    width: 236,
-    borderRightWidth: 1,
-    borderColor: colors.line,
-    padding: 27,
-    paddingTop: 32,
-    backgroundColor: "#F3F3EB",
-  },
+  root: { flex: 1 },
   logo: {
     fontFamily: fonts.serif,
-    fontSize: 43,
-    letterSpacing: -2,
+    fontSize: 31,
+    letterSpacing: -1.5,
     color: colors.ink,
   },
-  nav: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 13,
-    paddingVertical: 15,
-    paddingHorizontal: 15,
-    borderRadius: 13,
-  },
-  count: {
-    backgroundColor: colors.paper,
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: "auto",
-  },
-  sidebarNote: {
-    padding: 20,
-    borderWidth: 1,
-    borderColor: "#D8DCCE",
-    borderRadius: 17,
-  },
-  avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 20,
-    backgroundColor: colors.soft,
-  },
   topbar: {
-    minHeight: 88,
+    minHeight: 64,
+    paddingHorizontal: 22,
+    paddingVertical: 10,
     borderBottomWidth: 1,
     borderColor: colors.line,
     flexDirection: "row",
@@ -1142,16 +1002,25 @@ const a = StyleSheet.create({
   demoBar: {
     backgroundColor: "#EAF0D5",
     paddingHorizontal: 15,
-    paddingVertical: 9,
+    paddingVertical: 7,
   },
-  main: { flex: 1, maxWidth: 1120, width: "100%", alignSelf: "center" },
+  main: {
+    flex: 1,
+    minHeight: 0,
+    maxWidth: 560,
+    width: "100%",
+    alignSelf: "center",
+    paddingHorizontal: 18,
+    paddingTop: 16,
+  },
   bottom: {
-    paddingTop: 11,
-    paddingBottom: 12,
+    paddingTop: 8,
+    paddingBottom: 8,
     borderTopWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.paper,
     flexDirection: "row",
+    minHeight: 64,
   },
   mobileIcon: {
     width: 50,

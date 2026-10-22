@@ -1,6 +1,5 @@
 import React from "react";
 import { Stack } from "expo-router";
-import Head from "expo-router/head";
 import {
   useFonts,
   InstrumentSerif_400Regular,
@@ -25,13 +24,6 @@ export default function Layout() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }}>
-        <Head>
-          <title>MakeIn — A little spark. A real connection.</title>
-          <meta
-            name="description"
-            content="Meet your kind of person on MakeIn. A dating app for adults, built around thoughtful connections."
-          />
-        </Head>
         <StatusBar style="dark" />
         <Stack
           screenOptions={{

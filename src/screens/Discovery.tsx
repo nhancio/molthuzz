@@ -9,9 +9,15 @@ import {
   View,
 } from "react-native";
 import type { Card } from "../lib/contracts";
-import { Badge, Button, Empty, Icon } from "../components/UI";
+import { Button, Empty, Icon } from "../components/UI";
 import ProfileCard from "../components/ProfileCard";
 import { colors, shared } from "../theme";
+import {
+  DISCOVERY_BOTTOM_PADDING,
+  DISCOVERY_CARD_GAP,
+  discoveryLayout,
+} from "./discovery-layout";
+
 export default function Discovery({
   cards,
   demo,
@@ -21,8 +27,6 @@ export default function Discovery({
   onOpen,
   onFilters,
   onReset,
-  onMembership,
-  active,
 }: {
   cards: Card[];
   demo: boolean;
@@ -32,112 +36,145 @@ export default function Discovery({
   onOpen: (card: Card) => void;
   onFilters: () => void;
   onReset: () => void;
-  onMembership: () => void;
-  active: boolean;
 }) {
+  const { fontScale } = useWindowDimensions();
+  const [bounds, setBounds] = useState({ height: 570, width: 354 });
+  const [headerHeight, setHeaderHeight] = useState(57);
+  const [controlsHeight, setControlsHeight] = useState(100);
   const [gestureBusy, setGestureBusy] = useState(false);
   const interactionBusy = busy || gestureBusy;
-  const wide = useWindowDimensions().width >= 1120;
   const card = cards[0];
+  const layout = discoveryLayout({
+    availableHeight: bounds.height,
+    cardWidth: bounds.width,
+    headerHeight,
+    controlsHeight,
+    fontScale,
+  });
   return (
-    <ScrollView contentContainerStyle={{ paddingBottom: 35 }}>
-      <View style={d.header}>
-        <View>
-          <Text style={shared.label}>A WORLD OF POSSIBILITIES</Text>
-          <Text
-            accessibilityRole="header"
-            style={[shared.heading, { marginTop: 10, fontSize: 46 }]}
-          >
-            Someone worth{wide ? " a" : "\na"} hello.
-          </Text>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Discovery filters"
-          onPress={onFilters}
-          style={d.filter}
-        >
-          <Icon name="options-outline" />
-        </Pressable>
-      </View>
-      <View
-        style={{
-          flexDirection: wide ? "row" : "column",
-          gap: 34,
-          justifyContent: "center",
-          alignItems: wide ? "flex-start" : "center",
-          marginTop: 28,
-        }}
+    <View
+      style={{ flex: 1, minHeight: 0 }}
+      onLayout={(event) => {
+        const { height, width } = event.nativeEvent.layout;
+        setBounds((previous) =>
+          previous.height === height && previous.width === width
+            ? previous
+            : { height, width },
+        );
+      }}
+    >
+      <ScrollView
+        style={{ flex: 1 }}
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={layout.needsScroll}
+        contentContainerStyle={{ paddingBottom: DISCOVERY_BOTTOM_PADDING }}
       >
-        <View style={{ width: "100%", maxWidth: 405 }}>
+        <View
+          style={d.header}
+          onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
+        >
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text style={[shared.label, { fontSize: 9 }]}>
+              A WORLD OF POSSIBILITIES
+            </Text>
+            <Text
+              accessibilityRole="header"
+              style={[shared.heading, { fontSize: 34, lineHeight: 38 }]}
+            >
+              Your next hello.
+            </Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Discovery filters"
+            onPress={onFilters}
+            style={d.filter}
+          >
+            <Icon name="options-outline" />
+          </Pressable>
+        </View>
+        <View style={{ marginTop: DISCOVERY_CARD_GAP }}>
           {loading ? (
-            <View style={{ minHeight: 450, justifyContent: "center" }}>
+            <View
+              style={{ height: layout.cardHeight, justifyContent: "center" }}
+            >
               <ActivityIndicator color={colors.ink} />
             </View>
           ) : card ? (
             <>
               <ProfileCard
                 key={card.id}
+                height={layout.cardHeight}
                 onGestureStateChange={setGestureBusy}
                 card={card}
                 onOpen={() => onOpen(card)}
                 onDecision={onDecision}
                 busy={interactionBusy}
               />
-              <View style={d.actions}>
-                <Pressable
-                  disabled={interactionBusy}
-                  onPress={() => onDecision("pass")}
-                  accessibilityRole="button"
-                  accessibilityLabel="Pass profile"
-                  style={[
-                    d.action,
-                    {
-                      backgroundColor: colors.white,
-                      borderWidth: 1,
-                      borderColor: colors.line,
-                      opacity: interactionBusy ? 0.4 : 1,
-                    },
-                  ]}
-                >
-                  <Icon name="close" size={28} />
-                </Pressable>
-                <Pressable
-                  onPress={() => onOpen(card)}
-                  accessibilityRole="button"
-                  accessibilityLabel="View profile"
-                  style={[
-                    d.action,
-                    { width: 45, height: 45, backgroundColor: colors.soft },
-                  ]}
-                >
-                  <Icon name="person-outline" size={21} />
-                </Pressable>
-                <Pressable
-                  disabled={interactionBusy}
-                  onPress={() => onDecision("like")}
-                  accessibilityRole="button"
-                  accessibilityLabel="Like profile"
-                  style={[
-                    d.action,
-                    {
-                      backgroundColor: colors.lime,
-                      opacity: interactionBusy ? 0.4 : 1,
-                    },
-                  ]}
-                >
-                  {interactionBusy ? (
-                    <ActivityIndicator color={colors.ink} />
-                  ) : (
-                    <Icon name="heart" size={27} />
-                  )}
-                </Pressable>
-              </View>
-              <Text
-                style={[shared.muted, { fontSize: 10, textAlign: "center" }]}
+              <View
+                style={d.controls}
+                onLayout={(event) =>
+                  setControlsHeight(event.nativeEvent.layout.height)
+                }
               >
-                SWIPE LEFT TO PASS · RIGHT TO LIKE
-              </Text>
+                <View style={d.actions}>
+                  <Pressable
+                    disabled={interactionBusy}
+                    onPress={() => onDecision("pass")}
+                    accessibilityRole="button"
+                    accessibilityLabel="Pass profile"
+                    style={[
+                      d.action,
+                      {
+                        backgroundColor: colors.white,
+                        borderWidth: 1,
+                        borderColor: colors.line,
+                        opacity: interactionBusy ? 0.4 : 1,
+                      },
+                    ]}
+                  >
+                    <Icon name="close" size={27} />
+                  </Pressable>
+                  <Pressable
+                    onPress={() => onOpen(card)}
+                    accessibilityRole="button"
+                    accessibilityLabel="View profile"
+                    style={[
+                      d.action,
+                      { width: 46, height: 46, backgroundColor: colors.soft },
+                    ]}
+                  >
+                    <Icon name="person-outline" size={21} />
+                  </Pressable>
+                  <Pressable
+                    disabled={interactionBusy}
+                    onPress={() => onDecision("like")}
+                    accessibilityRole="button"
+                    accessibilityLabel="Like profile"
+                    style={[
+                      d.action,
+                      {
+                        backgroundColor: colors.lime,
+                        opacity: interactionBusy ? 0.4 : 1,
+                      },
+                    ]}
+                  >
+                    {interactionBusy ? (
+                      <ActivityIndicator color={colors.ink} />
+                    ) : (
+                      <Icon name="heart" size={27} />
+                    )}
+                  </Pressable>
+                </View>
+                <Text
+                  style={[
+                    shared.muted,
+                    { fontSize: 9, textAlign: "center", marginTop: 8 },
+                  ]}
+                >
+                  SWIPE LEFT TO PASS · RIGHT TO LIKE
+                </Text>
+              </View>
             </>
           ) : (
             <Empty
@@ -155,58 +192,8 @@ export default function Discovery({
             />
           )}
         </View>
-        {wide && (
-          <View style={{ width: 254, gap: 22, paddingTop: 5 }}>
-            <View style={d.note}>
-              <View style={[shared.row, { justifyContent: "space-between" }]}>
-                <Text style={shared.label}>A GENTLE REMINDER</Text>
-                <Icon name="sunny-outline" size={24} />
-              </View>
-              <Text
-                style={[
-                  shared.heading,
-                  { fontSize: 37, lineHeight: 40, marginTop: 31 },
-                ]}
-              >
-                Great connections{"\n"}start with{"\n"}being yourself.
-              </Text>
-              <View
-                style={{
-                  height: 1,
-                  backgroundColor: "#C9CDBA",
-                  marginVertical: 24,
-                }}
-              />
-              <Text style={[shared.muted, { fontSize: 12 }]}>
-                Read the bio. Notice the little things. Send a thoughtful hello
-                when you match.
-              </Text>
-            </View>
-            <View style={{ paddingHorizontal: 8, gap: 13 }}>
-              <Badge dark>
-                {demo
-                  ? "A SAFE SPACE TO EXPLORE"
-                  : active
-                    ? "MEMBERSHIP ACTIVE"
-                    : "THE FIRST HELLO IS A START"}
-              </Badge>
-              <Text style={[shared.muted, { fontSize: 12 }]}>
-                {demo
-                  ? "Every person here is fictional. Likes, matches and practice messages stay in this demo session."
-                  : active
-                    ? "Take your time. There’s a person on the other side of every profile."
-                    : "Set up your profile for free. Membership unlocks real likes and conversations."}
-              </Text>
-              {!demo && !active && (
-                <Button compact secondary onPress={onMembership}>
-                  Explore membership
-                </Button>
-              )}
-            </View>
-          </View>
-        )}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 const d = StyleSheet.create({
@@ -214,30 +201,29 @@ const d = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    gap: 12,
   },
   filter: {
-    borderRadius: 30,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.line,
-    width: 45,
-    height: 45,
+    width: 46,
+    height: 46,
     justifyContent: "center",
     alignItems: "center",
   },
+  controls: { paddingTop: 12 },
   actions: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 24,
-    marginTop: 22,
-    marginBottom: 17,
+    gap: 26,
   },
   action: {
-    width: 65,
-    height: 65,
-    borderRadius: 34,
+    width: 58,
+    height: 58,
+    borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
   },
-  note: { padding: 25, backgroundColor: "#EDEFE3", borderRadius: 21 },
 });

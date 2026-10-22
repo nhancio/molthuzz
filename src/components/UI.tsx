@@ -256,6 +256,7 @@ export const s = StyleSheet.create({
     justifyContent: "center",
     gap: 10,
     paddingHorizontal: 25,
+    paddingVertical: 12,
   },
   secondary: {
     backgroundColor: "transparent",
@@ -331,8 +332,8 @@ export const s = StyleSheet.create({
     padding: 26,
   },
   close: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
     borderRadius: 20,
     backgroundColor: colors.soft,
     alignItems: "center",
