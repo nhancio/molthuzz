@@ -26,3 +26,9 @@ Demo state intentionally lasts only for the current page session and is reset on
 ## Billing deletion regression verification
 
 The account deletion sequence is implemented in `src/screens/accountDeletion.ts` and exercised by `node --experimental-strip-types --test src/screens/accountDeletion.test.ts`. Five checks cover missing/inactive entitlements with configured billing, known subscription IDs in all statuses with disabled billing, cancellation failure preserving data/auth, disabled fresh-app deletion, and reauthentication failure. The previous status-gated condition failed three checks; unconditional provider confirmation whenever billing is configured or a subscription ID exists passes all five.
+
+## Authentication retry correction
+
+Profile loading retries now increment a dedicated reload counter instead of copying the Firebase user into a plain object. The original authenticated instance is written only by `watchAuth`, preserving prototype methods such as `getIdToken` for subsequent payment/cancellation/deletion calls. Retry also enters the loading state immediately to avoid briefly exposing onboarding before the reload effect starts. A source-mirroring assertion was intentionally not added for this small React state change; scoped lint and typecheck verify the integration.
+
+Existing conversations now open independently of membership so history and report/block/end-match remain accessible after expiry; the send-message entitlement gate is unchanged. Onboarding removes an optional prompt when both fields are blank, supplies the displayed default question for an answer-only draft, and validates the normalized profile before saving.

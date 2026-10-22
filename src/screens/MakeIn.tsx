@@ -134,6 +134,7 @@ export default function MakeIn() {
   const [confirmDelete, setConfirmDelete] = useState("");
   const [newMatch, setNewMatch] = useState<Card | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [profileReload, setProfileReload] = useState(0);
   const uid = demo ? "demo-you" : user?.uid || "";
   const active = demo || membershipActive(membership);
   const run = useCallback(async (fn: () => Promise<void>, rethrow = false) => {
@@ -202,7 +203,7 @@ export default function MakeIn() {
     return () => {
       current = false;
     };
-  }, [user, demo]);
+  }, [user, demo, profileReload]);
   useEffect(() => {
     if (demo || !user || !profile) return;
     const stopMatches = watchMatches(user.uid, setMatches, (e) =>
@@ -440,8 +441,10 @@ export default function MakeIn() {
             <View style={{ gap: 12 }}>
               <Button
                 onPress={() => {
+                  // Firebase User methods live on its prototype; retry loading without replacing it.
+                  setLoading(true);
                   setLoadFailed(false);
-                  setUser(user ? { ...user } : null);
+                  setProfileReload((version) => version + 1);
                 }}
               >
                 Try again
@@ -686,10 +689,7 @@ export default function MakeIn() {
                   matches={matches}
                   uid={uid}
                   demo={demo}
-                  onOpen={(m) => {
-                    if (!active) return setDialog("membership");
-                    setChat(m);
-                  }}
+                  onOpen={setChat}
                 />
               ))}
             {tab === "profile" && (

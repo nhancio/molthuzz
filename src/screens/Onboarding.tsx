@@ -174,10 +174,19 @@ export default function Onboarding({
       setStep((x) => x + 1);
       setError("");
     } else {
-      const invalid = validateProfile(value);
+      const normalized: ProfileInput = {
+        ...value,
+        prompts: value.prompts
+          .filter((prompt) => prompt.question.trim() || prompt.answer.trim())
+          .map((prompt) => ({
+            question: prompt.question.trim() || "My perfect Sunday looks like…",
+            answer: prompt.answer.trim(),
+          })),
+      };
+      const invalid = validateProfile(normalized);
       if (invalid) return setError(invalid);
       try {
-        await onSave(value);
+        await onSave(normalized);
       } catch (e) {
         setError(
           e instanceof Error ? e.message : "Could not save. Please try again.",
@@ -390,9 +399,7 @@ export default function Onboarding({
                 onChangeText={(v) =>
                   set("prompts", [
                     {
-                      question:
-                        value.prompts[0]?.question ||
-                        "My perfect Sunday looks like…",
+                      question: value.prompts[0]?.question || "",
                       answer: v,
                     },
                   ])
