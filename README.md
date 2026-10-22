@@ -6,8 +6,8 @@ A dating app for adults, rebuilt from the recovered MoltHuzz repository as a nat
 
 - Marketing landing page: https://makein-nhancio.netlify.app
 - Expo: https://expo.dev/accounts/nithindidigam/projects/makein
-- Android preview build: https://expo.dev/accounts/nithindidigam/projects/makein/builds/6cefc712-9089-489c-a076-76b07a9a5b8f
-- iOS production build: https://expo.dev/accounts/nithindidigam/projects/makein/builds/3562bd5f-ac01-49a8-8004-d2366af4c40c
+- Android preview build: https://expo.dev/accounts/nithindidigam/projects/makein/builds/36b70e86-9a54-4d81-b88b-ecb3e8083011
+- iOS production build: https://expo.dev/accounts/nithindidigam/projects/makein/builds/97009cf1-e8e8-4786-a962-de2b95f0dfbf
 - Firebase: https://console.firebase.google.com/project/makein-nhancio-20261023/overview
 
 The Android build link reports its current cloud build status and exposes the APK when complete. A web export or Expo project does not imply App Store or Play Store publication.
@@ -58,7 +58,7 @@ npm run export:native
 
 The full security suite also covers Storage when started with `firebase emulators:exec --only firestore,storage --project demo-makein` and the same `scripts/firestore-rules.test.mjs` command. This laptop has Java 25 at the path above; the default Java 17 cannot run the current Firestore emulator.
 
-`npm test` covers profile/birth-date rules, deliberate swipes, preference filtering, membership periods, payment signatures/ownership/replay/retry/cancellation, and deletion sequencing. Emulator tests execute production onboarding, likes/matching, incoming likes, blocks/reports and interrupted cleanup. Typecheck, lint and Android/iOS exports are the native checks. The current suite has 50 cases, including native session/route gates, onboarding Back priorities and gesture commit/retry behavior. Earlier browser checks exercised the predecessor demo; they do not validate this native redesign. Physical-device login, rendering and app-store release remain separate checks.
+`npm test` covers profile/birth-date rules, deliberate swipes, preference filtering, membership periods, payment signatures/ownership/replay/retry/cancellation, and deletion sequencing. Emulator tests execute production onboarding, likes/matching, incoming likes, blocks/reports and interrupted cleanup. Typecheck, lint and Android/iOS exports are the native checks. The current suite has 61 cases, including native session/route gates, onboarding Back priorities and gesture commit/retry behavior. Earlier browser checks exercised the predecessor demo; they do not validate this native redesign. Physical-device login, rendering and app-store release remain separate checks.
 
 ## App languages
 

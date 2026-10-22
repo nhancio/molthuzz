@@ -32,4 +32,4 @@ Files: src/screens/Onboarding.tsx, setup-back.ts/test.ts and optional profile-fo
 Files: Welcome.tsx, new brand-mark.tsx, MakeIn.tsx brand usage, catalogs, package/config/docs.
 - [x] Compact welcome header and artwork, system-font headline, sign-in near top, scroll only when required. Replace emoji asterisk with drawn mark in brand usages; preserve legal/demo/language actions.
 - [x] Translate new photo/form labels and errors into all9 catalogs; verify catalog/interface coverage.
-- [ ] Full typecheck/lint/tests/native exports and independent review; fix important findings. New native builds and existing PR updated; latest landing Android build link refreshed.
+- [x] Full typecheck/lint/tests/native exports and independent review; fix important findings. New native builds and existing PR updated; latest landing Android build link refreshed.

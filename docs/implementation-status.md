@@ -3,7 +3,9 @@
 ## Product and source
 - Native Expo Android and iOS app: MakeIn, package/bundle com.nhancio.makein. Standalone marketing landing page at https://makein-nhancio.netlify.app; website has no dating UI/browser login.
 - Adult onboarding, Google sign-in, profiles/photos/preferences, discovery/swipes/likes, mutual matches, chat, editing, block/report/unmatch and retryable account deletion. Labelled fictional demo is isolated from real data.
-- Offline i18next interface in English, Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali and Gujarati: 338 strings per language, persistent global language picker, device default/English fallback, locale-aware membership dates and Indian-script typography. Member-authored content and canonical stored options remain intact.
+- Offline i18next interface in English, Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali and Gujarati: 355 strings per language, persistent global language picker, device default/English fallback, locale-aware membership dates and Indian-script typography. Member-authored content and canonical stored options remain intact.
+- Profile setup/editing now uses one vertical form with a single Save action and first-invalid-field scrolling; the ten-step wizard is removed. Multiple photos can be selected at once, with ordered previews, main-photo selection, removal and partial-failure retry. Original source size/type is not rejected before native JPEG conversion/downsampling; final objects retain secure 8MiB MIME/owner rules.
+- Compact opening puts Google/demo actions before optional artwork, uses system-size typography and a drawn nonemoji mark. Native splash remains while bundled branding loads; loading UI is compact.
 - Premium native UI: real Expo Router tabs and per-tab stacks; native conversation headers/back, SwiftUI/Compose sheets and language pickers, platform date picker, grouped settings, SF/Material icons, system typography, photo/gradient discovery cards, UI-thread gestures, reduced-motion support, haptic commit feedback and keyboard-controller forms/chat. Failed saves and sends preserve drafts.
 - Draft PR: https://github.com/nhancio/molthuzz/pull/1 on feat/makein-dating.
 
@@ -14,18 +16,18 @@
 - Android signing keystore remains in ignored private credentials; its SHA-1 is registered with Firebase. iOS App Store signing is configured under Nhancio, team76G23XAVL3. ASC app6825923575.
 - User deferred Razorpay/UPI connection. Payment integration remains disabled; no charge or mandate created. ₹2 first calendar month then ₹99/month is the planned membership.
 
-## Latest premium native builds
-- Android APK preview submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/6cefc712-9089-489c-a076-76b07a9a5b8f
-- Signed iOS production build3 submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/3562bd5f-ac01-49a8-8004-d2366af4c40c
-- iOS TestFlight upload scheduled after the build: https://expo.dev/accounts/nithindidigam/projects/makein/submissions/8904c4cc-3b20-4554-9cc0-4b9fda386ca4
-- Both premium jobs were IN_QUEUE at the final status check. Build pages report current cloud status. No store publication or public TestFlight access is claimed.
-- Earlier multilingual iOS build2 finished successfully. The older queued Android build was cancelled and replaced with this premium build.
+## Latest single-form native builds
+- Android APK preview submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/36b70e86-9a54-4d81-b88b-ecb3e8083011
+- Signed iOS production build4 submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/97009cf1-e8e8-4786-a962-de2b95f0dfbf
+- iOS TestFlight upload scheduled after the build: https://expo.dev/accounts/nithindidigam/projects/makein/submissions/9e3baed0-380b-4b13-81ca-25728a035a66
+- The earlier premium iOS build3 finished. Its queued Android preview was cancelled for the single-form/multi-photo replacement. Both replacement builds and the automatic iOS submission have been accepted by EAS; build pages report current status. No store publication or public TestFlight access is claimed.
+- Earlier multilingual iOS build2 also finished successfully.
 
 ## Verification
-- TypeScript pass, Expo lint pass with --no-cache (removed stale missing-catalog diagnostics), 50/50 tests pass, native Android/iOS Hermes exports pass.
+- TypeScript pass, Expo lint pass with --no-cache (removed stale missing-catalog diagnostics), 61/61 tests pass, native Android/iOS Hermes exports pass.
 - Catalog tests verify complete keys, interpolation, DELETE token, price/age/date numbers, INR symbols and regional translations; tests also cover preference persistence/device negotiation/write failure and instant i18next switching/fallback/member-name interpolation. Static JSX coverage prevents untranslated owned copy and translation of known member fields.
 - Earlier 16 Firestore/Storage emulator cases and targeted cleanup retry checks passed; service/rules unchanged by language feature.
-- Independent premium-native review caught raw JSX whitespace outside Text; removed both instances and verified the regression red/green. Scoped final review also cleared the onboarding Back helper/listener, ready guards and single conversation navigation. Native route/session, swipe commit/retry, keyboard-aware composition and pending sheet dismissal were inspected statically; native execution remains pending.
+- Independent current review cleared native photo decoder bounds/output size/cleanup, compact opening/splash, single-form validation, ordered partial-failure upload retry, main-photo changes, synchronous operation guards and keyboard-aware composition. New test coverage exercises normalization/error cleanup/output bounds, model-first error targets, unresolved-photo save blocking, gallery order and retry without duplicating successful uploads. Native execution remains pending.
 - Standalone landing HTTP200 verified; old /discover route404, no Expo browser bundle. Landing build/link tests 2/2 pass after updating the premium Android link; production link verified.
 
 ## Remaining release checks
@@ -37,3 +39,8 @@
 - Proceeded with the premium native design under the explicit user request, without a second design approval. If the visual direction is wrong, the screens need revision.
 - Used the current linked Expo skill over stale local guidance, including expo-symbols and @expo/ui native controls. Installed SDK58 types determined actual supported APIs; device integration remains a release check.
 - Reused all 338 existing copy keys across all 9 languages to preserve catalog parity and member-data boundaries. New product copy requires adding translations to every catalog.
+
+## Single-form decisions
+- Six photos remain the profile limit. Any size refers to selected source file bytes/dimensions being optimized before upload. An unlimited photo count would require changing profile/rule contracts and gallery layout.
+- HTTPS preview entry remains only in the fictional demo. Real members use native photo selection/upload; advanced URL entry would need restoring if requested.
+- Proceeded directly under the explicit requested changes. If the revised visual direction is wrong, the screens need revision.
