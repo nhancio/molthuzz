@@ -336,5 +336,22 @@
   "Your profile": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್",
   "YOUR PROFILE": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್",
   "Your report was submitted.": "ನಿಮ್ಮ ದೂರು ಸಲ್ಲಿಸಲಾಗಿದೆ.",
-  "Your session has expired. Sign in again.": "ನಿಮ್ಮ ಸೆಷನ್ ಅವಧಿ ಮುಗಿದಿದೆ. ಮತ್ತೆ ಪ್ರವೇಶಿಸಿ."
+  "Your session has expired. Sign in again.": "ನಿಮ್ಮ ಸೆಷನ್ ಅವಧಿ ಮುಗಿದಿದೆ. ಮತ್ತೆ ಪ್ರವೇಶಿಸಿ.",
+  "Add photos": "ಫೋಟೋಗಳನ್ನು ಸೇರಿಸಿ",
+  "Allow photo access in Settings to add your photos.": "ನಿಮ್ಮ ಫೋಟೋಗಳನ್ನು ಸೇರಿಸಲು ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ಫೋಟೋಗಳ ಪ್ರವೇಶಕ್ಕೆ ಅನುಮತಿ ನೀಡಿ.",
+  "Choose up to 6 photos. We’ll optimize any image size for you.": "6 ಫೋಟೋಗಳವರೆಗೆ ಆಯ್ಕೆಮಾಡಿ. ಯಾವುದೇ ಗಾತ್ರದ ಚಿತ್ರವನ್ನು ನಿಮಗಾಗಿ ಹೊಂದಿಸುತ್ತೇವೆ.",
+  "Create your profile": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
+  "Date of birth": "ಹುಟ್ಟಿದ ದಿನಾಂಕ",
+  "Finish uploading or remove the selected photos before saving.": "ಉಳಿಸುವ ಮೊದಲು ಅಪ್‌ಲೋಡ್ ಪೂರ್ಣಗೊಳಿಸಿ ಅಥವಾ ಆಯ್ಕೆಮಾಡಿದ ಫೋಟೋಗಳನ್ನು ತೆಗೆದುಹಾಕಿ.",
+  "Gender": "ಲಿಂಗ",
+  "Interested in": "ಯಾರನ್ನು ಭೇಟಿಯಾಗಲು ಬಯಸುತ್ತೀರಿ",
+  "Interests": "ಆಸಕ್ತಿಗಳು",
+  "Main photo": "ಮುಖ್ಯ ಫೋಟೋ",
+  "Make main photo": "ಮುಖ್ಯ ಫೋಟೋ ಆಗಿ ಆಯ್ಕೆಮಾಡಿ",
+  "Remove selected photo {{number}}": "ಆಯ್ಕೆಮಾಡಿದ ಫೋಟೋ {{number}} ತೆಗೆದುಹಾಕಿ",
+  "Retry photos": "ಫೋಟೋಗಳನ್ನು ಮತ್ತೆ ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+  "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "ಕೆಲವು ಫೋಟೋಗಳು ಅಪ್‌ಲೋಡ್ ಆಗಲಿಲ್ಲ. ಅಪ್‌ಲೋಡ್ ಆದ ಫೋಟೋಗಳು ಉಳಿದಿವೆ. ಬಾಕಿ ಫೋಟೋಗಳಿಗಾಗಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "Uploading photos · {{current}} / {{total}}": "ಫೋಟೋಗಳು ಅಪ್‌ಲೋಡ್ ಆಗುತ್ತಿವೆ · {{current}} / {{total}}",
+  "We couldn’t prepare this photo. Choose another image.": "ಈ ಫೋಟೋವನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಲಿಲ್ಲ. ಬೇರೆ ಚಿತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+  "We couldn’t upload this photo. Check your connection and try again.": "ಈ ಫೋಟೋವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ. ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
 }

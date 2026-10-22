@@ -336,5 +336,22 @@
   "Your profile": "আপনার প্রোফাইল",
   "YOUR PROFILE": "আপনার প্রোফাইল",
   "Your report was submitted.": "আপনার রিপোর্ট জমা হয়েছে।",
-  "Your session has expired. Sign in again.": "আপনার সেশনের মেয়াদ শেষ হয়েছে। আবার সাইন ইন করুন।"
+  "Your session has expired. Sign in again.": "আপনার সেশনের মেয়াদ শেষ হয়েছে। আবার সাইন ইন করুন।",
+  "Add photos": "ছবি যোগ করুন",
+  "Allow photo access in Settings to add your photos.": "আপনার ছবি যোগ করতে সেটিংসে ছবির অনুমতি দিন।",
+  "Choose up to 6 photos. We’ll optimize any image size for you.": "সর্বোচ্চ 6টি ছবি বাছুন। যেকোনো আকারের ছবি আপনার জন্য উপযুক্ত করে দেব।",
+  "Create your profile": "আপনার প্রোফাইল তৈরি করুন",
+  "Date of birth": "জন্মতারিখ",
+  "Finish uploading or remove the selected photos before saving.": "সেভ করার আগে আপলোড শেষ করুন অথবা বাছা ছবিগুলো সরান।",
+  "Gender": "লিঙ্গ",
+  "Interested in": "কাদের সঙ্গে দেখা করতে চান",
+  "Interests": "আগ্রহ",
+  "Main photo": "প্রধান ছবি",
+  "Make main photo": "প্রধান ছবি করুন",
+  "Remove selected photo {{number}}": "বাছা ছবি {{number}} সরান",
+  "Retry photos": "ছবি আবার আপলোড করুন",
+  "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "কিছু ছবি আপলোড করা যায়নি। আপলোড হওয়া ছবিগুলো রাখা হয়েছে। বাকি ছবিগুলো আবার চেষ্টা করুন।",
+  "Uploading photos · {{current}} / {{total}}": "ছবি আপলোড হচ্ছে · {{current}} / {{total}}",
+  "We couldn’t prepare this photo. Choose another image.": "এই ছবিটি প্রস্তুত করা যায়নি। অন্য একটি ছবি বাছুন।",
+  "We couldn’t upload this photo. Check your connection and try again.": "এই ছবিটি আপলোড করা যায়নি। আপনার সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।"
 }

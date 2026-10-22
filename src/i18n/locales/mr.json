@@ -336,5 +336,22 @@
   "Your profile": "तुमचं प्रोफाइल",
   "YOUR PROFILE": "तुमचं प्रोफाइल",
   "Your report was submitted.": "तुमची तक्रार पाठवली.",
-  "Your session has expired. Sign in again.": "तुमचं सत्र संपलं आहे. पुन्हा साइन इन करा."
+  "Your session has expired. Sign in again.": "तुमचं सत्र संपलं आहे. पुन्हा साइन इन करा.",
+  "Add photos": "फोटो जोडा",
+  "Allow photo access in Settings to add your photos.": "तुमचे फोटो जोडण्यासाठी सेटिंग्जमध्ये फोटोंची परवानगी द्या.",
+  "Choose up to 6 photos. We’ll optimize any image size for you.": "जास्तीत जास्त 6 फोटो निवडा. कोणत्याही आकाराचे चित्र आम्ही तुमच्यासाठी योग्य करू.",
+  "Create your profile": "तुमची प्रोफाइल तयार करा",
+  "Date of birth": "जन्मतारीख",
+  "Finish uploading or remove the selected photos before saving.": "जतन करण्यापूर्वी अपलोड पूर्ण करा किंवा निवडलेले फोटो काढा.",
+  "Gender": "लिंग",
+  "Interested in": "कोणाला भेटायचे आहे",
+  "Interests": "आवडी",
+  "Main photo": "मुख्य फोटो",
+  "Make main photo": "मुख्य फोटो म्हणून ठेवा",
+  "Remove selected photo {{number}}": "निवडलेला फोटो {{number}} काढा",
+  "Retry photos": "फोटो पुन्हा अपलोड करा",
+  "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "काही फोटो अपलोड होऊ शकले नाहीत. अपलोड झालेले फोटो ठेवले आहेत. उरलेल्या फोटोंसाठी पुन्हा प्रयत्न करा.",
+  "Uploading photos · {{current}} / {{total}}": "फोटो अपलोड होत आहेत · {{current}} / {{total}}",
+  "We couldn’t prepare this photo. Choose another image.": "हा फोटो तयार करता आला नाही. दुसरे चित्र निवडा.",
+  "We couldn’t upload this photo. Check your connection and try again.": "हा फोटो अपलोड करता आला नाही. तुमचे कनेक्शन तपासून पुन्हा प्रयत्न करा."
 }

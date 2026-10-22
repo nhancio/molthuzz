@@ -336,5 +336,22 @@
   "Your profile": "നിങ്ങളുടെ പ്രൊഫൈൽ",
   "YOUR PROFILE": "നിങ്ങളുടെ പ്രൊഫൈൽ",
   "Your report was submitted.": "നിങ്ങളുടെ റിപ്പോർട്ട് സമർപ്പിച്ചു.",
-  "Your session has expired. Sign in again.": "നിങ്ങളുടെ സെഷൻ കാലഹരണപ്പെട്ടു. വീണ്ടും സൈൻ ഇൻ ചെയ്യുക."
+  "Your session has expired. Sign in again.": "നിങ്ങളുടെ സെഷൻ കാലഹരണപ്പെട്ടു. വീണ്ടും സൈൻ ഇൻ ചെയ്യുക.",
+  "Add photos": "ഫോട്ടോകൾ ചേർക്കുക",
+  "Allow photo access in Settings to add your photos.": "നിങ്ങളുടെ ഫോട്ടോകൾ ചേർക്കാൻ ക്രമീകരണങ്ങളിൽ ഫോട്ടോ അനുമതി നൽകുക.",
+  "Choose up to 6 photos. We’ll optimize any image size for you.": "6 ഫോട്ടോകൾ വരെ തിരഞ്ഞെടുക്കുക. ഏത് വലുപ്പമുള്ള ചിത്രവും നിങ്ങൾക്കായി ക്രമീകരിക്കും.",
+  "Create your profile": "നിങ്ങളുടെ പ്രൊഫൈൽ സൃഷ്ടിക്കുക",
+  "Date of birth": "ജനനത്തീയതി",
+  "Finish uploading or remove the selected photos before saving.": "സേവ് ചെയ്യുന്നതിന് മുമ്പ് അപ്‌ലോഡ് പൂർത്തിയാക്കുക അല്ലെങ്കിൽ തിരഞ്ഞെടുത്ത ഫോട്ടോകൾ നീക്കുക.",
+  "Gender": "ലിംഗം",
+  "Interested in": "ആരെ കാണാൻ ആഗ്രഹിക്കുന്നു",
+  "Interests": "താൽപ്പര്യങ്ങൾ",
+  "Main photo": "പ്രധാന ഫോട്ടോ",
+  "Make main photo": "പ്രധാന ഫോട്ടോയാക്കുക",
+  "Remove selected photo {{number}}": "തിരഞ്ഞെടുത്ത ഫോട്ടോ {{number}} നീക്കുക",
+  "Retry photos": "ഫോട്ടോകൾ വീണ്ടും അപ്‌ലോഡ് ചെയ്യുക",
+  "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "ചില ഫോട്ടോകൾ അപ്‌ലോഡ് ചെയ്യാനായില്ല. അപ്‌ലോഡ് ചെയ്ത ഫോട്ടോകൾ നിലനിൽക്കുന്നു. ബാക്കിയുള്ളവ വീണ്ടും ശ്രമിക്കുക.",
+  "Uploading photos · {{current}} / {{total}}": "ഫോട്ടോകൾ അപ്‌ലോഡ് ചെയ്യുന്നു · {{current}} / {{total}}",
+  "We couldn’t prepare this photo. Choose another image.": "ഈ ഫോട്ടോ തയ്യാറാക്കാനായില്ല. മറ്റൊരു ചിത്രം തിരഞ്ഞെടുക്കുക.",
+  "We couldn’t upload this photo. Check your connection and try again.": "ഈ ഫോട്ടോ അപ്‌ലോഡ് ചെയ്യാനായില്ല. നിങ്ങളുടെ കണക്ഷൻ പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക."
 }

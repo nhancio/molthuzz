@@ -13,6 +13,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     plugins: [
       ...(config.plugins || []),
       'expo-image',
+      ['expo-splash-screen', {
+        backgroundColor: '#F8F7F2',
+        image: './assets/icon.png',
+        imageWidth: 96,
+      }],
       ['expo-localization', {
         supportedLocales: ['en', 'hi', 'te', 'ta', 'kn', 'ml', 'mr', 'bn', 'gu'],
       }],

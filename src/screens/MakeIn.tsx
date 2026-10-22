@@ -15,6 +15,7 @@ import { Image } from "expo-image";
 import { entryGate, tabPath, type AppTab } from "./native-navigation";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { colors, shared } from "../theme";
+import { BrandMark } from "../components/brand-mark";
 import {
   Badge,
   Button,
@@ -111,6 +112,27 @@ function messageOf(e: unknown) {
   return e instanceof Error
     ? e.message
     : "Something went wrong. Please try again.";
+}
+function OpeningProgress({ text }: { text: string }) {
+  return (
+    <View
+      style={[
+        shared.page,
+        {
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+          gap: 22,
+        },
+      ]}
+    >
+      <BrandMark size={38} />
+      <ActivityIndicator color={colors.ink} />
+      <Text accessibilityLiveRegion="polite" style={shared.muted}>
+        {text}
+      </Text>
+    </View>
+  );
 }
 export function MakeInProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -421,7 +443,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
   const filtered = profile ? filterCards(cards, profile, filters) : [];
   const legalSheet = (
     <Sheet
-        dismissible={!busy}
+      dismissible={!busy}
       title={
         dialog === "privacy"
           ? t("Your privacy matters.")
@@ -497,15 +519,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
   }
   function entryContent() {
     if (gate === "starting")
-      return (
-        <View style={shared.page}>
-          <Empty
-            title={t("A fresh beginning.")}
-            text={t("Getting things ready…")}
-            action={<ActivityIndicator color={colors.ink} />}
-          />
-        </View>
-      );
+      return <OpeningProgress text={t("Getting things ready…")} />;
     if (gate === "welcome")
       return (
         <>
@@ -519,15 +533,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
         </>
       );
     if (gate === "loading")
-      return (
-        <View style={shared.page}>
-          <Empty
-            title={t("A moment for you.")}
-            text={t("Loading your profile…")}
-            action={<ActivityIndicator color={colors.ink} />}
-          />
-        </View>
-      );
+      return <OpeningProgress text={t("Loading your profile…")} />;
     if (gate === "error")
       return (
         <View style={shared.page}>
@@ -705,7 +711,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
       {gate === "ready" && profile && (
         <>
           <Sheet
-        dismissible={!busy}
+            dismissible={!busy}
             title={t("Your kind of connection.")}
             visible={dialog === "filters"}
             onClose={() => closeDialog("filters")}
@@ -772,7 +778,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
             </Button>
           </Sheet>
           <Sheet
-        dismissible={!busy}
+            dismissible={!busy}
             title={t("A little more possibility.")}
             visible={dialog === "membership"}
             onClose={() => closeDialog("membership")}
@@ -794,7 +800,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
             {error && <Notice text={error} error />}
           </Sheet>
           <Sheet
-        dismissible={!busy}
+            dismissible={!busy}
             title={t("Stop future renewals?")}
             visible={dialog === "cancel"}
             onClose={() => closeDialog("cancel", "membership")}
@@ -822,7 +828,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
             {error && <Notice text={error} error />}
           </Sheet>
           <Sheet
-        dismissible={!busy}
+            dismissible={!busy}
             title={selected ? `${selected.name}, ${selected.age}` : ""}
             visible={!!selected}
             onClose={() => setSelected(null)}
@@ -901,7 +907,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
             )}
           </Sheet>
           <Sheet
-        dismissible={!busy}
+            dismissible={!busy}
             title={
               safety
                 ? t("Your connection with {{name}}", { name: safety.name })
@@ -956,7 +962,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
             {error && <Notice error text={error} />}
           </Sheet>
           <Sheet
-        dismissible={!busy}
+            dismissible={!busy}
             title={t("A mutual little spark.")}
             visible={dialog === "match"}
             onClose={() => closeDialog("match")}
@@ -1017,7 +1023,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
             )}
           </Sheet>
           <Sheet
-        dismissible={!busy}
+            dismissible={!busy}
             title={t("Delete your account?")}
             visible={dialog === "delete"}
             onClose={() => closeDialog("delete")}

@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Stack } from "expo-router/stack";
 import { DefaultTheme, ThemeProvider } from "expo-router/react-navigation";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import * as SplashScreen from "expo-splash-screen";
 import {
   useFonts,
   InstrumentSerif_400Regular,
@@ -13,6 +14,9 @@ import { useTranslation } from "react-i18next";
 import { LanguageProvider } from "../i18n";
 import { MakeInProvider } from "../screens/MakeIn";
 import { colors } from "../theme";
+
+// Keep the native launch screen visible while the bundled brand font loads.
+void SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const navigationTheme = {
   ...DefaultTheme,
@@ -51,7 +55,10 @@ function Navigation() {
   );
 }
 export default function Layout() {
-  useFonts({ InstrumentSerif_400Regular });
+  const [fontsLoaded, fontError] = useFonts({ InstrumentSerif_400Regular });
+  useEffect(() => {
+    if (fontsLoaded || fontError) void SplashScreen.hideAsync().catch(() => {});
+  }, [fontsLoaded, fontError]);
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>

@@ -14,7 +14,7 @@ The Android build link reports its current cloud build status and exposes the AP
 
 ## Native experience
 
-Expo Router provides real OS tabs, per-tab navigation stacks and a native chat header/back action. The premium ivory, ink and lime design uses system typography, SF Symbols on iOS and Material icons on Android, native SwiftUI/Compose sheets and language pickers, a platform date picker, grouped account settings and keyboard-aware forms/chat. Photo cards use expo-image, gradients and UI-thread swipe gestures with reduced-motion support and one haptic per accepted decision. Failed saves and messages preserve drafts.
+Expo Router provides real OS tabs, per-tab navigation stacks and a native chat header/back action. The compact opening screen places sign-in before decorative artwork and uses a drawn logo mark rather than an emoji. The premium ivory, ink and lime design uses system typography, SF Symbols on iOS and Material icons on Android, native SwiftUI/Compose sheets and language pickers, a platform date picker, grouped account settings and keyboard-aware forms/chat. Photo cards use expo-image, gradients and UI-thread swipe gestures with reduced-motion support and one haptic per accepted decision. Failed saves and messages preserve drafts.
 
 This implementation follows the [Expo native UI skill](https://github.com/expo/skills/blob/main/plugins/expo/skills/expo-native-ui/SKILL.md). Native-device rendering, keyboard and navigation behavior still require device QA.
 
@@ -41,6 +41,8 @@ App identity: **MakeIn**, Expo slug **makein**, bundle/package **com.nhancio.mak
 The Android release keystore and local credentials are ignored files in `.makein-credentials/` and `credentials.json`. Preserve a secure backup of both for future app updates; do not commit them. EAS uses these credentials for the preview APK. `.easignore` includes the public native Firebase config files while excluding keys, credentials, local environment files and legacy apps.
 
 ## Photos and infrastructure
+
+Profile setup and editing use one continuous vertical form with inline validation and one Save action. Native photo selection accepts multiple images at once (up to six profile photos); original source size is not rejected. Expo ImageManipulator downsamples native-decodable images, including iPhone HEIC, to a proportional JPEG with a maximum edge of 1600px and compresses before enforcing the final 8MiB Storage limit. Upload failures keep successful photos and retain failed selections for retry/removal. The first photo is the main photo and can be changed in the form. Real members use upload controls; HTTPS preview entry is limited to the fictional demo.
 
 Firestore rules and indexes have been deployed. Photo uploads use Firebase Storage with owner/size/MIME restrictions. The owner approved Blaze billing and the live bucket `makein-nhancio-20261023.firebasestorage.app` is provisioned in `asia-south1` with deployed Storage rules. Users can also use their existing Google photo or another persistent HTTPS photo URL. No temporary data URL is published as a profile photo. Discovery scans at most 100 active profiles; pagination/server discovery is needed beyond this initial scope. Dates of birth and billing records are not public profile fields.
 

@@ -336,5 +336,22 @@
   "Your profile": "మీ ప్రొఫైల్",
   "YOUR PROFILE": "మీ ప్రొఫైల్",
   "Your report was submitted.": "మీ ఫిర్యాదు సమర్పించబడింది.",
-  "Your session has expired. Sign in again.": "మీ సెషన్ గడువు ముగిసింది. మళ్లీ ప్రవేశించండి."
+  "Your session has expired. Sign in again.": "మీ సెషన్ గడువు ముగిసింది. మళ్లీ ప్రవేశించండి.",
+  "Add photos": "ఫోటోలు జోడించండి",
+  "Allow photo access in Settings to add your photos.": "మీ ఫోటోలు జోడించడానికి సెట్టింగ్‌లలో ఫోటోల అనుమతి ఇవ్వండి.",
+  "Choose up to 6 photos. We’ll optimize any image size for you.": "6 వరకు ఫోటోలు ఎంచుకోండి. ఏ పరిమాణంలో ఉన్నా మీ కోసం చిత్రాలను సర్దుబాటు చేస్తాం.",
+  "Create your profile": "మీ ప్రొఫైల్ సృష్టించండి",
+  "Date of birth": "పుట్టిన తేదీ",
+  "Finish uploading or remove the selected photos before saving.": "సేవ్ చేసే ముందు అప్‌లోడ్ పూర్తి చేయండి లేదా ఎంచుకున్న ఫోటోలను తొలగించండి.",
+  "Gender": "లింగం",
+  "Interested in": "ఎవరిని కలవాలనుకుంటున్నారు",
+  "Interests": "ఆసక్తులు",
+  "Main photo": "ప్రధాన ఫోటో",
+  "Make main photo": "ప్రధాన ఫోటోగా పెట్టండి",
+  "Remove selected photo {{number}}": "ఎంచుకున్న ఫోటో {{number}} తొలగించండి",
+  "Retry photos": "ఫోటోలను మళ్లీ అప్‌లోడ్ చేయండి",
+  "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "కొన్ని ఫోటోలు అప్‌లోడ్ కాలేదు. అప్‌లోడ్ అయిన ఫోటోలు అలాగే ఉన్నాయి. మిగిలిన ఫోటోల కోసం మళ్లీ ప్రయత్నించండి.",
+  "Uploading photos · {{current}} / {{total}}": "ఫోటోలు అప్‌లోడ్ అవుతున్నాయి · {{current}} / {{total}}",
+  "We couldn’t prepare this photo. Choose another image.": "ఈ ఫోటోను సిద్ధం చేయలేకపోయాం. మరో చిత్రాన్ని ఎంచుకోండి.",
+  "We couldn’t upload this photo. Check your connection and try again.": "ఈ ఫోటోను అప్‌లోడ్ చేయలేకపోయాం. మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి."
 }

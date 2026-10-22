@@ -336,5 +336,22 @@
   "Your profile": "તમારી પ્રોફાઇલ",
   "YOUR PROFILE": "તમારી પ્રોફાઇલ",
   "Your report was submitted.": "તમારી ફરિયાદ મોકલાઈ.",
-  "Your session has expired. Sign in again.": "તમારું સત્ર પૂરું થયું છે. ફરી સાઇન ઇન કરો."
+  "Your session has expired. Sign in again.": "તમારું સત્ર પૂરું થયું છે. ફરી સાઇન ઇન કરો.",
+  "Add photos": "ફોટા ઉમેરો",
+  "Allow photo access in Settings to add your photos.": "તમારા ફોટા ઉમેરવા માટે સેટિંગ્સમાં ફોટાની પરવાનગી આપો.",
+  "Choose up to 6 photos. We’ll optimize any image size for you.": "વધુમાં વધુ 6 ફોટા પસંદ કરો. કોઈપણ કદની છબી તમારા માટે યોગ્ય કરીશું.",
+  "Create your profile": "તમારી પ્રોફાઇલ બનાવો",
+  "Date of birth": "જન્મતારીખ",
+  "Finish uploading or remove the selected photos before saving.": "સાચવતા પહેલાં અપલોડ પૂર્ણ કરો અથવા પસંદ કરેલા ફોટા દૂર કરો.",
+  "Gender": "લિંગ",
+  "Interested in": "કોને મળવા માગો છો",
+  "Interests": "રુચિઓ",
+  "Main photo": "મુખ્ય ફોટો",
+  "Make main photo": "મુખ્ય ફોટો બનાવો",
+  "Remove selected photo {{number}}": "પસંદ કરેલો ફોટો {{number}} દૂર કરો",
+  "Retry photos": "ફોટા ફરી અપલોડ કરો",
+  "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "કેટલાક ફોટા અપલોડ થઈ શક્યા નથી. અપલોડ થયેલા ફોટા રાખવામાં આવ્યા છે. બાકીના ફોટા માટે ફરી પ્રયાસ કરો.",
+  "Uploading photos · {{current}} / {{total}}": "ફોટા અપલોડ થઈ રહ્યા છે · {{current}} / {{total}}",
+  "We couldn’t prepare this photo. Choose another image.": "આ ફોટો તૈયાર કરી શકાયો નથી. બીજી છબી પસંદ કરો.",
+  "We couldn’t upload this photo. Check your connection and try again.": "આ ફોટો અપલોડ કરી શકાયો નથી. તમારું કનેક્શન તપાસીને ફરી પ્રયાસ કરો."
 }

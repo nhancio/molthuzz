@@ -336,5 +336,22 @@
   "Your profile": "Your profile",
   "YOUR PROFILE": "YOUR PROFILE",
   "Your report was submitted.": "Your report was submitted.",
-  "Your session has expired. Sign in again.": "Your session has expired. Sign in again."
+  "Your session has expired. Sign in again.": "Your session has expired. Sign in again.",
+  "Add photos": "Add photos",
+  "Allow photo access in Settings to add your photos.": "Allow photo access in Settings to add your photos.",
+  "Choose up to 6 photos. We’ll optimize any image size for you.": "Choose up to 6 photos. We’ll optimize any image size for you.",
+  "Create your profile": "Create your profile",
+  "Date of birth": "Date of birth",
+  "Finish uploading or remove the selected photos before saving.": "Finish uploading or remove the selected photos before saving.",
+  "Gender": "Gender",
+  "Interested in": "Interested in",
+  "Interests": "Interests",
+  "Main photo": "Main photo",
+  "Make main photo": "Make main photo",
+  "Remove selected photo {{number}}": "Remove selected photo {{number}}",
+  "Retry photos": "Retry photos",
+  "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.",
+  "Uploading photos · {{current}} / {{total}}": "Uploading photos · {{current}} / {{total}}",
+  "We couldn’t prepare this photo. Choose another image.": "We couldn’t prepare this photo. Choose another image.",
+  "We couldn’t upload this photo. Check your connection and try again.": "We couldn’t upload this photo. Check your connection and try again."
 }
