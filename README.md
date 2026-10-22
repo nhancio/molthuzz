@@ -6,10 +6,17 @@ A dating app for adults, rebuilt from the recovered MoltHuzz repository as a nat
 
 - Marketing landing page: https://makein-nhancio.netlify.app
 - Expo: https://expo.dev/accounts/nithindidigam/projects/makein
-- Android preview build: https://expo.dev/accounts/nithindidigam/projects/makein/builds
+- Android preview build: https://expo.dev/accounts/nithindidigam/projects/makein/builds/6cefc712-9089-489c-a076-76b07a9a5b8f
+- iOS production build: https://expo.dev/accounts/nithindidigam/projects/makein/builds/3562bd5f-ac01-49a8-8004-d2366af4c40c
 - Firebase: https://console.firebase.google.com/project/makein-nhancio-20261023/overview
 
 The Android build link reports its current cloud build status and exposes the APK when complete. A web export or Expo project does not imply App Store or Play Store publication.
+
+## Native experience
+
+Expo Router provides real OS tabs, per-tab navigation stacks and a native chat header/back action. The premium ivory, ink and lime design uses system typography, SF Symbols on iOS and Material icons on Android, native SwiftUI/Compose sheets and language pickers, a platform date picker, grouped account settings and keyboard-aware forms/chat. Photo cards use expo-image, gradients and UI-thread swipe gestures with reduced-motion support and one haptic per accepted decision. Failed saves and messages preserve drafts.
+
+This implementation follows the [Expo native UI skill](https://github.com/expo/skills/blob/main/plugins/expo/skills/expo-native-ui/SKILL.md). Native-device rendering, keyboard and navigation behavior still require device QA.
 
 ## Features
 
@@ -49,7 +56,7 @@ npm run export:native
 
 The full security suite also covers Storage when started with `firebase emulators:exec --only firestore,storage --project demo-makein` and the same `scripts/firestore-rules.test.mjs` command. This laptop has Java 25 at the path above; the default Java 17 cannot run the current Firestore emulator.
 
-`npm test` covers profile/birth-date rules, deliberate swipes, preference filtering, membership periods, payment signatures/ownership/replay/retry/cancellation, and deletion sequencing. Emulator tests execute production onboarding, likes/matching, incoming likes, blocks/reports and interrupted cleanup. Typecheck, lint and Android/iOS exports are the native checks. Browser checks cover desktop/mobile layout, demo matching and practice chat. Physical-device login and app-store release remain separate checks.
+`npm test` covers profile/birth-date rules, deliberate swipes, preference filtering, membership periods, payment signatures/ownership/replay/retry/cancellation, and deletion sequencing. Emulator tests execute production onboarding, likes/matching, incoming likes, blocks/reports and interrupted cleanup. Typecheck, lint and Android/iOS exports are the native checks. The current suite has 50 cases, including native session/route gates, onboarding Back priorities and gesture commit/retry behavior. Earlier browser checks exercised the predecessor demo; they do not validate this native redesign. Physical-device login, rendering and app-store release remain separate checks.
 
 ## App languages
 
