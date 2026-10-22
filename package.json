@@ -44,7 +44,7 @@
     "ios": "expo start --ios",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint",
-    "test": "node --experimental-strip-types --test src/lib/*.test.ts netlify/functions/lib/*.test.mjs",
+    "test": "node --experimental-strip-types --test src/lib/*.test.ts src/screens/*.test.ts netlify/functions/lib/*.test.mjs",
     "test:rules": "firebase emulators:exec --only firestore --project demo-makein \"node --experimental-strip-types --test --test-concurrency=1 scripts/firestore-rules.test.mjs\"",
     "export:all": "expo export --platform all",
     "build:web": "expo export --platform web",

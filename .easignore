@@ -1,0 +1,16 @@
+node_modules/
+.git/
+.expo/
+.netlify/
+dist/
+work/
+.env*
+!.env.example
+credentials.json
+*.jks
+*.keystore
+*.log
+web/
+backend/
+
+.makein-credentials/

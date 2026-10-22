@@ -48,3 +48,9 @@ GoogleService-Info.plist
 google-services.json
 *service-account*.json
 work/
+
+credentials.json
+*.jks
+*.keystore
+
+.makein-credentials/
