@@ -94,7 +94,7 @@ async function removeQueryDocuments(docs: QueryDocumentSnapshot[]): Promise<void
 export async function deleteAccountData(uid: string): Promise<void> {
   owner(uid); const instance = database(); const profileRef = doc(instance, 'profiles', uid); const profile = await getDoc(profileRef);
   // Freeze interactions first. Cleanup can safely be retried if the network drops.
-  if (profile.exists()) await updateDoc(profileRef, { status: 'deleting' });
+  if (profile.exists() && profile.data().status !== 'deleting') await updateDoc(profileRef, { status: 'deleting' });
   const matches = await getDocs(query(collection(instance, 'matches'), where('members', 'array-contains', uid)));
   for (const match of matches.docs) {
     while (true) { const messages = await getDocs(query(collection(match.ref, 'messages'), limit(400))); if (messages.empty) break; await removeQueryDocuments(messages.docs); }

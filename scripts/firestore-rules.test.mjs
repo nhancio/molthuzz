@@ -149,6 +149,17 @@ test('production block, report and cleanup remove relationships and private prof
   assert.equal((await getDoc(doc(db('alice'),'matches','alice~bob'))).exists(),false);
   for (const [name,field] of [['interactions','from'],['interactions','to'],['blocks','from'],['blocks','to'],['reports','reporter']]) assert.equal((await getDocs(query(collection(db('alice'),name),where(field,'==','alice')))).size,0);
 });
+test('production account cleanup resumes after an interruption leaves a frozen profile',async()=>{
+  await mutual(); await services.sendMessage('alice~bob','alice','A message awaiting cleanup');
+  await updateDoc(doc(db('alice'),'profiles','alice'),{status:'deleting'});
+  await deleteDoc(doc(db('alice'),'interactions','alice~bob'));
+  await services.deleteAccountData('alice');
+  assert.equal(await services.loadProfile('alice'),null);
+  assert.equal(await services.loadAccount('alice'),null);
+  assert.equal((await getDoc(doc(db('alice'),'matches','alice~bob'))).exists(),false);
+  assert.equal((await getDocs(query(collection(db('alice'),'interactions'),where('to','==','alice')))).size,0);
+  await services.deleteAccountData('alice');
+});
 test('storage validates ownership, image MIME, size, list and cleanup',{skip:!process.env.FIREBASE_STORAGE_EMULATOR_HOST},async()=>{
   await env.clearStorage();
   const alice=env.authenticatedContext('alice').storage(); const bob=env.authenticatedContext('bob').storage();
