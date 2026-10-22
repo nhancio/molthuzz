@@ -6,7 +6,7 @@ import type { SFSymbol } from "sf-symbols-typescript";
 import { colors } from "../theme";
 
 type MaterialName = React.ComponentProps<typeof MaterialIcons>["name"];
-const icons = {
+export const nativeIconNames = {
   "alert-circle-outline": ["exclamationmark.circle", "error-outline"],
   "information-circle-outline": ["info.circle", "info-outline"],
   "sparkles-outline": ["sparkles", "auto-awesome"],
@@ -48,16 +48,49 @@ const icons = {
   add: ["plus", "add"],
 } as const satisfies Record<string, readonly [SFSymbol, MaterialName]>;
 
-export type IconName = keyof typeof icons | "logo-google";
-export function Icon({ name, size = 21, color = colors.ink }: { name: IconName; size?: number; color?: string }) {
+export type IconName = keyof typeof nativeIconNames | "logo-google";
+export function Icon({
+  name,
+  size = 21,
+  color = colors.ink,
+}: {
+  name: IconName;
+  size?: number;
+  color?: string;
+}) {
   // Google has no SF Symbol. Its initial is recognizable without an unrelated glyph.
   if (name === "logo-google") {
-    return <Text accessible={false} style={{ fontFamily: Platform.OS === "ios" ? "System" : "sans-serif", fontSize: size, lineHeight: size * 1.2, fontWeight: "700", color }}>G</Text>;
+    return (
+      <Text
+        accessible={false}
+        style={{
+          fontFamily: Platform.OS === "ios" ? "System" : "sans-serif",
+          fontSize: size,
+          lineHeight: size * 1.2,
+          fontWeight: "700",
+          color,
+        }}
+      >
+        G
+      </Text>
+    );
   }
-  const [sf, material] = icons[name];
+  const [sf, material] = nativeIconNames[name];
   return Platform.OS === "ios" ? (
-    <SymbolView accessible={false} name={sf} tintColor={color} weight="medium" resizeMode="scaleAspectFit" style={{ width: size, height: size }} />
+    <SymbolView
+      accessible={false}
+      name={sf}
+      tintColor={color}
+      weight="medium"
+      resizeMode="scaleAspectFit"
+      style={{ width: size, height: size }}
+    />
   ) : (
-    <MaterialIcons accessible={false} name={material} size={size} color={color} />
+    <MaterialIcons
+      accessible={false}
+      name={material}
+      size={size}
+      color={color}
+    />
   );
 }
