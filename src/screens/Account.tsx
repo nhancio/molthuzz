@@ -183,7 +183,7 @@ export function MembershipScreen({
           >
             ₹2
           </Text>
-          <Text style={{ fontFamily: fonts.medium, fontSize: 14 }}>
+          <Text style={{ fontFamily: fonts.medium, fontSize: 14, flex: 1, flexShrink: 1 }}>
             {t("first calendar month")}
           </Text>
         </View>

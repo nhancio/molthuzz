@@ -13,6 +13,8 @@ import {
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { colors } from "../theme";
+import { LanguageProvider } from "../i18n";
+import LanguagePicker from "../components/LanguagePicker";
 export default function Layout() {
   useFonts({
     InstrumentSerif_400Regular,
@@ -24,13 +26,16 @@ export default function Layout() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.paper }}>
+        <LanguageProvider>
         <StatusBar style="dark" />
+        <LanguagePicker />
         <Stack
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: colors.paper },
           }}
         />
+        </LanguageProvider>
       </SafeAreaView>
     </SafeAreaProvider>
   );

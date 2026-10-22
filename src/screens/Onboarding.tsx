@@ -175,7 +175,7 @@ export default function Onboarding({
         prompts: value.prompts
           .filter((prompt) => prompt.question.trim() || prompt.answer.trim())
           .map((prompt) => ({
-            question: prompt.question.trim() || "My perfect Sunday looks like…",
+            question: prompt.question.trim() || t("My perfect Sunday looks like…"),
             answer: prompt.answer.trim(),
           })),
       };

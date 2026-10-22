@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Text, TextInput } from "../components/LocalizedText";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -204,6 +204,8 @@ export function Chat({
   loading: boolean;
 }) {
   const { t } = useTranslation();
+  const container = useRef<React.ComponentRef<typeof View>>(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [text, setText] = useState("");
   const other = match.members.find((x) => x !== uid) || "";
   async function send() {
@@ -216,9 +218,15 @@ export function Chat({
     }
   }
   return (
+    <View
+      ref={container}
+      style={{ flex: 1, minHeight: 0 }}
+      onLayout={() => container.current?.measureInWindow((_x, y) => setKeyboardOffset(y))}
+    >
     <KeyboardAvoidingView
       style={{ flex: 1, minHeight: 0 }}
       behavior={process.env.EXPO_OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={keyboardOffset}
     >
       <View
         style={[
@@ -368,6 +376,7 @@ export function Chat({
             )}
       </Text>
     </KeyboardAvoidingView>
+    </View>
   );
 }
 const n = StyleSheet.create({

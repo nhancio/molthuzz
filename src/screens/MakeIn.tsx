@@ -975,6 +975,7 @@ export default function MakeIn() {
         )}
         <Field
           label={t("Type DELETE to confirm")}
+          keyboardType="ascii-capable"
           value={confirmDelete}
           onChangeText={setConfirmDelete}
           autoCapitalize="characters"

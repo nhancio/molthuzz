@@ -1,12 +1,12 @@
 # MakeIn
 
-A dating app for adults, rebuilt from the recovered MoltHuzz repository as a universal Expo app for Android, iOS and web. The original `web/` and `backend/` implementations are retained as legacy source and are excluded from the new app build.
+A dating app for adults, rebuilt from the recovered MoltHuzz repository as a native Expo app for Android and iOS, with a separate standalone marketing landing page. The original `web/` and `backend/` implementations are retained as legacy source and are excluded from the new app build.
 
 ## Preview
 
-- Web: https://makein-nhancio.netlify.app
+- Marketing landing page: https://makein-nhancio.netlify.app
 - Expo: https://expo.dev/accounts/nithindidigam/projects/makein
-- Android preview build: https://expo.dev/accounts/nithindidigam/projects/makein/builds/04f712cc-1fe3-4974-a50a-b1e9d8ea997d
+- Android preview build: https://expo.dev/accounts/nithindidigam/projects/makein/builds
 - Firebase: https://console.firebase.google.com/project/makein-nhancio-20261023/overview
 
 The Android build link reports its current cloud build status and exposes the APK when complete. A web export or Expo project does not imply App Store or Play Store publication.
@@ -35,7 +35,7 @@ The Android release keystore and local credentials are ignored files in `.makein
 
 ## Photos and infrastructure
 
-Firestore rules and indexes have been deployed. Photo uploads use Firebase Storage with owner/size/MIME restrictions. The new Firebase project is on Spark, and a live Storage bucket has not been provisioned; uploading needs Storage billing/setup. Users can use their existing Google photo or another persistent HTTPS photo URL in the meantime. No temporary data URL is published as a profile photo. Discovery scans at most 100 active profiles; pagination/server discovery is needed beyond this initial scope. Dates of birth and billing records are not public profile fields.
+Firestore rules and indexes have been deployed. Photo uploads use Firebase Storage with owner/size/MIME restrictions. The owner approved Blaze billing and the live bucket `makein-nhancio-20261023.firebasestorage.app` is provisioned in `asia-south1` with deployed Storage rules. Users can also use their existing Google photo or another persistent HTTPS photo URL. No temporary data URL is published as a profile photo. Discovery scans at most 100 active profiles; pagination/server discovery is needed beyond this initial scope. Dates of birth and billing records are not public profile fields.
 
 ## Checks
 
@@ -44,9 +44,17 @@ npm run typecheck
 npm run lint
 npm test
 JAVA_HOME=/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home npm run test:rules
-npm run export:all
+npm run export:native
 ```
 
 The full security suite also covers Storage when started with `firebase emulators:exec --only firestore,storage --project demo-makein` and the same `scripts/firestore-rules.test.mjs` command. This laptop has Java 25 at the path above; the default Java 17 cannot run the current Firestore emulator.
 
-`npm test` covers profile/birth-date rules, deliberate swipes, preference filtering, membership periods, payment signatures/ownership/replay/retry/cancellation, and deletion sequencing. Emulator tests execute production onboarding, likes/matching, incoming likes, blocks/reports and interrupted cleanup. Typecheck, lint and web/Android/iOS exports pass. Browser checks cover desktop/mobile layout, demo matching and practice chat. Physical-device login and app-store release remain separate checks.
+`npm test` covers profile/birth-date rules, deliberate swipes, preference filtering, membership periods, payment signatures/ownership/replay/retry/cancellation, and deletion sequencing. Emulator tests execute production onboarding, likes/matching, incoming likes, blocks/reports and interrupted cleanup. Typecheck, lint and Android/iOS exports are the native checks. Browser checks cover desktop/mobile layout, demo matching and practice chat. Physical-device login and app-store release remain separate checks.
+
+## App languages
+
+The native app offers English, Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali and Gujarati. The language button is available before sign-in, through onboarding and on every tab. Switching updates mounted screens immediately, and AsyncStorage remembers the choice across restarts and sign-out. “Use device language” follows the phone’s supported language preferences, with English fallback.
+
+i18next/react-i18next load all translations from `src/i18n/locales/` without network requests. Only owned interface copy and canonical option labels are translated; member names, bios, cities, custom prompts and messages stay as authored. Selected-locale membership dates, native system fonts for Indian scripts, wrapping labels and localized errors are included. The exact account-deletion token remains `DELETE`.
+
+To add a language, create a complete catalog with the same English keys and interpolation placeholders, register it in `src/i18n/language.ts` and `resources.ts`, and update supportedLocales in `app.config.ts`. `npm test` checks catalog coverage, placeholders, locale preference behavior and interface coverage. Native language changes require updated Android/iOS binaries because expo-localization adds native configuration. Physical-device script and keyboard QA is still required.

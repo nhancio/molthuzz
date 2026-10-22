@@ -280,6 +280,7 @@ export const s = StyleSheet.create({
   },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   chip: {
+    maxWidth: "100%",
     flexDirection: "row",
     alignItems: "center",
     gap: 7,
@@ -290,7 +291,7 @@ export const s = StyleSheet.create({
     borderRadius: 30,
   },
   selected: { backgroundColor: colors.lime, borderColor: colors.lime },
-  chipText: { fontFamily: fonts.medium, color: colors.muted, fontSize: 14 },
+  chipText: { fontFamily: fonts.medium, color: colors.muted, fontSize: 14, flexShrink: 1 },
   badge: {
     alignSelf: "flex-start",
     backgroundColor: colors.lime,
