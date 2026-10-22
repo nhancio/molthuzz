@@ -37,8 +37,8 @@ test("large accessibility text uses measured chrome and scrolls rather than shri
     controlsHeight: 174,
     fontScale: 2,
   });
-  assert.ok(result.cardHeight >= 380);
-  assert.ok(result.contentHeight >= 688);
+  assert.ok(result.cardHeight >= 540);
+  assert.ok(result.contentHeight >= 848);
   assert.equal(result.needsScroll, true);
 });
 

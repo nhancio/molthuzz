@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Text } from "../components/LocalizedText";
-import React, { useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
+import * as Haptics from "expo-haptics";
 import {
   ActivityIndicator,
   Pressable,
@@ -41,9 +42,28 @@ export default function Discovery({
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
   const [bounds, setBounds] = useState({ height: 570, width: 354 });
-  const [headerHeight, setHeaderHeight] = useState(57);
+  const [headerHeight, setHeaderHeight] = useState(48);
   const [controlsHeight, setControlsHeight] = useState(100);
   const [gestureBusy, setGestureBusy] = useState(false);
+  const decisionPending = useRef(false);
+  const decide = useCallback(
+    async (decision: "like" | "pass") => {
+      if (decisionPending.current) return;
+      decisionPending.current = true;
+      setGestureBusy(true);
+      if (process.env.EXPO_OS === "ios")
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+          () => {},
+        );
+      try {
+        await onDecision(decision);
+      } finally {
+        decisionPending.current = false;
+        setGestureBusy(false);
+      }
+    },
+    [onDecision],
+  );
   const interactionBusy = busy || gestureBusy;
   const card = cards[0];
   const layout = discoveryLayout({
@@ -76,13 +96,7 @@ export default function Discovery({
           onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
         >
           <View style={{ flex: 1, gap: 4 }}>
-            <Text style={[shared.label, { fontSize: 9 }]}>
-              {t("A WORLD OF POSSIBILITIES")}
-            </Text>
-            <Text
-              accessibilityRole="header"
-              style={[shared.heading, { fontSize: 34, lineHeight: 38 }]}
-            >
+            <Text style={[shared.muted, { fontSize: 14 }]}>
               {t("Your next hello.")}
             </Text>
           </View>
@@ -90,7 +104,8 @@ export default function Discovery({
             accessibilityRole="button"
             accessibilityLabel={t("Discovery filters")}
             onPress={onFilters}
-            style={d.filter}
+            android_ripple={{ color: "#20241F10" }}
+            style={({ pressed }) => [d.filter, { opacity: pressed ? 0.65 : 1 }]}
           >
             <Icon name="options-outline" />
           </Pressable>
@@ -110,7 +125,7 @@ export default function Discovery({
                 onGestureStateChange={setGestureBusy}
                 card={card}
                 onOpen={() => onOpen(card)}
-                onDecision={onDecision}
+                onDecision={decide}
                 busy={interactionBusy}
               />
               <View
@@ -122,13 +137,16 @@ export default function Discovery({
                 <View style={d.actions}>
                   <Pressable
                     disabled={interactionBusy}
-                    onPress={() => onDecision("pass")}
+                    onPress={() => {
+                      void decide("pass").catch(() => {});
+                    }}
                     accessibilityRole="button"
                     accessibilityLabel={t("Pass profile")}
-                    style={[
+                    android_ripple={{ color: "#20241F12" }}
+                    style={({ pressed }) => [
                       d.action,
                       {
-                        backgroundColor: colors.white,
+                        backgroundColor: pressed ? colors.soft : colors.white,
                         borderWidth: 1,
                         borderColor: colors.line,
                         opacity: interactionBusy ? 0.4 : 1,
@@ -141,22 +159,33 @@ export default function Discovery({
                     onPress={() => onOpen(card)}
                     accessibilityRole="button"
                     accessibilityLabel={t("View profile")}
-                    style={[
+                    disabled={interactionBusy}
+                    android_ripple={{ color: "#20241F12" }}
+                    style={({ pressed }) => [
                       d.action,
-                      { width: 46, height: 46, backgroundColor: colors.soft },
+                      {
+                        width: 48,
+                        height: 48,
+                        backgroundColor: colors.soft,
+                        opacity: pressed ? 0.65 : 1,
+                      },
                     ]}
                   >
                     <Icon name="person-outline" size={21} />
                   </Pressable>
                   <Pressable
                     disabled={interactionBusy}
-                    onPress={() => onDecision("like")}
+                    onPress={() => {
+                      void decide("like").catch(() => {});
+                    }}
                     accessibilityRole="button"
                     accessibilityLabel={t("Like profile")}
-                    style={[
+                    android_ripple={{ color: "#20241F18" }}
+                    style={({ pressed }) => [
                       d.action,
                       {
                         backgroundColor: colors.lime,
+                        transform: [{ scale: pressed ? 0.97 : 1 }],
                         opacity: interactionBusy ? 0.4 : 1,
                       },
                     ]}
@@ -171,7 +200,7 @@ export default function Discovery({
                 <Text
                   style={[
                     shared.muted,
-                    { fontSize: 9, textAlign: "center", marginTop: 8 },
+                    { fontSize: 11, textAlign: "center", marginTop: 10 },
                   ]}
                 >
                   {t("SWIPE LEFT TO PASS · RIGHT TO LIKE")}
@@ -213,8 +242,9 @@ const d = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.line,
-    width: 46,
-    height: 46,
+    width: 48,
+    height: 48,
+    overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -226,9 +256,10 @@ const d = StyleSheet.create({
     gap: 26,
   },
   action: {
-    width: 58,
-    height: 58,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    overflow: "hidden",
     justifyContent: "center",
     alignItems: "center",
   },

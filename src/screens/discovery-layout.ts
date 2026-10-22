@@ -15,7 +15,7 @@ export function discoveryLayout({
   fontScale: number;
 }) {
   // Readability wins on small screens: the ScrollView exposes controls below this minimum.
-  const minimumHeight = 280 + 100 * Math.max(0, fontScale - 1);
+  const minimumHeight = 280 + 260 * Math.max(0, fontScale - 1);
   const portraitHeight = Math.max(
     minimumHeight,
     Math.min(560, cardWidth / 0.75),
