@@ -1,0 +1,99 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signed() { return request.auth != null; }
+    function own(uid) { return signed() && request.auth.uid == uid; }
+    function profile(uid) { return get(/databases/$(database)/documents/profiles/$(uid)).data; }
+    function active(uid) { return profile(uid).status == 'active'; }
+    function deleting(uid) { return !exists(/databases/$(database)/documents/profiles/$(uid)) || profile(uid).status == 'deleting'; }
+    function paid(uid) {
+      let entitlement = get(/databases/$(database)/documents/entitlements/$(uid)).data;
+      return entitlement.status in ['active', 'cancelled'] && entitlement.currentPeriodEnd is number && entitlement.currentPeriodEnd > request.time.toMillis();
+    }
+    function text(value, min, max) { let size = value.size(); return value is string && size >= min && size <= max && value.matches('(?s).*[^\\s].*'); }
+    function birthAge(value) {
+      let parts = value.split('-'); let y = int(parts[0]); let m = int(parts[1]); let d = int(parts[2]);
+      return request.time.year() - y - ((request.time.month() < m || (request.time.month() == m && request.time.day() < d)) ? 1 : 0);
+    }
+    function adultDate(value) {
+      let parts = value.split('-'); let y = int(parts[0]); let m = int(parts[1]); let d = int(parts[2]);
+      let leap = y % 400 == 0 || (y % 4 == 0 && y % 100 != 0);
+      let days = m == 2 ? (leap ? 29 : 28) : (m in [4, 6, 9, 11] ? 30 : 31);
+      let age = request.time.year() - y - ((request.time.month() < m || (request.time.month() == m && request.time.day() < d)) ? 1 : 0);
+      return value.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') && m >= 1 && m <= 12 && d >= 1 && d <= days && age >= 18 && age <= 100;
+    }
+    function ageFor(uid) {
+      let birth = getAfter(/databases/$(database)/documents/accounts/$(uid)).data.birthDate;
+      let parts = birth.split('-'); let m = int(parts[1]); let d = int(parts[2]);
+      return request.time.year() - int(parts[0]) - ((request.time.month() < m || (request.time.month() == m && request.time.day() < d)) ? 1 : 0);
+    }
+    function photo(value) { return value is string && value.size() <= 2048 && value.matches('^https://[A-Za-z0-9][A-Za-z0-9.-]*(:[0-9]+)?([/?#].*)?$'); }
+    function photoList(v) {
+      let size = v.size();
+      return v is list && size >= 1 && size <= 6 && photo(v[0]) && (size < 2 || photo(v[1])) && (size < 3 || photo(v[2])) && (size < 4 || photo(v[3])) && (size < 5 || photo(v[4])) && (size < 6 || photo(v[5]));
+    }
+    function interests(v) {
+      let size = v.size();
+      return v is list && size >= 1 && size <= 8 && v.toSet().size() == size && text(v[0],1,30) && (size<2 || text(v[1],1,30)) && (size<3 || text(v[2],1,30)) && (size<4 || text(v[3],1,30)) && (size<5 || text(v[4],1,30)) && (size<6 || text(v[5],1,30)) && (size<7 || text(v[6],1,30)) && (size<8 || text(v[7],1,30));
+    }
+    function prompt(v) { return v is map && v.keys().hasOnly(['question','answer']) && text(v.question,1,100) && text(v.answer,1,200); }
+    function prompts(v) { let size = v.size(); return v is list && size <= 3 && (size<1 || prompt(v[0])) && (size<2 || prompt(v[1])) && (size<3 || prompt(v[2])); }
+    function validProfile(p, uid) {
+      return p.keys().hasOnly(['name','age','gender','interestedIn','location','bio','photos','interests','intent','prompts','status']) && text(p.name,1,40) && p.age is int && p.age >= 18 && p.age <= 100 && p.age == ageFor(uid) && p.gender in ['Woman','Man','Non-binary'] && p.interestedIn is list && p.interestedIn.size() >= 1 && p.interestedIn.size() <= 3 && p.interestedIn.hasOnly(['Woman','Man','Non-binary']) && p.interestedIn.toSet().size() == p.interestedIn.size() && text(p.location,1,80) && text(p.bio,1,500) && photoList(p.photos) && interests(p.interests) && p.intent in ['A relationship','Something casual','Figuring it out'] && prompts(p.prompts) && p.status in ['active','paused','deleting'];
+    }
+    function unblocked(a,b) { return !exists(/databases/$(database)/documents/blocks/$(a + '~' + b)) && !exists(/databases/$(database)/documents/blocks/$(b + '~' + a)); }
+    function interactive(a,b) { return a != b && active(a) && active(b) && unblocked(a,b); }
+    function pairReader(id) { let members = id.split('~'); return signed() && members.size() == 2 && request.auth.uid in members; }
+    function member(m) { return signed() && request.auth.uid in m.members; }
+    function like(a,b) { return getAfter(/databases/$(database)/documents/interactions/$(a + '~' + b)).data.decision == 'like'; }
+    match /accounts/{uid} {
+      allow get: if own(uid);
+      allow create, update: if own(uid) && !deletingExisting(uid) && request.resource.data.keys().hasOnly(['birthDate']) && request.resource.data.birthDate is string && adultDate(request.resource.data.birthDate) && getAfter(/databases/$(database)/documents/profiles/$(uid)).data.age == birthAge(request.resource.data.birthDate);
+      allow delete: if own(uid) && deleting(uid);
+    }
+    function deletingExisting(uid) { return exists(/databases/$(database)/documents/profiles/$(uid)) && profile(uid).status == 'deleting'; }
+    match /profiles/{uid} {
+      allow get: if signed() && (own(uid) || resource.data.status == 'active');
+      allow list: if signed() && resource.data.status == 'active';
+      allow create: if own(uid) && validProfile(request.resource.data, uid) && request.resource.data.status == 'active';
+      allow update: if own(uid) && resource.data.status != 'deleting' && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status in ['paused','deleting']) || validProfile(request.resource.data,uid));
+      allow delete: if own(uid) && deleting(uid);
+    }
+    match /entitlements/{uid} { allow read: if own(uid); allow write: if false; }
+    match /interactions/{id} {
+      allow get: if pairReader(id) && (!exists(/databases/$(database)/documents/interactions/$(id)) || (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid));
+      allow list: if signed() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+      allow create: if signed() && request.resource.data.keys().hasOnly(['from','to','decision','createdAt']) && request.resource.data.from == request.auth.uid && request.resource.data.to is string && id == request.auth.uid + '~' + request.resource.data.to && request.resource.data.decision in ['like','pass'] && request.resource.data.createdAt == request.time && paid(request.auth.uid) && interactive(request.auth.uid, request.resource.data.to);
+      allow update: if false;
+      allow delete: if signed() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid) && deleting(request.auth.uid);
+    }
+    match /matches/{id} {
+      allow get: if pairReader(id) && (!exists(/databases/$(database)/documents/matches/$(id)) || member(resource.data));
+      allow list: if member(resource.data);
+      allow create: if signed() && request.resource.data.keys().hasOnly(['members','names','photos','status','createdAt']) && request.resource.data.members is list && request.resource.data.members.size() == 2 && request.resource.data.members[0] is string && request.resource.data.members[1] is string && request.resource.data.members[0] < request.resource.data.members[1] && id == request.resource.data.members[0] + '~' + request.resource.data.members[1] && member(request.resource.data) && request.resource.data.status == 'active' && request.resource.data.createdAt == request.time && validMatch(request.resource.data) && paid(request.auth.uid) && interactive(request.resource.data.members[0],request.resource.data.members[1]) && like(request.resource.data.members[0],request.resource.data.members[1]) && like(request.resource.data.members[1],request.resource.data.members[0]);
+      allow update: if member(resource.data) && resource.data.status == 'active' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status == 'ended';
+      allow delete: if member(resource.data) && deleting(request.auth.uid);
+      match /messages/{messageId} {
+        function conversation() { return get(/databases/$(database)/documents/matches/$(id)).data; }
+        allow read: if member(conversation());
+        allow create: if member(conversation()) && conversation().status == 'active' && paid(request.auth.uid) && interactive(conversation().members[0],conversation().members[1]) && request.resource.data.keys().hasOnly(['sender','text','createdAt']) && request.resource.data.sender == request.auth.uid && text(request.resource.data.text,1,2000) && request.resource.data.createdAt == request.time;
+        allow update: if false;
+        allow delete: if member(conversation()) && deleting(request.auth.uid);
+      }
+    }
+    function validMatch(m) { return m.names is map && m.photos is map && m.names.keys().hasOnly(m.members) && m.photos.keys().hasOnly(m.members) && m.names[m.members[0]] == profile(m.members[0]).name && m.names[m.members[1]] == profile(m.members[1]).name && m.photos[m.members[0]] == profile(m.members[0]).photos[0] && m.photos[m.members[1]] == profile(m.members[1]).photos[0]; }
+    match /blocks/{id} {
+      allow get: if pairReader(id) && (!exists(/databases/$(database)/documents/blocks/$(id)) || (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid));
+      allow list: if signed() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+      allow create: if signed() && request.resource.data.keys().hasOnly(['from','to','createdAt']) && request.resource.data.from == request.auth.uid && request.resource.data.to is string && request.resource.data.to != request.auth.uid && id == request.auth.uid + '~' + request.resource.data.to && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if signed() && (resource.data.from == request.auth.uid || (resource.data.to == request.auth.uid && deleting(request.auth.uid)));
+    }
+    match /reports/{id} {
+      allow read: if signed() && resource.data.reporter == request.auth.uid;
+      allow create: if signed() && request.resource.data.keys().hasOnly(['reporter','target','reason','createdAt']) && request.resource.data.reporter == request.auth.uid && request.resource.data.target is string && request.resource.data.target != request.auth.uid && text(request.resource.data.reason,1,500) && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if signed() && resource.data.reporter == request.auth.uid && deleting(request.auth.uid);
+    }
+  }
+}
