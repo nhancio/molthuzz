@@ -24,13 +24,6 @@
       },
       "softwareKeyboardLayoutMode": "resize"
     },
-    "web": {
-      "name": "MakeIn",
-      "description": "Real people. A little spark. Discover your kind of connection with MakeIn.",
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/favicon.png"
-    },
     "plugins": [
       [
         "expo-router",
@@ -44,8 +37,7 @@
     ],
     "platforms": [
       "ios",
-      "android",
-      "web"
+      "android"
     ],
     "extra": {
       "router": {

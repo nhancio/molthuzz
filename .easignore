@@ -14,3 +14,5 @@ web/
 backend/
 
 .makein-credentials/
+
+landing-dist/

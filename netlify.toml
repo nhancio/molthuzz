@@ -1,6 +1,6 @@
 [build]
-  command = "npm run build:web"
-  publish = "dist"
+  command = "npm run build:landing"
+  publish = "landing-dist"
   functions = "netlify/functions"
 
 [build.environment]
@@ -12,8 +12,8 @@
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "/404.html"
+  status = 404
 
 [[headers]]
   for = "/*"
@@ -24,6 +24,6 @@
     Permissions-Policy = "camera=(), microphone=(), geolocation=(self)"
 
 [[headers]]
-  for = "/_expo/static/*"
+  for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"

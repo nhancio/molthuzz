@@ -54,3 +54,5 @@ credentials.json
 *.keystore
 
 .makein-credentials/
+
+landing-dist/

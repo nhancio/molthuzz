@@ -19,6 +19,22 @@
       "autoIncrement": true,
       "android": {
         "credentialsSource": "local"
+      },
+      "environment": "production"
+    },
+    "ios-simulator": {
+      "extends": "preview",
+      "ios": {
+        "simulator": true
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "nithindidigam@nhancio.com",
+        "appleTeamId": "76G23XAVL3",
+        "ascAppId": "6825923575"
       }
     }
   }
