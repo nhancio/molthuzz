@@ -56,7 +56,7 @@ export default function Welcome({ onGoogle, onDemo, onLegal, busy, error }: {
         </View>
         <View style={{ gap: spacing.xs }}>
           <Text style={[type.caption, { textAlign: "center" }]}>{t("By continuing, you confirm you’re 18+ and agree to our Terms and Privacy Policy.")}</Text>
-          <View style={[shared.row, { justifyContent: "center", gap: spacing.lg }]}>
+          <View style={[shared.row, { justifyContent: "center", flexWrap: "wrap", gap: spacing.lg }]}>
             <Button variant="text" compact inline onPress={() => onLegal("terms")}>{t("Terms")}</Button>
             <Button variant="text" compact inline onPress={() => onLegal("privacy")}>{t("Privacy Policy")}</Button>
           </View>
