@@ -1,0 +1,34 @@
+export type Gender = 'Woman' | 'Man' | 'Non-binary';
+export type Intent = 'A relationship' | 'Something casual' | 'Figuring it out';
+export type Profile = { name: string; age: number; gender: Gender; interestedIn: Gender[]; location: string; bio: string; photos: string[]; interests: string[]; intent: Intent; prompts: { question: string; answer: string }[]; status: 'active' | 'paused' | 'deleting' };
+export type ProfileInput = Omit<Profile, 'age' | 'status'> & { birthDate: string };
+export type Card = Profile & { id: string; demo?: boolean };
+export type Match = { id: string; members: string[]; names: Record<string, string>; photos: Record<string, string>; status: 'active' | 'ended' };
+export type Message = { id: string; sender: string; text: string };
+export type Membership = { status: 'inactive' | 'active' | 'cancelled'; currentPeriodEnd: number; renewalAt?: number; subscriptionId?: string };
+export type Account = { birthDate: string };
+export type AuthUser = { uid: string; displayName: string | null; email: string | null; photoURL: string | null; getIdToken: () => Promise<string> };
+export type Filters = { minAge: number; maxAge: number; location: string };
+
+// auth.ts: watchAuth(next: (user: AuthUser|null)=>void): ()=>void;
+// signInGoogle(): Promise<void>; signOutUser(): Promise<void>;
+// deleteAuthUser(): Promise<void>; reauthenticateGoogle(): Promise<void>;
+// firebase.ts: configured: boolean; db, auth, storage as nullable Firebase instances.
+// model.ts: emptyProfileInput: ProfileInput; validateProfile(input: ProfileInput, now?: Date): string|null;
+// ageFromBirthDate(value: string, now?: Date): number; swipeDirection(dx:number,vx:number): 'like'|'pass'|null;
+// filterCards(cards: Card[], profile: Profile, filters: Filters): Card[];
+// membershipActive(m: Membership|null, now?: number): boolean;
+// data.ts: loadProfile(uid): Promise<Profile|null>; loadAccount(uid):Promise<Account|null>;
+// saveProfile(uid, input:ProfileInput):Promise<Profile>; discover(uid,profile:Profile):Promise<Card[]>;
+// recordInterest(uid,target:Card,decision:'like'|'pass'):Promise<boolean>;
+// getIncomingInterests(uid):Promise<Card[]>;
+// watchMatches(uid,next:(matches:Match[])=>void,error:(error:Error)=>void):()=>void;
+// watchMessages(matchId,next:(messages:Message[])=>void,error:(error:Error)=>void):()=>void;
+// sendMessage(matchId,uid,text):Promise<void>;
+// watchMembership(uid,next:(m:Membership|null)=>void,error:(e:Error)=>void):()=>void;
+// uploadPhoto(uid,uri:string):Promise<string>;
+// blockUser(uid,targetId):Promise<void>; reportUser(uid,targetId,reason:string):Promise<void>;
+// endMatch(matchId,uid):Promise<void>; deleteAccountData(uid):Promise<void>;
+// demo.ts: demoCards:Card[]; demoProfile:Profile; demoProfileInput:ProfileInput;
+// payments.ts (parent): startCheckout(user:AuthUser):Promise<void>;
+// cancelMembership(user:AuthUser):Promise<void>; paymentConfigured:boolean;
