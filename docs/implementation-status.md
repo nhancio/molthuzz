@@ -1,60 +1,47 @@
 # MakeIn delivery status — 23 October 2026
 
-## Product and source
-- Native Expo Android and iOS app: MakeIn, package/bundle com.nhancio.makein. Standalone marketing landing page at https://makein-nhancio.netlify.app; website has no dating UI/browser login.
-- Adult onboarding, Google sign-in, profiles/photos/preferences, discovery/swipes/likes, mutual matches, chat, editing, block/report/unmatch and retryable account deletion. Labelled fictional demo is isolated from real data.
-- Offline i18next interface in English, Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali and Gujarati: 357 strings per language, persistent global language picker, device default/English fallback, locale-aware membership dates and Indian-script typography. Member-authored content and canonical stored options remain intact.
-- Profile setup/editing now uses one vertical form with a single Save action and first-invalid-field scrolling; the ten-step wizard is removed. Multiple photos can be selected at once, with ordered previews, main-photo selection, removal and partial-failure retry. Original source size/type is not rejected before native JPEG conversion/downsampling; final objects retain secure 8MiB MIME/owner rules.
-- System-control pass uses Aura+ native iOS tabs/DOB as a read-only reference. MakeIn retains SDK58-native implementations on both platforms: shared action buttons and ordinary icon actions are SwiftUI/Compose; single choice is a native menu and multiple choice native switches/checkboxes. iOS tab background/material/fonts follow the OS defaults; Android uses its Material bar.
-- Compact opening uses a bounded portrait pair, system typography, native Google action, demo text action and wrapping legal links without large spacers or duplicated filled buttons. Native splash remains while bundled branding loads; loading UI is compact.
-- Premium native UI: real Expo Router tabs and per-tab stacks; native conversation headers/back, SwiftUI/Compose buttons, menus, toggles/checkboxes, sheets and language pickers, compact iOS date picker and Android system date dialog, grouped settings, SF/Material icons, system typography, photo/gradient discovery cards, UI-thread gestures, reduced-motion support, haptic commit feedback and keyboard-controller forms/chat. Failed saves and sends preserve drafts.
-- Draft PR: https://github.com/nhancio/molthuzz/pull/1 on feat/makein-dating.
+## App and source
+- Native Expo 58 / React Native 0.88 app for Android and iOS; package com.nhancio.makein. Source: /Users/nithi/Desktop/Claude-Projects/Nhancio-Projects/MakeIn.
+- Existing branch feat/makein-dating and draft PR https://github.com/nhancio/molthuzz/pull/1. Verified app revision be1a02e.
+- Separate landing page https://makein-nhancio.netlify.app; no dating browser UI.
+- Adult onboarding, Google sign-in, private DOB, public profiles/photos/preferences, discovery/swipes/likes, mutual matches/chat, editing, report/block/unmatch and retryable account deletion. Fictional demo interactions remain local and separate from members.
+- Nine offline interface languages: English, Hindi, Telugu, Tamil, Kannada, Malayalam, Marathi, Bengali and Gujarati; 357 keys each. Persistent/device language choice, fallback, Indian-script typography and locale-aware dates. Member-authored content remains unchanged.
 
-## Infrastructure
-- Expo: https://expo.dev/accounts/nithindidigam/projects/makein (efbb0e70-ee9f-4747-ba4f-67d3a9472e8d).
-- Firebase: makein-nhancio-20261023, owned by nithindidigam@nhancio.com. Firestore asia-south1, rules/indexes deployed; MakeIn Google provider/native OAuth clients configured.
-- User approved Blaze billing and photo storage. Linked the existing One-Billing-Account, provisioned makein-nhancio-20261023.firebasestorage.app in ASIA-SOUTH1, deployed Storage rules. Production unauthenticated upload correctly returns403; native physical-device photo upload remains unverified.
-- Android signing keystore remains in ignored private credentials; its SHA-1 is registered with Firebase. iOS App Store signing is configured under Nhancio, team76G23XAVL3. ASC app6825923575.
-- User deferred Razorpay/UPI connection. Payment integration remains disabled; no charge or mandate created. ₹2 first calendar month then ₹99/month is the planned membership.
+## Latest photo fix and native design
+- Firebase multipart Uint8Array parts were incompatible with React Native Blob, failing before networking. Native uploads now read the prepared local JPEG through XHR responseType=blob, then use unchanged Firebase uploadBytes/getDownloadURL with existing authentication. Native resources close on success and failure; safe auth and permission errors remain distinguishable.
+- No arbitrary source-file byte-size rejection: native bounded decode/resizing/JPEG encoding precedes final 8MiB MIME/size/owner rules. Up to six photos can be selected together, previewed, made main, removed and retried after partial failure.
+- One continuous keyboard-aware profile form; native navigation Back/Done and bottom Save, first-invalid-field scrolling, grouped fields, three-column photo gallery, compact iOS date picker and Android system date dialog. Unresolved uploads block save without dropping selections.
+- Bounded portraits, system typography, native Google action, demo text action and small wrapping legal links replace the large opening spacer and duplicated filled buttons.
+- Account uses SwiftUI Form sections on iOS and single Material ListItems grouped in Compose themed surfaces on Android. Avatar fallback, edit/membership/legal/sign-out/deletion actions retained; oversized marketing panel removed.
+- Native tabs/buttons/menus/switches/checkboxes, safe areas, OS typography, reduced motion, haptics and keyboard-aware forms/chat retained. Failed saves/sends preserve drafts.
 
-## Latest system-control native builds
-- Android APK preview submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/0ba810ac-81ae-492c-b452-b171048f8a12
-- Signed iOS production build5 submitted: https://expo.dev/accounts/nithindidigam/projects/makein/builds/4edb746f-5520-47ef-813d-f37b46dca508
-- iOS TestFlight upload scheduled after the build: https://expo.dev/accounts/nithindidigam/projects/makein/submissions/904e6c88-b13e-4f6a-b62e-f9b5cef16dab
-- The earlier single-form iOS build4 finished. Its queued Android preview was cancelled for the system-control replacement. Both replacement builds and the automatic iOS submission have been accepted by EAS; build pages report current status. No store publication or public TestFlight access is claimed.
-- Earlier multilingual iOS build2 also finished successfully.
+## Native verification
+- 70 automated tests, TypeScript, uncached Expo lint and Android/iOS Hermes exports pass. Includes real Firebase multipart regression under React Native Blob restrictions and native XHR/error/resource checks.
+- Actual Android 16/API 36 emulator selected three PNGs together. The production native adapter processed each to 83,684-byte JPEG, uploaded/downloaded matching byte counts through Firebase Auth/Storage emulators, denied foreign-UID writes and removed QA objects. Production Storage rules were copied unchanged. No production member data used; temporary QA route removed from release source.
+- Native welcome/account/form inspected at normal and 160% text size. Hindi selection switched immediately and rendered correctly.
+- Independent final review found no remaining critical/important source issue. Earlier Firestore/Storage rules checks passed; backend contracts/rules were not changed by this revision.
+- Physical iOS interaction, physical Google sign-in and production Storage upload success remain unverified. Local iOS Simulator unavailable; EAS Simulator unavailable on this account.
 
-## Verification
-- TypeScript pass, Expo lint pass with --no-cache (removed stale missing-catalog diagnostics), 70/70 tests pass, native Android/iOS Hermes exports pass.
-- Catalog tests verify complete keys, interpolation, DELETE token, price/age/date numbers, INR symbols and regional translations; tests also cover preference persistence/device negotiation/write failure and instant i18next switching/fallback/member-name interpolation. Static JSX coverage prevents untranslated owned copy and translation of known member fields.
-- Earlier 16 Firestore/Storage emulator cases and targeted cleanup retry checks passed; service/rules unchanged by language feature.
-- Independent current review cleared native photo decoder bounds/output size/cleanup, compact opening/splash, single-form validation, ordered partial-failure upload retry, main-photo changes, synchronous operation guards and keyboard-aware composition. New test coverage exercises normalization/error cleanup/output bounds, model-first error targets, unresolved-photo save blocking, gallery order and retry without duplicating successful uploads. Android native execution is verified as described below; physical iOS execution remains pending. Native-control review also cleared toolkit-child ownership, multiline hosts, busy/disabled guards, canonical menu/checkbox callbacks, max8 selection with deselection, inline DOB, tab material defaults and glyph sizing. Root composition waits for fonts so Compose can resolve the Material family; root import includes only the required icon font.
-- Standalone landing HTTP200 verified; old /discover route404, no Expo browser bundle. Landing build/link tests 2/2 pass after updating the premium Android link; production link verified.
+## Infrastructure and billing
+- Expo https://expo.dev/accounts/nithindidigam/projects/makein; project efbb0e70-ee9f-4747-ba4f-67d3a9472e8d.
+- Firebase makein-nhancio-20261023, owner nithindidigam@nhancio.com; Firestore asia-south1. Auth/provider/native OAuth and deployed rules/indexes configured.
+- User-approved Blaze linked to existing One-Billing-Account; bucket makein-nhancio-20261023.firebasestorage.app in ASIA-SOUTH1, owner/MIME/size rules deployed. Unauthenticated production write returns403.
+- Existing ignored Android signing keystore; SHA-1 registered with Firebase. iOS signing Nhancio team76G23XAVL3, ASC6825923575.
+- Razorpay/UPI connection deferred by user; payments disabled. Planned ₹2 first calendar month then ₹99/month. No charge, mandate or membership activation was created.
 
-## Remaining release checks
-- Physical Android/iOS Google sign-in, keyboard and production photo-upload QA. Local Android emulator checks passed; local iOS Simulator and account EAS Simulator remain unavailable.
-- Razorpay merchant connection/testing and final store release. Real paid interactions remain locked while billing disabled; history/safety remain accessible.
-- Discovery scans the first100 active profiles; server pagination needed beyond initial scope.
+## Updated builds
+- Android AAB build4: https://expo.dev/accounts/nithindidigam/projects/makein/builds/0e9d0303-1764-4384-948b-c2a1731ac9d5
+- iOS build8: https://expo.dev/accounts/nithindidigam/projects/makein/builds/52ad8514-01b1-46aa-aa88-036ded607869
+- TestFlight submission: https://expo.dev/accounts/nithindidigam/projects/makein/submissions/e5121992-8996-4fe7-a805-dcb89d0eacbd
+- Status at request: Android build4, iOS build8 and TestFlight upload finished. Apple processing and tester availability are separate. Build pages report current status. Old APK/build5 predate the photo fix. Cancelled Android3/iOS7 are not deliverables.
+- No public Play/App Store release or public TestFlight access claimed.
 
-## Implementation decisions
-- Proceeded with the premium native design under the explicit user request, without a second design approval. If the visual direction is wrong, the screens need revision.
-- Used the current linked Expo skill over stale local guidance, including expo-symbols and @expo/ui native controls. Installed SDK58 types determined actual supported APIs; device integration remains a release check.
-- Reused all 338 existing copy keys across all 9 languages to preserve catalog parity and member-data boundaries. New product copy requires adding translations to every catalog.
+## Remaining limits
+- Physical-device checks above and Razorpay merchant connection/testing before paid launch.
+- Discovery scans the first 100 active profiles; pagination needed beyond the initial scope.
+- Six photos remain the existing profile/rule limit. HTTPS photo entry exists only in the fictional demo; members use native upload.
 
-## Single-form decisions
-- Six photos remain the profile limit. Any size refers to selected source file bytes/dimensions being optimized before upload. An unlimited photo count would require changing profile/rule contracts and gallery layout.
-- HTTPS preview entry remains only in the fictional demo. Real members use native photo selection/upload; advanced URL entry would need restoring if requested.
-- Proceeded directly under the explicit requested changes. If the revised visual direction is wrong, the screens need revision.
-
-## Native-control decisions
-- Used MakeIn installed SDK58 declarations rather than copying Aura+ SDK57 declarations. Native integration revisions may be needed if device behavior differs.
-- Kept specialized swipe/card/list hit areas as React Native interactions while ordinary controls use native widgets. Broader gesture/UI work would be required if these interactions also need changing.
-- Kept birth date empty until interaction or Done confirms the initial wheel value. This adds one confirmation when the proposed default date is correct.
-
-## Photo fix and native polish — latest revision
-- Root cause: Firebase multipart construction passed Uint8Array parts into React Native Blob, which rejects ArrayBuffer views before a network request. Native uploads now read the optimized local JPEG through XHR responseType=blob and pass the native Blob to the unchanged Firebase authenticated SDK. Blob/file/image resources are released on success and failure. Auth and permission failures retain safe specific messages.
-- A real Android16/API36 emulator selected three gallery PNGs together. Actual nativePhotoAdapter/processAndUploadPhoto normalized each to 83,684-byte JPEG, uploaded and downloaded identical byte counts using Firebase Auth/Storage emulators and unchanged production Storage rules, rejected a foreign-UID object path, and removed QA objects. No production member data was used. Temporary QA route is removed from app source.
-- Source inputs have no arbitrary byte-size rejection; native decoder bounds/resizing and final8MiB JPEG limit preserve secure Storage rules. Six-photo gallery supports main-photo selection, removal and partial retry.
-- Native welcome, account and single-form screens checked on Android at normal and160% text size. Account uses native SwiftUI Form sections on iOS and single Material ListItems grouped in themed Compose surfaces on Android. iOS DOB is compact; Android uses the system date dialog.
--70 tests, TypeScript, lint and Android/iOS Hermes exports pass. Independent broad source review found no remaining critical/important issue. Physical iOS and production Storage success remain unverified.
-- Prior build5/APK links above predate this fix. Final replacement build IDs and statuses will be recorded after EAS finishes; do not treat cancelled build7/Android3 as deliverables.
+## Final Android artifact check
+- Signed universal APK generated from the finished build4 AAB using Google bundletool1.18.3 and the existing keystore. V2/V3 signature verification passed; package com.nhancio.makein/version1.0.0/code4.
+- APK installed successfully and cold-launched; standalone welcome/demo/discovery/account screens opened without Metro. Activity launch measurement909ms on emulator (not a physical-device startup benchmark).
+- APK/AAB/checksums and native screenshots are in /Users/nithi/Documents/Codex/2026-10-22/acr/outputs.

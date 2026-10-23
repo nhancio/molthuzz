@@ -36,3 +36,11 @@
 - Attempt native runtime with available tools, explicitly record absence of devices/simulator if blocked; no browser screenshot used as native proof.
 - After checks pass, create fresh Android preview and iOS production builds for tester delivery, record exact build IDs/status and distinguish queued/running from finished.
 - Update implementation status and provide actual files/build links plus exact remaining verification limits.
+
+## Implementation and review record
+- Root upload fix uses native XHR Blob and existing Firebase SDK; ExpoFetch local-file transport was rejected after actual Android runtime testing. Resources close on success/failure.
+- Android16 native QA selected three photos together, uploaded/downloaded matching JPEG byte counts with unchanged Storage owner/MIME/size rules, denied foreign-UID writes and removed QA objects. Local emulators were used; physical iOS/production success remains unverified.
+-70tests, TypeScript, lint and native Hermes exports pass; independent final review cleared source/spec/accessibility. Normal and160% text layouts and Hindi switching checked natively on Android.
+- Decision: reused the existing feature branch/PR to preserve ongoing release work. Cost if wrong: changes would need moving to a separate branch.
+- Decision: parent owned UI while scoped worker owned upload transport. Cost if wrong: shared integration regressions; independently reviewed final combination and executed native upload checks.
+- Final code commit be1a02e; Android build4 and iOS build8 requested from that exact revision. No public store release.
