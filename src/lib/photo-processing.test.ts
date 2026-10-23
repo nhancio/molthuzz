@@ -12,6 +12,7 @@ import {
   PHOTO_AUTH_ERROR,
   PHOTO_PERMISSION_ERROR,
   photoUploadMessage,
+  readNativePhotoBlob,
   type PhotoAdapter,
 } from "./photo-processing.ts";
 
@@ -87,6 +88,45 @@ test("giant portrait and landscape preserve aspect ratio at 1600px; small photos
     width: 640,
     height: 480,
   });
+});
+
+test("native XHR accepts a completed local file Blob with status zero", async () => {
+  const blob = new Blob(["jpeg"]);
+  const xhr = {
+    status: 0, response: blob, responseType: "", timeout: 0,
+    onload: null as null | (() => void), onerror: null, ontimeout: null, onabort: null,
+    open(method: string, uri: string) { assert.equal(method, "GET"); assert.equal(uri, "file:///photo.jpg"); },
+    send() { queueMicrotask(() => xhr.onload?.()); },
+  };
+  assert.equal(await readNativePhotoBlob("file:///photo.jpg", () => xhr as unknown as XMLHttpRequest), blob);
+  assert.equal(xhr.responseType, "blob");
+});
+
+test("native XHR rejects HTTP error and closes response Blob", async () => {
+  let closed = 0;
+  const blob = Object.assign(new Blob(["File not found"]), { close() { closed += 1; } });
+  const xhr = {
+    status: 404, response: blob, responseType: "", timeout: 0,
+    onload: null as null | (() => void), onerror: null, ontimeout: null, onabort: null,
+    open() {}, send() { queueMicrotask(() => xhr.onload?.()); },
+  };
+  await assert.rejects(readNativePhotoBlob("file:///missing.jpg", () => xhr as unknown as XMLHttpRequest), /Could not read prepared photo/);
+  assert.equal(closed, 1);
+});
+
+test("native XHR rejects a network error and an empty local file response", async () => {
+  for (const event of ["onerror", "ontimeout", "onabort", "onload"] as const) {
+    let closed = 0;
+    const blob = Object.assign(new Blob([]), { close() { closed += 1; } });
+    const xhr = {
+      status: 0, response: blob, responseType: "", timeout: 0,
+      onload: null as null | (() => void), onerror: null as null | (() => void),
+      ontimeout: null as null | (() => void), onabort: null as null | (() => void),
+      open() {}, send() { queueMicrotask(() => xhr[event]?.()); },
+    };
+    await assert.rejects(readNativePhotoBlob("file:///empty.jpg", () => xhr as unknown as XMLHttpRequest), /Could not read prepared photo/);
+    assert.equal(closed, 1, event);
+  }
 });
 
 test("Firebase multipart accepts a native Blob where React Native rejects typed array parts", async () => {

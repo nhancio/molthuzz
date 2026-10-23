@@ -45,6 +45,43 @@ function closePayload(payload: PhotoPayload | undefined): void {
   }
 }
 
+/** React Native's XHR Blob response is backed by its native Blob store. */
+export function readNativePhotoBlob(
+  uri: string,
+  createRequest: () => XMLHttpRequest = () => new XMLHttpRequest(),
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const request = createRequest();
+    const fail = () => {
+      const response = request.response;
+      if (response instanceof Blob) closePayload(response);
+      reject(new Error("Could not read prepared photo"));
+    };
+    request.onload = () => {
+      const response = request.response;
+      // Native file handlers may report status 0 even for a completed local read.
+      const statusOk = request.status >= 200 && request.status < 300 ||
+        (request.status === 0 && uri.startsWith("file://"));
+      if (!statusOk || !(response instanceof Blob) || response.size === 0) {
+        fail();
+        return;
+      }
+      resolve(response);
+    };
+    request.onerror = fail;
+    request.ontimeout = fail;
+    request.onabort = fail;
+    try {
+      request.open("GET", uri);
+      request.responseType = "blob";
+      request.timeout = 30000;
+      request.send();
+    } catch {
+      fail();
+    }
+  });
+}
+
 export function photoUploadMessage(error: unknown): string {
   const code = (error as { code?: unknown } | null)?.code;
   if (code === "storage/unauthenticated" || code === "auth/user-token-expired" || code === "auth/invalid-user-token")
