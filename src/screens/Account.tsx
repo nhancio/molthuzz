@@ -3,7 +3,8 @@ import { Text } from "../components/LocalizedText";
 import React from "react";
 import { useWindowDimensions, View } from "react-native";
 import { Image } from "expo-image";
-import { FieldGroup, Host, ListItem, RNHostView, Text as NativeText } from "@expo/ui";
+import { Host, ListItem, RNHostView, Text as NativeText } from "@expo/ui";
+import { AccountForm, AccountSection, AccountFooter } from "../components/account-settings";
 import type { Membership, Profile } from "../lib/contracts";
 import { Badge, Button, Icon, Notice } from "../components/UI";
 import { colors, fonts, shared, radius } from "../theme";
@@ -28,14 +29,14 @@ export function AccountScreen({ profile, demo, active, onEdit, onMembership, onT
   const accessory = (content: React.ReactElement) => process.env.EXPO_OS === "android" ? <RNHostView matchContents>{content}</RNHostView> : content;
   const icon = (name: React.ComponentProps<typeof Icon>["name"], destructive = false) => accessory(<Icon name={name} size={20} color={destructive ? colors.red : colors.muted} />);
   const row = (label: string, name: React.ComponentProps<typeof Icon>["name"], action: () => void, destructive = false) => (
-    <ListItem key={label} onPress={action} leading={icon(name, destructive)} trailing={icon("chevron-forward")} colors={{ containerColor: colors.white, contentColor: colors.ink }}>
+    <ListItem key={label} onPress={action} leading={icon(name, destructive)} trailing={icon("chevron-forward")} colors={{ containerColor: "transparent", contentColor: colors.ink }}>
       <NativeText textStyle={{ fontSize: scaled(17), color: destructive ? colors.red : colors.ink }}>{t(label)}</NativeText>
     </ListItem>
   );
   return (
     <Host colorScheme="light" seedColor={colors.ink} useViewportSizeMeasurement style={{ flex: 1 }}>
-      <FieldGroup>
-        <FieldGroup.Section>
+      <AccountForm>
+        <AccountSection>
           <ListItem
             onPress={onEdit}
             leading={accessory(
@@ -45,28 +46,28 @@ export function AccountScreen({ profile, demo, active, onEdit, onMembership, onT
             )}
             supportingText={profile.location}
             trailing={icon("chevron-forward")}
-            colors={{ containerColor: colors.white, contentColor: colors.ink }}
+            colors={{ containerColor: "transparent", contentColor: colors.ink }}
           >
             <NativeText textStyle={{ fontSize: scaled(22), fontWeight: "600", color: colors.ink }}>{`${profile.name}, ${profile.age}`}</NativeText>
           </ListItem>
           {row("Edit profile", "create-outline", onEdit)}
-          {demo ? <FieldGroup.SectionFooter><NativeText textStyle={{ fontSize: scaled(13), color: colors.muted }}>{t("DEMO PROFILE")}</NativeText></FieldGroup.SectionFooter> : null}
-        </FieldGroup.Section>
-        <FieldGroup.Section>
-          <ListItem onPress={onMembership} leading={icon("sparkles-outline")} trailing={icon("chevron-forward")} supportingText={t(active ? "View your membership and renewal details." : "Payments are not available in this build yet. Your profile setup is free. No charge or membership activation occurs here.")} colors={{ containerColor: colors.white, contentColor: colors.ink }}>
+          {demo ? <AccountFooter><NativeText textStyle={{ fontSize: scaled(13), color: colors.muted }}>{t("DEMO PROFILE")}</NativeText></AccountFooter> : null}
+        </AccountSection>
+        <AccountSection>
+          <ListItem onPress={onMembership} leading={icon("sparkles-outline")} trailing={icon("chevron-forward")} supportingText={t(demo ? "Explore membership pricing. Demo mode is always free." : active ? "View your membership and renewal details." : "MEMBERSHIP · SOON")} colors={{ containerColor: "transparent", contentColor: colors.ink }}>
             <NativeText textStyle={{ fontSize: scaled(17), fontWeight: "600", color: colors.ink }}>{t("Membership")}</NativeText>
           </ListItem>
-        </FieldGroup.Section>
-        <FieldGroup.Section>
+        </AccountSection>
+        <AccountSection>
           {row("Privacy policy", "lock-closed-outline", onPrivacy)}
           {row("Terms of use", "document-text-outline", onTerms)}
-        </FieldGroup.Section>
-        <FieldGroup.Section>
+        </AccountSection>
+        <AccountSection>
           {row(demo ? "Leave demo" : "Sign out", "log-out-outline", onSignOut)}
           {!demo ? row("Delete account", "trash-outline", onDelete, true) : null}
-          {demo ? <FieldGroup.SectionFooter><NativeText textStyle={{ fontSize: scaled(13), color: colors.muted }}>{t("This profile, your likes and practice conversations are local to this demo session. They are not published or sent to other people.")}</NativeText></FieldGroup.SectionFooter> : null}
-        </FieldGroup.Section>
-      </FieldGroup>
+          {demo ? <AccountFooter><NativeText textStyle={{ fontSize: scaled(13), color: colors.muted }}>{t("This profile, your likes and practice conversations are local to this demo session. They are not published or sent to other people.")}</NativeText></AccountFooter> : null}
+        </AccountSection>
+      </AccountForm>
     </Host>
   );
 }

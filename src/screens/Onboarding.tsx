@@ -442,7 +442,7 @@ export default function Onboarding({
           <Text style={shared.muted}>
             {t("Choose up to 6 photos. We’ll optimize any image size for you.")}
           </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "flex-start", gap: 8 }}>
             {gallery.map((photo, index) => (
               <View
                 key={photo.id}
@@ -465,7 +465,8 @@ export default function Onboarding({
                     contentFit="cover"
                     style={{ width: "100%", aspectRatio: 0.78 }}
                   />
-                  <View style={{ position: "absolute", top: 6, right: 6, backgroundColor: colors.paper, borderRadius: 24 }}>
+                  <View style={{ position: "absolute", top: 0, right: 0, width: 48, height: 48, alignItems: "center", justifyContent: "center" }}>
+                    <View pointerEvents="none" style={{ position: "absolute", width: 28, height: 28, borderRadius: 14, backgroundColor: colors.paper }} />
                     <IconButton
                       label={t(
                         photo.url
@@ -476,7 +477,7 @@ export default function Onboarding({
                       disabled={working}
                       onPress={() => removePhoto(photo.id)}
                       icon="close"
-                      size={22}
+                      size={17}
                     />
                   </View>
                 </View>

@@ -1,6 +1,6 @@
 import React from "react";
 import { Redirect } from "expo-router";
-import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { NativeTabs } from "expo-router/native-tabs";
 import { useTranslation } from "react-i18next";
 import { useMakeIn } from "../../screens/MakeIn";
 import { colors } from "../../theme";
