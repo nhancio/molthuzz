@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { initializeApp, deleteApp } from "firebase/app";
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 import {
   boundedPhotoSize,
   preparePhoto,
@@ -7,6 +9,9 @@ import {
   MAX_PHOTO_BYTES,
   PHOTO_PREPARE_ERROR,
   PHOTO_UPLOAD_ERROR,
+  PHOTO_AUTH_ERROR,
+  PHOTO_PERMISSION_ERROR,
+  photoUploadMessage,
   type PhotoAdapter,
 } from "./photo-processing.ts";
 
@@ -82,6 +87,87 @@ test("giant portrait and landscape preserve aspect ratio at 1600px; small photos
     width: 640,
     height: 480,
   });
+});
+
+test("Firebase multipart accepts a native Blob where React Native rejects typed array parts", async () => {
+  const OriginalBlob = globalThis.Blob;
+  class ReactNativeBlob {
+    readonly size: number;
+    readonly type: string;
+    constructor(parts: (string | ReactNativeBlob)[], options?: { type?: string }) {
+      if (parts.some((part) => part instanceof ArrayBuffer || ArrayBuffer.isView(part)))
+        throw new Error("Creating blobs from 'ArrayBuffer' and 'ArrayBufferView' are not supported");
+      this.size = parts.reduce((sum, part) => sum + (typeof part === "string" ? part.length : part.size), 0);
+      this.type = options?.type ?? "";
+    }
+    close() {}
+  }
+  const app = initializeApp({ apiKey: "test", appId: "test", projectId: "test", storageBucket: "test.appspot.com" }, "native-blob-regression");
+  const storage = getStorage(app);
+  const captured: unknown[] = [];
+  const service = storage as typeof storage & { makeRequestWithTokens: (request: { body: unknown }) => Promise<unknown> };
+  service.makeRequestWithTokens = async (request) => {
+    captured.push(request.body);
+    return {};
+  };
+  globalThis.Blob = ReactNativeBlob as unknown as typeof Blob;
+  try {
+    const destination = ref(storage, "profiles/test/photo.jpg");
+    assert.throws(() => uploadBytes(destination, new Uint8Array([1, 2, 3])), /ArrayBuffer/);
+    assert.equal(captured.length, 0);
+    await uploadBytes(destination, new ReactNativeBlob(["jpeg"]) as unknown as Blob, { contentType: "image/jpeg" });
+    assert.equal(captured.length, 1);
+    assert.ok(captured[0] instanceof ReactNativeBlob);
+  } finally {
+    globalThis.Blob = OriginalBlob;
+    await deleteApp(app);
+  }
+});
+
+test("native payload is closed after successful and failed uploads; auth and permission errors remain safe and inspectable", async () => {
+  for (const code of [undefined, "storage/unauthenticated", "storage/unauthorized"] as const) {
+    const { adapter } = fakeAdapter();
+    let closed = 0;
+    const blob = Object.assign(new Blob(["jpeg"]), { close: () => { closed += 1; } });
+    const blobAdapter = { ...adapter, bytes: async () => blob };
+    if (!code) {
+      assert.equal(await processAndUploadPhoto("file:///photo", blobAdapter, async () => "https://photo"), "https://photo");
+    } else {
+      const cause = Object.assign(new Error("private transport details"), { code });
+      await assert.rejects(
+        processAndUploadPhoto("file:///photo", blobAdapter, async () => { throw cause; }),
+        (error: unknown) => {
+          assert.ok(error instanceof Error);
+          assert.equal(error.message, code === "storage/unauthenticated" ? PHOTO_AUTH_ERROR : PHOTO_PERMISSION_ERROR);
+          assert.equal((error as Error & { code: string }).code, code);
+          assert.equal(error.cause, cause);
+          assert.equal(photoUploadMessage(error), error.message);
+          return true;
+        },
+      );
+    }
+    assert.equal(closed, 1);
+  }
+  assert.equal(photoUploadMessage(new Error("private transport details")), PHOTO_UPLOAD_ERROR);
+});
+
+test("oversized native Blobs are closed before the next JPEG attempt", async () => {
+  const { adapter, calls } = fakeAdapter();
+  let closed = 0;
+  let reads = 0;
+  const blobAdapter = {
+    ...adapter,
+    async bytes() {
+      reads += 1;
+      return Object.assign(new Blob([new Uint8Array(reads === 1 ? MAX_PHOTO_BYTES + 1 : 1)]), {
+        close: () => { closed += 1; },
+      });
+    },
+  };
+  await processAndUploadPhoto("file:///photo", blobAdapter, async () => "https://photo");
+  assert.equal(reads, 2);
+  assert.equal(closed, 2);
+  assert.equal(calls.removed.length, 2);
 });
 
 test("HEIC source is decoded with native bounds and normalized without reading/rejecting original bytes", async () => {

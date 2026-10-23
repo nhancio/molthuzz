@@ -3,6 +3,10 @@ export const PHOTO_PREPARE_ERROR =
   "We couldn’t prepare this photo. Choose another image.";
 export const PHOTO_UPLOAD_ERROR =
   "We couldn’t upload this photo. Check your connection and try again.";
+export const PHOTO_AUTH_ERROR =
+  "Your session has expired. Sign in again to upload your photo.";
+export const PHOTO_PERMISSION_ERROR =
+  "This account cannot upload the photo. Sign in and try again.";
 const MAX_PHOTO_EDGE = 1600;
 
 export type PhotoSize = { width: number; height: number };
@@ -16,15 +20,39 @@ type PhotoContext = {
   release(): void;
 };
 /** The native boundary stays small so byte limits and cleanup can run in Node tests. */
-export type PhotoAdapter = {
+type PhotoPayload = Uint8Array | Blob;
+export type PhotoAdapter<Payload extends PhotoPayload = Uint8Array> = {
   open(
     uri: string,
     bounds: { maxWidth: number; maxHeight: number },
   ): PhotoContext;
   size(uri: string): number;
-  bytes(uri: string): Promise<Uint8Array>;
+  bytes(uri: string): Promise<Payload>;
   remove(uri: string): void;
 };
+
+function payloadSize(payload: PhotoPayload): number {
+  return payload instanceof Uint8Array ? payload.byteLength : payload.size;
+}
+
+function closePayload(payload: PhotoPayload | undefined): void {
+  if (payload && "close" in payload && typeof payload.close === "function") {
+    try {
+      payload.close();
+    } catch {
+      /* Native blob cleanup must not hide the upload result. */
+    }
+  }
+}
+
+export function photoUploadMessage(error: unknown): string {
+  const code = (error as { code?: unknown } | null)?.code;
+  if (code === "storage/unauthenticated" || code === "auth/user-token-expired" || code === "auth/invalid-user-token")
+    return PHOTO_AUTH_ERROR;
+  if (code === "storage/unauthorized" || code === "permission-denied")
+    return PHOTO_PERMISSION_ERROR;
+  return PHOTO_UPLOAD_ERROR;
+}
 
 export function boundedPhotoSize(
   width: number,
@@ -62,10 +90,10 @@ function release(resource: { release(): void } | undefined) {
   }
 }
 
-export async function preparePhoto(
+export async function preparePhoto<Payload extends PhotoPayload>(
   uri: string,
-  adapter: PhotoAdapter,
-): Promise<Uint8Array> {
+  adapter: PhotoAdapter<Payload>,
+): Promise<Payload> {
   let context: PhotoContext | undefined;
   let image: NativePhoto | undefined;
   try {
@@ -92,9 +120,10 @@ export async function preparePhoto(
         if (!Number.isFinite(byteSize) || byteSize <= 0)
           throw new Error(PHOTO_PREPARE_ERROR);
         if (byteSize > MAX_PHOTO_BYTES) continue;
-        const bytes = await adapter.bytes(temporaryUri);
-        if (bytes.byteLength > 0 && bytes.byteLength <= MAX_PHOTO_BYTES)
-          return bytes;
+        const payload = await adapter.bytes(temporaryUri);
+        if (payloadSize(payload) > 0 && payloadSize(payload) <= MAX_PHOTO_BYTES)
+          return payload;
+        closePayload(payload);
       } finally {
         try {
           adapter.remove(temporaryUri);
@@ -104,23 +133,28 @@ export async function preparePhoto(
       }
     }
     throw new Error(PHOTO_PREPARE_ERROR);
-  } catch {
-    throw new Error(PHOTO_PREPARE_ERROR);
+  } catch (cause) {
+    throw new Error(PHOTO_PREPARE_ERROR, { cause });
   } finally {
     release(image);
     release(context);
   }
 }
 
-export async function processAndUploadPhoto(
+export async function processAndUploadPhoto<Payload extends PhotoPayload>(
   uri: string,
-  adapter: PhotoAdapter,
-  upload: (bytes: Uint8Array) => Promise<string>,
+  adapter: PhotoAdapter<Payload>,
+  upload: (payload: Payload) => Promise<string>,
 ): Promise<string> {
-  const bytes = await preparePhoto(uri, adapter);
+  const payload = await preparePhoto(uri, adapter);
   try {
-    return await upload(bytes);
-  } catch {
-    throw new Error(PHOTO_UPLOAD_ERROR);
+    return await upload(payload);
+  } catch (cause) {
+    const error = new Error(photoUploadMessage(cause), { cause }) as Error & { code?: string };
+    const code = (cause as { code?: unknown } | null)?.code;
+    if (typeof code === "string") error.code = code;
+    throw error;
+  } finally {
+    closePayload(payload);
   }
 }

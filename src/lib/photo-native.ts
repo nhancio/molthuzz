@@ -1,8 +1,9 @@
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { File } from "expo-file-system";
+import { fetch as expoFetch } from "expo/fetch";
 import type { PhotoAdapter } from "./photo-processing";
 
-export const nativePhotoAdapter: PhotoAdapter = {
+export const nativePhotoAdapter: PhotoAdapter<Blob> = {
   open(uri, bounds) {
     const context = ImageManipulator.manipulate(uri, bounds);
     return {
@@ -34,8 +35,12 @@ export const nativePhotoAdapter: PhotoAdapter = {
   size(uri) {
     return new File(uri).size;
   },
-  bytes(uri) {
-    return new File(uri).bytes();
+  async bytes(uri) {
+    // expo/fetch materializes file bytes in React Native's native Blob store.
+    // Firebase's multipart builder can then combine it with string headers.
+    const response = await expoFetch(uri);
+    if (!response.ok) throw new Error("Could not read prepared photo");
+    return response.blob();
   },
   remove(uri) {
     const file = new File(uri);
