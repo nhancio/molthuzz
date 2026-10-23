@@ -20,6 +20,16 @@ export const fonts = {
   bold: Platform.OS === "android" ? "sans-serif-bold" : system,
 };
 export const controlSize = Platform.OS === "ios" ? 44 : 48;
+export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 } as const;
+export const radius = { sm: 8, md: 12, lg: 16, xl: 24, full: 9999 } as const;
+export const type = {
+  largeTitle: { fontFamily: fonts.bold, fontWeight: "700", fontSize: 32, lineHeight: 37, letterSpacing: -0.7, color: colors.ink },
+  title: { fontFamily: fonts.semi, fontWeight: "600", fontSize: 22, lineHeight: 29, color: colors.ink },
+  headline: { fontFamily: fonts.semi, fontWeight: "600", fontSize: 17, lineHeight: 24, color: colors.ink },
+  body: { fontFamily: fonts.regular, fontSize: 17, lineHeight: 24, color: colors.ink },
+  subhead: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, color: colors.muted },
+  caption: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, color: colors.muted },
+} as const;
 export const shared = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.paper },
   row: { flexDirection: "row", alignItems: "center" },

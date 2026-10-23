@@ -52,6 +52,8 @@ export function Button({
   busy,
   icon,
   compact = false,
+  variant,
+  inline = false,
 }: {
   children: React.ReactNode;
   onPress: () => void;
@@ -60,38 +62,42 @@ export function Button({
   busy?: boolean;
   icon?: IconName;
   compact?: boolean;
+  variant?: "primary" | "secondary" | "text" | "destructive";
+  inline?: boolean;
 }) {
   const label = nativeButtonLabel(children);
   const blocked = !!(disabled || busy);
+  const appearance = variant ?? (secondary ? "secondary" : "primary");
+  const filled = appearance === "primary";
   return (
     <Host
       colorScheme="light"
       seedColor={colors.ink}
       ignoreSafeArea="all"
-      matchContents={{ vertical: true }}
-      style={{ alignSelf: "stretch", minHeight: controlSize }}
+      matchContents={inline ? true : { vertical: true }}
+      style={{ alignSelf: inline ? "flex-start" : "stretch", minHeight: controlSize }}
     >
       <NativeButton
         disabled={blocked}
         onPress={() => {
           if (!blocked) onPress();
         }}
-        variant={secondary ? "outlined" : "filled"}
-        modifiers={nativeButtonModifiers(label, compact)}
+        variant={filled ? "filled" : appearance === "secondary" ? "outlined" : "text"}
+        modifiers={nativeButtonModifiers(label, compact, appearance, inline)}
       >
         <Row
           alignment="center"
           spacing={9}
-          modifiers={nativeButtonContentModifiers(compact)}
+          modifiers={nativeButtonContentModifiers(compact, inline)}
         >
           {busy ? (
-            <NativeBusyIndicator onFilled={!secondary} />
+            <NativeBusyIndicator onFilled={filled} />
           ) : icon ? (
             <NativeControlIcon name={icon} size={20} />
           ) : null}
           <NativeText
-            textStyle={{ fontWeight: "600", textAlign: "center" }}
-            modifiers={nativeLabelModifiers()}
+            textStyle={{ fontWeight: appearance === "text" ? "400" : "600", textAlign: "center", fontSize: compact ? 15 : 17, color: filled ? colors.white : appearance === "destructive" ? colors.red : colors.ink }}
+            modifiers={nativeLabelModifiers(inline)}
           >
             {label}
           </NativeText>
@@ -149,12 +155,13 @@ export function Field({
   style,
   onFocus,
   onBlur,
+  row = false,
   ...props
-}: TextInputProps & { label: string }) {
+}: TextInputProps & { label: string; row?: boolean }) {
   const [focused, setFocused] = useState(false);
   return (
-    <View style={[s.field, focused && { borderColor: colors.ink }]}>
-      <Text style={shared.label}>{label}</Text>
+    <View style={[s.field, row && { flexDirection: "row", alignItems: "center", gap: 16, paddingTop: 4, paddingBottom: 4 }, focused && { borderColor: colors.ink }]}>
+      <Text style={[shared.label, row && { flex: 1, color: colors.ink, fontSize: 16 }]}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
         placeholderTextColor="#92998A"
@@ -168,7 +175,7 @@ export function Field({
           setFocused(false);
           onBlur?.(event);
         }}
-        style={[shared.input, style]}
+        style={[shared.input, row && { flex: 1.5, textAlign: "right" }, style]}
       />
     </View>
   );

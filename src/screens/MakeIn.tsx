@@ -80,6 +80,7 @@ import {
 type Tab = AppTab;
 type MakeInContextValue = {
   ready: boolean;
+  settingUp: boolean;
   destination: ReturnType<typeof tabPath>;
   entry: React.ReactNode;
   renderTab: (tab: Tab) => React.ReactNode;
@@ -570,7 +571,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
   function renderTab(tab: Tab) {
     if (gate !== "ready" || !profile) return null;
     return (
-      <View collapsable={false} style={[shared.page, a.main]}>
+      <View collapsable={false} style={[shared.page, a.main, tab === "profile" && { paddingHorizontal: 0, paddingTop: 0 }]}>
         {demo && (
           <View style={a.demoBar}>
             <Text style={[shared.muted, { fontSize: 10 }]}>
@@ -680,6 +681,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
     <MakeInContext.Provider
       value={{
         ready: gate === "ready",
+        settingUp: gate === "onboarding",
         destination: tabPath(tab),
         entry: entryContent(),
         renderTab,

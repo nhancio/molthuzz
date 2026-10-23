@@ -353,5 +353,7 @@
   "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "ಕೆಲವು ಫೋಟೋಗಳು ಅಪ್‌ಲೋಡ್ ಆಗಲಿಲ್ಲ. ಅಪ್‌ಲೋಡ್ ಆದ ಫೋಟೋಗಳು ಉಳಿದಿವೆ. ಬಾಕಿ ಫೋಟೋಗಳಿಗಾಗಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
   "Uploading photos · {{current}} / {{total}}": "ಫೋಟೋಗಳು ಅಪ್‌ಲೋಡ್ ಆಗುತ್ತಿವೆ · {{current}} / {{total}}",
   "We couldn’t prepare this photo. Choose another image.": "ಈ ಫೋಟೋವನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗಲಿಲ್ಲ. ಬೇರೆ ಚಿತ್ರವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
-  "We couldn’t upload this photo. Check your connection and try again.": "ಈ ಫೋಟೋವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ. ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+  "We couldn’t upload this photo. Check your connection and try again.": "ಈ ಫೋಟೋವನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ. ನಿಮ್ಮ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "Your session has expired. Sign in again to upload your photo.": "ನಿಮ್ಮ ಸೆಷನ್ ಮುಗಿದಿದೆ. ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಮತ್ತೆ ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+  "This account cannot upload the photo. Sign in and try again.": "ಈ ಖಾತೆಯಿಂದ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ. ಸೈನ್ ಇನ್ ಮಾಡಿ ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
 }

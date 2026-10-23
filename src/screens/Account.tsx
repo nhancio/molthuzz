@@ -1,23 +1,14 @@
 import { useTranslation } from "react-i18next";
 import { Text } from "../components/LocalizedText";
 import React from "react";
-import { ScrollView, useWindowDimensions, View } from "react-native";
+import { useWindowDimensions, View } from "react-native";
 import { Image } from "expo-image";
-import { Host, List, ListItem, RNHostView, Text as NativeText } from "@expo/ui";
+import { FieldGroup, Host, ListItem, RNHostView, Text as NativeText } from "@expo/ui";
 import type { Membership, Profile } from "../lib/contracts";
 import { Badge, Button, Icon, Notice } from "../components/UI";
-import { colors, fonts, shared } from "../theme";
-export function AccountScreen({
-  profile,
-  demo,
-  active,
-  onEdit,
-  onMembership,
-  onTerms,
-  onPrivacy,
-  onDelete,
-  onSignOut,
-}: {
+import { colors, fonts, shared, radius } from "../theme";
+
+export function AccountScreen({ profile, demo, active, onEdit, onMembership, onTerms, onPrivacy, onDelete, onSignOut }: {
   profile: Profile;
   demo: boolean;
   active: boolean;
@@ -30,193 +21,53 @@ export function AccountScreen({
 }) {
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
-  const settings = [
-    {
-      name: "Privacy policy",
-      icon: "lock-closed-outline" as const,
-      action: onPrivacy,
-    },
-    {
-      name: "Terms of use",
-      icon: "document-text-outline" as const,
-      action: onTerms,
-    },
-    {
-      name: demo ? "Leave demo" : "Sign out",
-      icon: "log-out-outline" as const,
-      action: onSignOut,
-    },
-    ...(!demo
-      ? [
-          {
-            name: "Delete account",
-            icon: "trash-outline" as const,
-            action: onDelete,
-          },
-        ]
-      : []),
-  ];
-  const accessory = (
-    name: React.ComponentProps<typeof Icon>["name"],
-    destructive = false,
-  ) => {
-    const icon = (
-      <Icon
-        name={name}
-        size={20}
-        color={destructive ? colors.red : colors.muted}
-      />
-    );
-    return process.env.EXPO_OS === "android" ? (
-      <RNHostView matchContents>{icon}</RNHostView>
-    ) : (
-      icon
-    );
-  };
-
+  // Compose uses sp; SwiftUI explicit point sizes need the accessibility scale.
+  const scaled = (size: number) => size * (process.env.EXPO_OS === "ios" ? fontScale : 1);
+  const [failedPhoto, setFailedPhoto] = React.useState<string | null>(null);
+  const photo = profile.photos[0];
+  const accessory = (content: React.ReactElement) => process.env.EXPO_OS === "android" ? <RNHostView matchContents>{content}</RNHostView> : content;
+  const icon = (name: React.ComponentProps<typeof Icon>["name"], destructive = false) => accessory(<Icon name={name} size={20} color={destructive ? colors.red : colors.muted} />);
+  const row = (label: string, name: React.ComponentProps<typeof Icon>["name"], action: () => void, destructive = false) => (
+    <ListItem key={label} onPress={action} leading={icon(name, destructive)} trailing={icon("chevron-forward")} colors={{ containerColor: colors.white, contentColor: colors.ink }}>
+      <NativeText textStyle={{ fontSize: scaled(17), color: destructive ? colors.red : colors.ink }}>{t(label)}</NativeText>
+    </ListItem>
+  );
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={{ paddingTop: 12, paddingBottom: 28, gap: 22 }}
-    >
-      <View style={[shared.panel, { gap: 20 }]}>
-        <View style={[shared.row, { gap: 18, alignItems: "flex-start" }]}>
-          <Image
-            source={profile.photos[0]}
-            contentFit="cover"
-            accessibilityLabel={profile.name}
-            style={{
-              width: 88,
-              height: 108,
-              borderRadius: 18,
-              borderCurve: "continuous",
-              backgroundColor: colors.soft,
-            }}
-          />
-          <View style={{ flex: 1, gap: 8, paddingTop: 4 }}>
-            <Text
-              selectable
-              accessibilityRole="header"
-              style={{
-                fontFamily: fonts.semi,
-                fontWeight: "600",
-                fontSize: 25,
-                lineHeight: 32,
-                color: colors.ink,
-              }}
-            >
-              {profile.name}, {profile.age}
-            </Text>
-            <Text selectable style={shared.muted}>
-              {profile.location}
-            </Text>
-            <Badge>{demo ? t("DEMO PROFILE") : t("YOUR PROFILE")}</Badge>
-          </View>
-        </View>
-        <Button secondary onPress={onEdit} icon="create-outline">
-          {t("Edit profile")}
-        </Button>
-      </View>
-
-      <View
-        style={[
-          shared.panel,
-          { backgroundColor: colors.lime, borderColor: colors.lime, gap: 14 },
-        ]}
-      >
-        <View
-          style={[shared.row, { gap: 12, justifyContent: "space-between" }]}
-        >
-          <Text style={[shared.label, { color: "#20251F", flex: 1 }]}>
-            {t("MAKEIN MEMBERSHIP")}
-          </Text>
-          <Icon name="arrow-forward" color="#20251F" size={21} />
-        </View>
-        <Text
-          accessibilityRole="header"
-          style={{
-            fontFamily: fonts.serif,
-            fontSize: 29,
-            lineHeight: 35,
-            color: "#20251F",
-          }}
-        >
-          {active
-            ? t("Make room for connection.")
-            : t("A small step. More possibility.")}
-        </Text>
-        <Text
-          style={[
-            shared.body,
-            { color: "#20251F", fontSize: 15, lineHeight: 23 },
-          ]}
-        >
-          {demo
-            ? t("Explore membership pricing. Demo mode is always free.")
-            : active
-              ? t("View your membership and renewal details.")
-              : t(
-                  "Planned membership: ₹2 first calendar month, then ₹99/month. Auto-renews; cancel anytime. Payments are not active yet.",
-                )}
-        </Text>
-        <Button secondary onPress={onMembership}>
-          {t("Membership")}
-        </Button>
-      </View>
-
-      <View
-        style={{
-          borderRadius: 20,
-          borderCurve: "continuous",
-          overflow: "hidden",
-          backgroundColor: colors.white,
-        }}
-      >
-        <Host
-          ignoreSafeArea="all"
-          colorScheme="light"
-          seedColor={colors.ink}
-          style={{
-            width: "100%",
-            height: (settings.length * 64 + 70) * Math.max(1, fontScale),
-          }}
-        >
-          <List>
-            {settings.map((item) => (
-              <ListItem
-                key={item.name}
-                onPress={item.action}
-                leading={accessory(item.icon, item.name === "Delete account")}
-                trailing={accessory("chevron-forward")}
-                colors={{
-                  containerColor: colors.white,
-                  contentColor: colors.ink,
-                }}
-              >
-                <NativeText
-                  textStyle={{
-                    fontSize: 16,
-                    lineHeight: 24,
-                    ...(item.name === "Delete account"
-                      ? { color: colors.red }
-                      : {}),
-                  }}
-                >
-                  {t(item.name)}
-                </NativeText>
-              </ListItem>
-            ))}
-          </List>
-        </Host>
-      </View>
-      {demo && (
-        <Notice
-          text={t(
-            "This profile, your likes and practice conversations are local to this demo session. They are not published or sent to other people.",
-          )}
-        />
-      )}
-    </ScrollView>
+    <Host colorScheme="light" seedColor={colors.ink} useViewportSizeMeasurement style={{ flex: 1 }}>
+      <FieldGroup>
+        <FieldGroup.Section>
+          <ListItem
+            onPress={onEdit}
+            leading={accessory(
+              <View style={{ width: 76, height: 90, backgroundColor: colors.soft, borderRadius: radius.lg, borderCurve: "continuous", overflow: "hidden", alignItems: "center", justifyContent: "center" }}>
+                {photo && failedPhoto !== photo ? <Image source={photo} accessibilityLabel={profile.name} contentFit="cover" onError={() => setFailedPhoto(photo)} style={{ width: "100%", height: "100%" }} /> : <Icon name="person-outline" size={32} color={colors.muted} />}
+              </View>
+            )}
+            supportingText={profile.location}
+            trailing={icon("chevron-forward")}
+            colors={{ containerColor: colors.white, contentColor: colors.ink }}
+          >
+            <NativeText textStyle={{ fontSize: scaled(22), fontWeight: "600", color: colors.ink }}>{`${profile.name}, ${profile.age}`}</NativeText>
+          </ListItem>
+          {row("Edit profile", "create-outline", onEdit)}
+          {demo ? <FieldGroup.SectionFooter><NativeText textStyle={{ fontSize: scaled(13), color: colors.muted }}>{t("DEMO PROFILE")}</NativeText></FieldGroup.SectionFooter> : null}
+        </FieldGroup.Section>
+        <FieldGroup.Section>
+          <ListItem onPress={onMembership} leading={icon("sparkles-outline")} trailing={icon("chevron-forward")} supportingText={t(active ? "View your membership and renewal details." : "Payments are not available in this build yet. Your profile setup is free. No charge or membership activation occurs here.")} colors={{ containerColor: colors.white, contentColor: colors.ink }}>
+            <NativeText textStyle={{ fontSize: scaled(17), fontWeight: "600", color: colors.ink }}>{t("Membership")}</NativeText>
+          </ListItem>
+        </FieldGroup.Section>
+        <FieldGroup.Section>
+          {row("Privacy policy", "lock-closed-outline", onPrivacy)}
+          {row("Terms of use", "document-text-outline", onTerms)}
+        </FieldGroup.Section>
+        <FieldGroup.Section>
+          {row(demo ? "Leave demo" : "Sign out", "log-out-outline", onSignOut)}
+          {!demo ? row("Delete account", "trash-outline", onDelete, true) : null}
+          {demo ? <FieldGroup.SectionFooter><NativeText textStyle={{ fontSize: scaled(13), color: colors.muted }}>{t("This profile, your likes and practice conversations are local to this demo session. They are not published or sent to other people.")}</NativeText></FieldGroup.SectionFooter> : null}
+        </FieldGroup.Section>
+      </FieldGroup>
+    </Host>
   );
 }
 export function MembershipScreen({

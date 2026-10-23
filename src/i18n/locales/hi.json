@@ -353,5 +353,7 @@
   "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "कुछ फ़ोटो अपलोड नहीं हो सकीं। अपलोड की गई फ़ोटो सुरक्षित हैं। बाकी फ़ोटो के लिए फिर कोशिश करें।",
   "Uploading photos · {{current}} / {{total}}": "फ़ोटो अपलोड हो रही हैं · {{current}} / {{total}}",
   "We couldn’t prepare this photo. Choose another image.": "यह फ़ोटो तैयार नहीं हो सकी। दूसरी तस्वीर चुनें।",
-  "We couldn’t upload this photo. Check your connection and try again.": "यह फ़ोटो अपलोड नहीं हो सकी। अपना कनेक्शन जाँचें और फिर कोशिश करें।"
+  "We couldn’t upload this photo. Check your connection and try again.": "यह फ़ोटो अपलोड नहीं हो सकी। अपना कनेक्शन जाँचें और फिर कोशिश करें।",
+  "Your session has expired. Sign in again to upload your photo.": "आपका सत्र समाप्त हो गया है। फ़ोटो अपलोड करने के लिए फिर से साइन इन करें।",
+  "This account cannot upload the photo. Sign in and try again.": "इस खाते से फ़ोटो अपलोड नहीं हो सकती। साइन इन करके फिर कोशिश करें।"
 }

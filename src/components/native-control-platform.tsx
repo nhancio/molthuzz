@@ -9,15 +9,18 @@ import type {
 export function nativeButtonModifiers(
   _label: string,
   _compact: boolean,
+  _appearance = "primary",
+  _inline = false,
 ): NonNullable<UniversalBaseProps["modifiers"]> {
   return [];
 }
 export function nativeButtonContentModifiers(
   _compact: boolean,
+  _inline = false,
 ): NonNullable<UniversalBaseProps["modifiers"]> {
   return [];
 }
-export function nativeLabelModifiers(): NonNullable<
+export function nativeLabelModifiers(_inline = false): NonNullable<
   UniversalBaseProps["modifiers"]
 > {
   return [];

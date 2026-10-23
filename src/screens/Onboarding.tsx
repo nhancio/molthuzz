@@ -6,6 +6,7 @@ import {
   type LayoutChangeEvent,
 } from "react-native";
 import { useTranslation } from "react-i18next";
+import { Stack } from "expo-router/stack";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { DateTimePicker } from "@expo/ui/community/datetime-picker";
@@ -16,8 +17,6 @@ import {
 } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "../components/LocalizedText";
-import { LanguagePicker } from "../components/LanguagePicker";
-import { BrandMark } from "../components/brand-mark";
 import {
   Badge,
   Button,
@@ -26,8 +25,9 @@ import {
   IconButton,
   Notice,
 } from "../components/UI";
-import { colors, fonts, shared } from "../theme";
+import { colors, fonts, shared, spacing, radius, type } from "../theme";
 import { uploadPhoto } from "../lib/data";
+import { photoUploadMessage } from "../lib/photo-processing";
 import type { ProfileInput, Gender, Intent } from "../lib/contracts";
 import { setupBackAction } from "./setup-back";
 import {
@@ -65,8 +65,6 @@ const interests = [
   "Gaming",
   "Mindfulness",
 ];
-const uploadFailure =
-  "We couldn’t upload this photo. Check your connection and try again.";
 const prepareFailure = "We couldn’t prepare this photo. Choose another image.";
 const batchFailure =
   "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.";
@@ -246,7 +244,7 @@ export default function Onboarding({
         const message =
           failure instanceof Error && failure.message === prepareFailure
             ? prepareFailure
-            : uploadFailure;
+            : photoUploadMessage(failure);
         changeGallery((current) =>
           current.map((entry) =>
             entry.id === photo.id ? { ...entry, error: message } : entry,
@@ -293,7 +291,7 @@ export default function Onboarding({
       changeGallery((current) => [...current, ...selections]);
       await processPhotos(selections);
     } catch {
-      setPhotoError(uploadFailure);
+      setPhotoError(photoUploadMessage(null));
     } finally {
       setUploadProgress(null);
       setUploading(false);
@@ -408,27 +406,12 @@ export default function Onboarding({
   };
   return (
     <View style={shared.page}>
-      <View
-        style={{
-          paddingHorizontal: 20,
-          paddingTop: insets.top + 6,
-          paddingBottom: 12,
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-        }}
-      >
-        <IconButton
-          onPress={goBack}
-          disabled={working}
-          label={t("Exit profile setup")}
-          icon="close"
-          size={22}
-        />
-        <BrandMark size={28} />
-        <LanguagePicker compact />
-      </View>
+      <Stack.Screen options={{
+        title: t(editing ? "Edit profile" : "Create your profile"),
+        headerLargeTitleEnabled: false,
+        headerLeft: () => <Button inline compact variant="text" onPress={goBack} disabled={working}>{t("Back")}</Button>,
+        headerRight: () => <Button inline compact variant="text" onPress={save} busy={busy || saving} disabled={uploading || showDatePicker}>{t("Done")}</Button>,
+      }} />
       <KeyboardAwareScrollView
         ref={scroll}
         onContentSizeChange={() => {
@@ -445,32 +428,137 @@ export default function Onboarding({
           maxWidth: 540,
           alignSelf: "center",
           paddingHorizontal: 22,
-          paddingTop: 12,
-          paddingBottom: footerHeight + 28,
-          gap: 22,
+          paddingTop: spacing.md,
+          paddingBottom: footerHeight + spacing.lg,
+          gap: spacing.lg,
         }}
       >
-        <View style={{ gap: 10 }}>
-          <Badge>{demo ? t("DEMO PROFILE") : t("YOUR PROFILE")}</Badge>
-          <Text
-            accessibilityRole="header"
-            style={{
-              fontFamily: fonts.semi,
-              fontWeight: "600",
-              fontSize: 26,
-              lineHeight: 34,
-              color: colors.ink,
-            }}
-          >
-            {editing ? t("Edit profile") : t("Create your profile")}
+        <Text style={type.subhead}>{t("First names. Fresh starts.")}</Text>
+        <View
+          onLayout={(event) => recordSectionLayout("photos", event)}
+          style={section}
+        >
+          <Text style={sectionTitle}>{t("Add photos")}</Text>
+          <Text style={shared.muted}>
+            {t("Choose up to 6 photos. We’ll optimize any image size for you.")}
           </Text>
-          <Text style={shared.muted}>{t("First names. Fresh starts.")}</Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {gallery.map((photo, index) => (
+              <View
+                key={photo.id}
+                style={{
+                  width: "31%",
+                  minWidth: 80,
+                  gap: 8,
+                }}
+              >
+                <View
+                  style={{
+                    borderRadius: 18,
+                    borderCurve: "continuous",
+                    overflow: "hidden",
+                    backgroundColor: colors.soft,
+                  }}
+                >
+                  <Image
+                    source={photo.url || photo.uri}
+                    contentFit="cover"
+                    style={{ width: "100%", aspectRatio: 0.78 }}
+                  />
+                  <View style={{ position: "absolute", top: 6, right: 6, backgroundColor: colors.paper, borderRadius: 24 }}>
+                    <IconButton
+                      label={t(
+                        photo.url
+                          ? "Remove photo {{number}}"
+                          : "Remove selected photo {{number}}",
+                        { number: index + 1 },
+                      )}
+                      disabled={working}
+                      onPress={() => removePhoto(photo.id)}
+                      icon="close"
+                      size={22}
+                    />
+                  </View>
+                </View>
+                {photo.id === mainPhotoId && <Badge>{t("Main photo")}</Badge>}
+                {photo.url && photo.id !== mainPhotoId && (
+                  <Button
+                    secondary
+                    compact
+                    disabled={working}
+                    onPress={() => chooseMain(index)}
+                  >
+                    {t("Make main photo")}
+                  </Button>
+                )}
+                {photo.error ? <Text style={[type.caption, { color: colors.red }]}>{t("Try again")}</Text> : !photo.url ? <Text style={type.caption}>{t("Uploading photos · {{current}} / {{total}}", uploadProgress || { current: 0, total: gallery.length })}</Text> : null}
+              </View>
+            ))}
+            {Array.from({ length: availableSlots }, (_, index) => (
+              <View key={`empty-${index}`} style={{ width: "31%", minWidth: 80, aspectRatio: 0.78, borderRadius: radius.lg, borderCurve: "continuous", backgroundColor: colors.soft, alignItems: "center", justifyContent: "center" }}>
+                <IconButton label={t("Add photos")} icon="add" onPress={pick} disabled={working || demo || !uid} />
+              </View>
+            ))}
+          </View>
+          {!demo && availableSlots > 0 && (
+            <Button
+              secondary
+              icon="image-outline"
+              onPress={pick}
+              busy={uploading}
+              disabled={busy || saving || showDatePicker || !uid}
+            >
+              {t("Add photos")}
+            </Button>
+          )}
+          {uploadProgress && (
+            <Text accessibilityLiveRegion="polite" style={shared.muted}>
+              {t("Uploading photos · {{current}} / {{total}}", uploadProgress)}
+            </Text>
+          )}
+          {photoError ? <Notice error text={gallery.find((photo) => photo.error)?.error || photoError} /> : null}
+          {unresolved.length > 0 && !uploading && (
+            <Button
+              secondary
+              onPress={retryPhotos}
+              disabled={busy || saving || showDatePicker || !uid}
+            >
+              {t("Retry photos")}
+            </Button>
+          )}
+          {demo && availableSlots > 0 && (
+            <View style={{ gap: 12 }}>
+              <Text style={shared.muted}>
+                {t(
+                  "Demo mode does not upload personal photos. Add a persistent HTTPS image URL to try a different photo.",
+                )}
+              </Text>
+              <Field
+                label={t("HTTPS photo URL")}
+                placeholder="https://…"
+                value={url}
+                autoCapitalize="none"
+                onChangeText={setUrl}
+                editable={!busy && !saving}
+              />
+              <Button
+                secondary
+                compact
+                onPress={addDemoUrl}
+                disabled={!url.trim() || working}
+              >
+                {t("Add photo URL")}
+              </Button>
+            </View>
+          )}
+          {inlineError("photos")}
         </View>
         <View
           onLayout={(event) => recordSectionLayout("name", event)}
           style={section}
         >
           <Field
+            row
             label={t("First name")}
             value={value.name}
             onChangeText={(text) => change("name", text)}
@@ -485,45 +573,19 @@ export default function Onboarding({
           onLayout={(event) => recordSectionLayout("birthDate", event)}
           style={section}
         >
-          <Text style={sectionTitle}>{t("Date of birth")}</Text>
-          {process.env.EXPO_OS === "android" && (
-            <Button secondary onPress={openBirthDate} disabled={working}>
-              {value.birthDate || t("Date of birth")}
-            </Button>
-          )}
-          {(process.env.EXPO_OS === "ios" || showDatePicker) && (
-            <View style={{ gap: 12 }}>
-              <DateTimePicker
-                value={dateDraft}
-                disabled={working}
-                mode="date"
-                themeVariant="light"
-                display={process.env.EXPO_OS === "ios" ? "spinner" : "default"}
-                minimumDate={earliestBirthDate}
-                maximumDate={latestBirthDate}
-                locale={i18n.resolvedLanguage}
-                positiveButton={{ label: t("Done") }}
-                negativeButton={{ label: t("Back") }}
-                onDismiss={() => setShowDatePicker(false)}
-                onValueChange={(_, date) => acceptBirthDate(date)}
-              />
-              {process.env.EXPO_OS === "ios" && !value.birthDate && (
-                <Button
-                  compact
-                  secondary
-                  disabled={working}
-                  onPress={() => acceptBirthDate(dateDraft)}
-                >
-                  {t("Done")}
-                </Button>
+          <View style={{ backgroundColor: colors.white, borderRadius: radius.lg, borderCurve: "continuous", padding: spacing.md, gap: spacing.sm }}>
+            <View style={[shared.row, { justifyContent: "space-between", flexWrap: "wrap", gap: spacing.sm }]}>
+              <Text style={type.body}>{t("Date of birth")}</Text>
+              {process.env.EXPO_OS === "android" ? (
+                <Button inline compact variant="text" onPress={openBirthDate} disabled={working}>{value.birthDate || t("Date of birth")}</Button>
+              ) : (
+                <DateTimePicker value={dateDraft} disabled={working} mode="date" themeVariant="light" display="compact" minimumDate={earliestBirthDate} maximumDate={latestBirthDate} locale={i18n.resolvedLanguage} onValueChange={(_, date) => acceptBirthDate(date)} />
               )}
             </View>
-          )}
-          <Text style={shared.muted}>
-            {t(
-              "Your birth date stays private. Only your age appears on your profile.",
-            )}
-          </Text>
+            {process.env.EXPO_OS === "ios" && !value.birthDate ? <Button inline compact variant="text" disabled={working} onPress={() => acceptBirthDate(dateDraft)}>{t("Done")}</Button> : null}
+          </View>
+          {process.env.EXPO_OS === "android" && showDatePicker ? <DateTimePicker value={dateDraft} mode="date" minimumDate={earliestBirthDate} maximumDate={latestBirthDate} positiveButton={{ label: t("Done") }} negativeButton={{ label: t("Back") }} onDismiss={() => setShowDatePicker(false)} onValueChange={(_, date) => acceptBirthDate(date)} /> : null}
+          <Text style={shared.muted}>{t("Your birth date stays private. Only your age appears on your profile.")}</Text>
           {inlineError("birthDate")}
         </View>
         <View
@@ -561,6 +623,7 @@ export default function Onboarding({
           style={section}
         >
           <Field
+            row
             label={t("City")}
             value={value.location}
             onChangeText={(text) => change("location", text)}
@@ -590,128 +653,6 @@ export default function Onboarding({
           />
           <Text style={shared.muted}>{value.bio.length}/500</Text>
           {inlineError("bio")}
-        </View>
-        <View
-          onLayout={(event) => recordSectionLayout("photos", event)}
-          style={section}
-        >
-          <Text style={sectionTitle}>{t("Add photos")}</Text>
-          <Text style={shared.muted}>
-            {t("Choose up to 6 photos. We’ll optimize any image size for you.")}
-          </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-            {gallery.map((photo, index) => (
-              <View
-                key={photo.id}
-                style={{
-                  flexBasis: "46%",
-                  flexGrow: 1,
-                  maxWidth: 230,
-                  minWidth: 120,
-                  gap: 8,
-                }}
-              >
-                <View
-                  style={{
-                    borderRadius: 18,
-                    borderCurve: "continuous",
-                    overflow: "hidden",
-                    backgroundColor: colors.soft,
-                  }}
-                >
-                  <Image
-                    source={photo.url || photo.uri}
-                    contentFit="cover"
-                    style={{ width: "100%", aspectRatio: 0.82 }}
-                  />
-                  <View style={{ position: "absolute", top: 6, right: 6, backgroundColor: colors.paper, borderRadius: 24 }}>
-                    <IconButton
-                      label={t(
-                        photo.url
-                          ? "Remove photo {{number}}"
-                          : "Remove selected photo {{number}}",
-                        { number: index + 1 },
-                      )}
-                      disabled={working}
-                      onPress={() => removePhoto(photo.id)}
-                      icon="close"
-                      size={22}
-                    />
-                  </View>
-                </View>
-                {photo.id === mainPhotoId && <Badge>{t("Main photo")}</Badge>}
-                {photo.url && photo.id !== mainPhotoId && (
-                  <Button
-                    secondary
-                    compact
-                    disabled={working}
-                    onPress={() => chooseMain(index)}
-                  >
-                    {t("Make main photo")}
-                  </Button>
-                )}
-                {photo.error && (
-                  <Text
-                    style={[shared.muted, { color: colors.red, fontSize: 13 }]}
-                  >
-                    {t(photo.error)}
-                  </Text>
-                )}
-              </View>
-            ))}
-          </View>
-          {!demo && availableSlots > 0 && (
-            <Button
-              secondary
-              icon="image-outline"
-              onPress={pick}
-              busy={uploading}
-              disabled={busy || saving || showDatePicker || !uid}
-            >
-              {t("Add photos")}
-            </Button>
-          )}
-          {uploadProgress && (
-            <Text accessibilityLiveRegion="polite" style={shared.muted}>
-              {t("Uploading photos · {{current}} / {{total}}", uploadProgress)}
-            </Text>
-          )}
-          {photoError ? <Notice error text={photoError} /> : null}
-          {unresolved.length > 0 && !uploading && (
-            <Button
-              secondary
-              onPress={retryPhotos}
-              disabled={busy || saving || showDatePicker || !uid}
-            >
-              {t("Retry photos")}
-            </Button>
-          )}
-          {demo && availableSlots > 0 && (
-            <View style={{ gap: 12 }}>
-              <Text style={shared.muted}>
-                {t(
-                  "Demo mode does not upload personal photos. Add a persistent HTTPS image URL to try a different photo.",
-                )}
-              </Text>
-              <Field
-                label={t("HTTPS photo URL")}
-                placeholder="https://…"
-                value={url}
-                autoCapitalize="none"
-                onChangeText={setUrl}
-                editable={!busy && !saving}
-              />
-              <Button
-                secondary
-                compact
-                onPress={addDemoUrl}
-                disabled={!url.trim() || working}
-              >
-                {t("Add photo URL")}
-              </Button>
-            </View>
-          )}
-          {inlineError("photos")}
         </View>
         <View
           onLayout={(event) => recordSectionLayout("interests", event)}

@@ -17,18 +17,18 @@ import type {
   NativeIconActionProps,
 } from "./native-control-platform-types";
 
-export function nativeButtonModifiers(label: string, _compact: boolean) {
+export function nativeButtonModifiers(label: string, _compact: boolean, _appearance = "primary", inline = false) {
   return [
-    fillMaxWidth(),
+    ...(inline ? [] : [fillMaxWidth()]),
     defaultMinSize({ minWidth: 48, minHeight: 48 }),
     semantics({ contentDescription: label }),
   ];
 }
-export function nativeButtonContentModifiers(_compact: boolean) {
+export function nativeButtonContentModifiers(_compact: boolean, _inline = false) {
   return [];
 }
-export function nativeLabelModifiers() {
-  return [weight(1)];
+export function nativeLabelModifiers(inline = false) {
+  return inline ? [] : [weight(1)];
 }
 export function nativeChoiceModifiers() {
   return [defaultMinSize({ minWidth: 48, minHeight: 48 })];

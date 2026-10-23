@@ -4,6 +4,7 @@ import { Picker, ProgressView, Text } from "@expo/ui/swift-ui";
 import {
   accessibilityLabel,
   accessibilityElement,
+  buttonBorderShape,
   controlSize,
   disabled,
   fixedSize,
@@ -21,18 +22,20 @@ import type {
   NativeIconActionProps,
 } from "./native-control-platform-types";
 
-export function nativeButtonModifiers(label: string, compact: boolean) {
+export function nativeButtonModifiers(label: string, _compact: boolean, appearance = "primary", inline = false) {
   return [
-    controlSize(compact ? "regular" : "large"),
-    frame({ minHeight: 44, maxWidth: Infinity }),
+    controlSize("regular"),
+    buttonBorderShape("roundedRectangle", 14),
+    tint(appearance === "destructive" ? colors.red : colors.ink),
+    frame({ minHeight: 44, ...(inline ? {} : { maxWidth: Infinity }) }),
     accessibilityElement("ignore"),
     accessibilityLabel(label),
   ];
 }
-export function nativeButtonContentModifiers(compact: boolean) {
-  return [frame({ maxWidth: Infinity, minHeight: compact ? 28 : 32 })];
+export function nativeButtonContentModifiers(compact: boolean, inline = false) {
+  return [frame({ ...(inline ? {} : { maxWidth: Infinity }), minHeight: compact ? 20 : 26 })];
 }
-export function nativeLabelModifiers() {
+export function nativeLabelModifiers(_inline = false) {
   return [
     font({ textStyle: "body", weight: "semibold" }),
     lineLimit(),

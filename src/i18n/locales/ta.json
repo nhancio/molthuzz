@@ -353,5 +353,7 @@
   "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "சில புகைப்படங்களைப் பதிவேற்ற முடியவில்லை. பதிவேறிய புகைப்படங்கள் உள்ளன. மீதமுள்ளவற்றை மீண்டும் முயற்சிக்கவும்.",
   "Uploading photos · {{current}} / {{total}}": "புகைப்படங்கள் பதிவேற்றப்படுகின்றன · {{current}} / {{total}}",
   "We couldn’t prepare this photo. Choose another image.": "இந்தப் புகைப்படத்தைத் தயாரிக்க முடியவில்லை. வேறு படத்தைத் தேர்ந்தெடுக்கவும்.",
-  "We couldn’t upload this photo. Check your connection and try again.": "இந்தப் புகைப்படத்தைப் பதிவேற்ற முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்."
+  "We couldn’t upload this photo. Check your connection and try again.": "இந்தப் புகைப்படத்தைப் பதிவேற்ற முடியவில்லை. உங்கள் இணைப்பைச் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.",
+  "Your session has expired. Sign in again to upload your photo.": "உங்கள் அமர்வு காலாவதியானது. புகைப்படத்தைப் பதிவேற்ற மீண்டும் உள்நுழையவும்.",
+  "This account cannot upload the photo. Sign in and try again.": "இந்தக் கணக்கில் புகைப்படத்தைப் பதிவேற்ற முடியாது. உள்நுழைந்து மீண்டும் முயற்சிக்கவும்."
 }

@@ -353,5 +353,7 @@
   "Some photos could not be uploaded. Your uploaded photos are kept. Try the remaining photos again.": "కొన్ని ఫోటోలు అప్‌లోడ్ కాలేదు. అప్‌లోడ్ అయిన ఫోటోలు అలాగే ఉన్నాయి. మిగిలిన ఫోటోల కోసం మళ్లీ ప్రయత్నించండి.",
   "Uploading photos · {{current}} / {{total}}": "ఫోటోలు అప్‌లోడ్ అవుతున్నాయి · {{current}} / {{total}}",
   "We couldn’t prepare this photo. Choose another image.": "ఈ ఫోటోను సిద్ధం చేయలేకపోయాం. మరో చిత్రాన్ని ఎంచుకోండి.",
-  "We couldn’t upload this photo. Check your connection and try again.": "ఈ ఫోటోను అప్‌లోడ్ చేయలేకపోయాం. మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి."
+  "We couldn’t upload this photo. Check your connection and try again.": "ఈ ఫోటోను అప్‌లోడ్ చేయలేకపోయాం. మీ కనెక్షన్‌ను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.",
+  "Your session has expired. Sign in again to upload your photo.": "మీ సెషన్ ముగిసింది. మీ ఫోటోను అప్‌లోడ్ చేయడానికి మళ్లీ సైన్ ఇన్ చేయండి.",
+  "This account cannot upload the photo. Sign in and try again.": "ఈ ఖాతాతో ఫోటోను అప్‌లోడ్ చేయలేము. సైన్ ఇన్ చేసి మళ్లీ ప్రయత్నించండి."
 }
