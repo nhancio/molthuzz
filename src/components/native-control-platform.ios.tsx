@@ -1,53 +1,42 @@
 import React from "react";
 import { Button, Row } from "@expo/ui";
-import { Picker, ProgressView, Text } from "@expo/ui/swift-ui";
+import { ProgressView } from "@expo/ui/swift-ui";
 import {
   accessibilityLabel,
   accessibilityElement,
   buttonBorderShape,
   controlSize,
-  disabled,
   fixedSize,
   font,
   frame,
   layoutPriority,
   lineLimit,
-  pickerStyle,
-  tag,
   tint,
 } from "@expo/ui/swift-ui/modifiers";
 import { colors } from "../theme";
 import type {
-  NativeChoiceProps,
   NativeIconActionProps,
 } from "./native-control-platform-types";
 
-export function nativeButtonModifiers(label: string, _compact: boolean, appearance = "primary", inline = false) {
+export function nativeButtonModifiers(label: string, compact: boolean, appearance = "primary", inline = false) {
   return [
-    controlSize("regular"),
-    buttonBorderShape("roundedRectangle", 14),
+    controlSize(compact ? "small" : "large"),
+    buttonBorderShape("capsule"),
     tint(appearance === "destructive" ? colors.red : colors.ink),
-    frame({ minHeight: 44, ...(inline ? {} : { maxWidth: Infinity }) }),
+    frame({ minHeight: compact ? 32 : 50, ...(inline ? {} : { maxWidth: Infinity }) }),
     accessibilityElement("ignore"),
     accessibilityLabel(label),
   ];
 }
 export function nativeButtonContentModifiers(compact: boolean, inline = false) {
-  return [frame({ ...(inline ? {} : { maxWidth: Infinity }), minHeight: compact ? 20 : 26 })];
+  return [frame({ ...(inline ? {} : { maxWidth: Infinity }), minHeight: compact ? 18 : 26 })];
 }
-export function nativeLabelModifiers(_inline = false) {
+export function nativeLabelModifiers(inline = false, compact = false) {
   return [
-    font({ textStyle: "body", weight: "semibold" }),
-    lineLimit(),
+    font({ textStyle: compact ? "footnote" : "body", weight: "semibold" }),
+    inline || compact ? lineLimit(1) : lineLimit(),
     fixedSize({ horizontal: false, vertical: true }),
     layoutPriority(1),
-  ];
-}
-export function nativeChoiceModifiers() {
-  return [
-    frame({ maxWidth: Infinity, minHeight: 44 }),
-    font({ textStyle: "body" }),
-    fixedSize({ horizontal: false, vertical: true }),
   ];
 }
 export function NativeBusyIndicator({
@@ -79,33 +68,5 @@ export function NativeIconAction({
         {children}
       </Row>
     </Button>
-  );
-}
-export function NativeSingleChoice({
-  options,
-  selected,
-  onChange,
-  disabled: isDisabled,
-}: NativeChoiceProps) {
-  return (
-    <Picker<string>
-      selection={selected}
-      onSelectionChange={onChange}
-      modifiers={[
-        pickerStyle("menu"),
-        controlSize("large"),
-        frame({ minHeight: 44, maxWidth: Infinity }),
-        disabled(isDisabled),
-      ]}
-    >
-      {options.map((option) => (
-        <Text
-          key={option.value}
-          modifiers={[tag(option.value), font({ textStyle: "body" })]}
-        >
-          {option.label}
-        </Text>
-      ))}
-    </Picker>
   );
 }

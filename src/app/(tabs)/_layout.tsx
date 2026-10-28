@@ -12,6 +12,8 @@ export default function TabLayout() {
     <NativeTabs
       tintColor={colors.ink}
       indicatorColor={colors.lime}
+      badgeBackgroundColor={colors.ink}
+      badgeTextColor={colors.lime}
       backgroundColor={
         process.env.EXPO_OS === "android" ? colors.paper : undefined
       }

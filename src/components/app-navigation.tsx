@@ -6,7 +6,7 @@ import { useMakeIn } from "../screens/MakeIn";
 import { type AppTab } from "../screens/native-navigation";
 import { LanguagePicker } from "./LanguagePicker";
 import { IconButton } from "./UI";
-import { colors } from "../theme";
+import { colors, fonts } from "../theme";
 export function HeaderActions() {
   const { openMembership } = useMakeIn();
   const { t } = useTranslation();
@@ -37,10 +37,10 @@ export function AppTabStack({ tab }: { tab: AppTab }) {
         headerTintColor: colors.ink,
         headerShadowVisible: false,
         headerRight: () => <HeaderActions />,
-        headerTitleStyle: { fontWeight: "700" },
-        headerLargeTitleEnabled:
-          process.env.EXPO_OS === "ios" && tab !== "discover",
-        headerLargeTitleStyle: { fontWeight: "700" },
+        headerTitleStyle: { fontFamily: fonts.serif, fontSize: 24, fontWeight: "400" },
+        // Discover keeps a compact title so the card gets the height.
+        headerLargeTitleEnabled: tab !== "discover",
+        headerLargeTitleStyle: { fontFamily: fonts.serif, fontSize: 42, fontWeight: "400" },
       }}
     >
       <Stack.Screen name="index" options={{ title: t(title) }} />

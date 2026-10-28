@@ -14,8 +14,8 @@ import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text, TextInput } from "../components/LocalizedText";
 import type { Card, Match, Message } from "../lib/contracts";
-import { Badge, Button, Empty, Icon, IconButton } from "../components/UI";
-import { colors, fonts, shared } from "../theme";
+import { Badge, Button, CircleButton, Empty, Icon, IconButton } from "../components/UI";
+import { colors, fonts, shared, type } from "../theme";
 
 function MemberPhoto({
   uri,
@@ -131,22 +131,16 @@ export function Likes({
             style={n.likeGradient}
           />
           <View style={n.likeCaption}>
-            <Text
-              style={{
-                fontFamily: fonts.semi,
-                color: colors.white,
-                fontSize: 22,
-                lineHeight: 30,
-              }}
-            >
+            <Text numberOfLines={2} style={[type.serifTitle, { color: colors.white }]}>
               {card.name}, {card.age}
             </Text>
             <Text
+              numberOfLines={1}
               style={{
                 fontFamily: fonts.regular,
-                fontSize: 12,
-                lineHeight: 19,
-                color: colors.white,
+                fontSize: 13,
+                lineHeight: 18,
+                color: "#FFFFFFD9",
               }}
             >
               {card.location}
@@ -154,7 +148,7 @@ export function Likes({
           </View>
           {(demo || card.demo) && (
             <View style={{ position: "absolute", top: 12, left: 12 }}>
-              <Badge>{t("DEMO")}</Badge>
+              <Badge dark>{t("DEMO")}</Badge>
             </View>
           )}
         </Pressable>
@@ -215,19 +209,17 @@ export function Conversations({
               { backgroundColor: pressed ? colors.soft : colors.paper },
             ]}
           >
-            <MemberPhoto uri={match.photos[other]} style={n.avatar} />
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text
-                style={{
-                  fontFamily: fonts.semi,
-                  fontSize: 17,
-                  lineHeight: 24,
-                  color: colors.ink,
-                }}
-              >
-                {match.names[other] || t("Your match")}
-              </Text>
-              <Text style={[shared.muted, { fontSize: 13 }]}>
+            <View style={n.ring}>
+              <MemberPhoto uri={match.photos[other]} style={n.ringPhoto} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <View style={[shared.row, { gap: 8 }]}>
+                <Text numberOfLines={1} style={[type.serifTitle, { flexShrink: 1, fontSize: 26, lineHeight: 30 }]}>
+                  {match.names[other] || t("Your match")}
+                </Text>
+                {demo && <Badge dark>{t("DEMO")}</Badge>}
+              </View>
+              <Text style={[shared.muted, { fontSize: 14, lineHeight: 20, fontFamily: fonts.semi, fontWeight: "600", color: colors.ink }]}>
                 {demo
                   ? t("Demo match · Say your first hello")
                   : t("You matched · Say your first hello")}
@@ -345,10 +337,21 @@ export function Chat({
         keyboardDismissMode="interactive"
         contentContainerStyle={{
           flexGrow: 1,
-          justifyContent: messages.length ? "flex-start" : "center",
           paddingVertical: 20,
-          gap: 10,
+          gap: 8,
         }}
+        ListHeaderComponent={
+          <View style={n.spark}>
+            <View style={shared.row}>
+              <MemberPhoto uri={match.photos[uid]} style={[n.sparkPhoto, { transform: [{ rotate: "-6deg" }] }]} />
+              <MemberPhoto uri={match.photos[other]} style={[n.sparkPhoto, { marginLeft: -14, borderColor: colors.lime, transform: [{ rotate: "6deg" }] }]} />
+            </View>
+            <Text style={[type.serifTitle, { fontSize: 26, lineHeight: 30, textAlign: "center" }]}>
+              {t("You and {{name}} liked each other.", { name: match.names[other] || t("your match") })}
+            </Text>
+            {demo && <Text style={[type.eyebrow, { fontSize: 10, textAlign: "center" }]}>{t("Demo conversation · practice only")}</Text>}
+          </View>
+        }
         ListEmptyComponent={
           loading ? (
             <ActivityIndicator color={colors.ink} />
@@ -368,27 +371,21 @@ export function Chat({
             />
           )
         }
-        renderItem={({ item: message }) => (
-          <View
-            style={[
-              n.message,
-              {
-                alignSelf: message.sender === uid ? "flex-end" : "flex-start",
-                backgroundColor:
-                  message.sender === uid ? colors.lime : colors.white,
-              },
-            ]}
-          >
-            <Text selectable style={shared.body}>
-              {message.text}
-            </Text>
-            {demo && (
-              <Text style={[shared.muted, { fontSize: 10, marginTop: 5 }]}>
-                {t("PRACTICE MESSAGE")}
+        renderItem={({ item: message }) => {
+          const mine = message.sender === uid;
+          return (
+            <View style={[n.message, mine ? n.mine : n.theirs]}>
+              <Text selectable style={[shared.body, mine && { color: colors.white }]}>
+                {message.text}
               </Text>
-            )}
-          </View>
-        )}
+              {demo && (
+                <Text style={[type.eyebrow, { fontSize: 10, marginTop: 5, letterSpacing: 1 }, mine && { color: "#FFFFFFB3" }]}>
+                  {t("PRACTICE MESSAGE")}
+                </Text>
+              )}
+            </View>
+          );
+        }}
       />
       <View style={n.composer}>
         <TextInput
@@ -409,10 +406,11 @@ export function Chat({
           value={text}
           onChangeText={setText}
         />
-        <IconButton
+        <CircleButton
           label={t("Send message")}
           icon="arrow-up"
-          size={22}
+          size={44}
+          tone="lime"
           busy={sendBusy}
           disabled={!text.trim()}
           onPress={send}
@@ -441,9 +439,9 @@ export function Chat({
 const n = StyleSheet.create({
   like: {
     flex: 1,
-    height: 270,
+    height: 250,
     backgroundColor: colors.soft,
-    borderRadius: 22,
+    borderRadius: 24,
     borderCurve: "continuous",
     overflow: "hidden",
   },
@@ -466,7 +464,8 @@ const n = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    paddingVertical: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     overflow: "hidden",
@@ -478,20 +477,59 @@ const n = StyleSheet.create({
     backgroundColor: colors.soft,
   },
 
+  // New matches get a lime ring with a paper gap.
+  ring: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    padding: 2,
+    backgroundColor: colors.lime,
+  },
+  ringPhoto: {
+    flex: 1,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: colors.paper,
+  },
+  spark: { alignItems: "center", gap: 12, paddingTop: 4, paddingBottom: 20 },
+  sparkPhoto: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 3,
+    borderColor: colors.paper,
+  },
   message: {
-    maxWidth: "86%",
-    borderRadius: 20,
+    maxWidth: "78%",
+    borderRadius: 22,
     borderCurve: "continuous",
-    paddingHorizontal: 17,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+  },
+  mine: {
+    alignSelf: "flex-end",
+    backgroundColor: colors.ink,
+    borderBottomRightRadius: 6,
+  },
+  theirs: {
+    alignSelf: "flex-start",
+    backgroundColor: colors.white,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.line,
+    borderBottomLeftRadius: 6,
   },
   composer: {
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.white,
     borderRadius: 28,
+    borderCurve: "continuous",
     flexDirection: "row",
     alignItems: "flex-end",
-    padding: 5,
+    gap: 6,
+    minHeight: 56,
+    padding: 6,
+    paddingLeft: 8,
+    boxShadow: "0 6px 18px #20251F0F",
   },
 });

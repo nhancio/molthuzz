@@ -25,7 +25,7 @@ import {
   IconButton,
   Notice,
 } from "../components/UI";
-import { colors, fonts, shared, spacing, radius, type } from "../theme";
+import { colors, shared, spacing, type } from "../theme";
 import { uploadPhoto } from "../lib/data";
 import { photoUploadMessage } from "../lib/photo-processing";
 import type { ProfileInput, Gender, Intent } from "../lib/contracts";
@@ -397,20 +397,13 @@ export default function Onboarding({
   }
 
   const section = { gap: 12, paddingTop: 4, paddingBottom: 6 };
-  const sectionTitle = {
-    fontFamily: fonts.semi,
-    fontWeight: "600" as const,
-    fontSize: 17,
-    lineHeight: 25,
-    color: colors.ink,
-  };
+  const sectionTitle = type.serifTitle;
   return (
     <View style={shared.page}>
       <Stack.Screen options={{
         title: t(editing ? "Edit profile" : "Create your profile"),
         headerLargeTitleEnabled: false,
-        headerLeft: () => <Button inline compact variant="text" onPress={goBack} disabled={working}>{t("Back")}</Button>,
-        headerRight: () => <Button inline compact variant="text" onPress={save} busy={busy || saving} disabled={uploading || showDatePicker}>{t("Done")}</Button>,
+        headerLeft: () => <IconButton icon="chevron-back" label={t("Back")} onPress={goBack} disabled={working} />,
       }} />
       <KeyboardAwareScrollView
         ref={scroll}
@@ -433,7 +426,7 @@ export default function Onboarding({
           gap: spacing.lg,
         }}
       >
-        <Text style={type.subhead}>{t("First names. Fresh starts.")}</Text>
+        <Text accessibilityRole="header" style={[type.display, { fontSize: 44, lineHeight: 46 }]}>{t("First names. Fresh starts.")}</Text>
         <View
           onLayout={(event) => recordSectionLayout("photos", event)}
           style={section}
@@ -496,7 +489,7 @@ export default function Onboarding({
               </View>
             ))}
             {Array.from({ length: availableSlots }, (_, index) => (
-              <View key={`empty-${index}`} style={{ width: "31%", minWidth: 80, aspectRatio: 0.78, borderRadius: radius.lg, borderCurve: "continuous", backgroundColor: colors.soft, alignItems: "center", justifyContent: "center" }}>
+              <View key={`empty-${index}`} style={{ width: "31%", minWidth: 80, aspectRatio: 0.78, borderRadius: 18, borderCurve: "continuous", borderWidth: 1.5, borderStyle: "dashed", borderColor: index ? "#D6D9CD" : "#B9BEAF", backgroundColor: index ? "transparent" : colors.white, alignItems: "center", justifyContent: "center" }}>
                 <IconButton label={t("Add photos")} icon="add" onPress={pick} disabled={working || demo || !uid} />
               </View>
             ))}
@@ -559,7 +552,6 @@ export default function Onboarding({
           style={section}
         >
           <Field
-            row
             label={t("First name")}
             value={value.name}
             onChangeText={(text) => change("name", text)}
@@ -574,7 +566,7 @@ export default function Onboarding({
           onLayout={(event) => recordSectionLayout("birthDate", event)}
           style={section}
         >
-          <View style={{ backgroundColor: colors.white, borderRadius: radius.lg, borderCurve: "continuous", padding: spacing.md, gap: spacing.sm }}>
+          <View style={{ backgroundColor: colors.white, borderRadius: 22, borderCurve: "continuous", borderWidth: 1, borderColor: colors.line, paddingHorizontal: 18, paddingVertical: spacing.md, gap: spacing.sm }}>
             <View style={[shared.row, { justifyContent: "space-between", flexWrap: "wrap", gap: spacing.sm }]}>
               <Text style={type.body}>{t("Date of birth")}</Text>
               {process.env.EXPO_OS === "android" ? (
@@ -624,7 +616,6 @@ export default function Onboarding({
           style={section}
         >
           <Field
-            row
             label={t("City")}
             value={value.location}
             onChangeText={(text) => change("location", text)}
@@ -732,9 +723,9 @@ export default function Onboarding({
           bottom: 0,
           left: 0,
           right: 0,
-          borderTopWidth: 1,
-          borderColor: colors.line,
           backgroundColor: colors.paper,
+          // A paper glow fades the form out under the sticky save bar.
+          boxShadow: `0 -16px 20px ${colors.paper}`,
           paddingHorizontal: 20,
           paddingTop: 14,
           paddingBottom: Math.max(insets.bottom, 14),

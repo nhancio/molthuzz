@@ -1,7 +1,5 @@
 import React from "react";
-import { BottomSheet, Host, RNHostView } from "@expo/ui";
-import { interactiveDismissDisabled } from "@expo/ui/swift-ui/modifiers";
-import { colors } from "../theme";
+import { Modal } from "react-native";
 
 export interface NativeSheetProps {
   visible: boolean;
@@ -10,23 +8,19 @@ export interface NativeSheetProps {
   children: React.ReactElement;
 }
 
-// The universal sheet supplies native presentation; RNHostView is essential:
-// the shared form fields, scroll view and buttons remain React Native children.
+// Use UIKit's native pageSheet Modal on iOS so nested @expo/ui Host buttons
+// and React Native controls inside the sheet receive direct touch hit-testing.
 export default function NativeSheet({ visible, dismissible, onClose, children }: NativeSheetProps) {
   return (
-    <Host colorScheme="light" seedColor={colors.ink} style={{ position: "absolute" }} pointerEvents="box-none">
-      <BottomSheet
-        isPresented={visible}
-        onDismiss={() => { if (dismissible) onClose(); }}
-        snapPoints={["full"]}
-        containerColor={colors.paper}
-        contentPadding={0}
-        shouldDismissOnBackPress={dismissible}
-        shouldDismissOnClickOutside={dismissible}
-        modifiers={[interactiveDismissDisabled(!dismissible)]}
-      >
-        <RNHostView style={{ height: "100%" }}>{children}</RNHostView>
-      </BottomSheet>
-    </Host>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={() => {
+        if (dismissible) onClose();
+      }}
+    >
+      {children}
+    </Modal>
   );
 }

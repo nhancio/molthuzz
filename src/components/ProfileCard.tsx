@@ -23,7 +23,7 @@ import {
 } from "../lib/swipe-gesture";
 import { Text } from "./LocalizedText";
 import { Badge, Icon } from "./UI";
-import { colors, fonts, shared } from "../theme";
+import { colors, fonts, shared, type } from "../theme";
 
 const spring = {
   duration: 400,
@@ -176,7 +176,7 @@ export default function ProfileCard({
           ))}
         </View>
         <View style={c.top}>
-          <Badge dark>{card.demo ? t("DEMO PROFILE") : t(card.intent)}</Badge>
+          {card.demo ? <Badge dark>{t("DEMO PROFILE")}</Badge> : <View />}
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t("Open full profile")}
@@ -197,8 +197,12 @@ export default function ProfileCard({
           onPress={onOpen}
           style={({ pressed }) => [c.caption, { opacity: pressed ? 0.8 : 1 }]}
         >
+          <Text style={[type.eyebrow, { color: colors.lime, marginBottom: 2 }]}>
+            {t(card.intent)}
+          </Text>
           <Text numberOfLines={2} style={c.name}>
-            {card.name}, {card.age}
+            {card.name}
+            <Text style={c.age}>{`  ${card.age}`}</Text>
           </Text>
           <View style={[shared.row, { gap: 5, marginTop: 8 }]}>
             <Icon name="location-outline" size={15} color={colors.white} />
@@ -251,11 +255,11 @@ export default function ProfileCard({
 const c = StyleSheet.create({
   card: {
     width: "100%",
-    borderRadius: 26,
+    borderRadius: 30,
     borderCurve: "continuous",
     overflow: "hidden",
     backgroundColor: colors.soft,
-    boxShadow: "0 8px 24px #20241F12",
+    boxShadow: "0 18px 40px #20251F2E",
   },
   placeholder: {
     position: "absolute",
@@ -291,7 +295,9 @@ const c = StyleSheet.create({
     alignItems: "center",
   },
   info: {
-    backgroundColor: "#00000030",
+    backgroundColor: "#FFFFFF26",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "#FFFFFF59",
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -301,11 +307,18 @@ const c = StyleSheet.create({
   },
   caption: { position: "absolute", bottom: 24, left: 22, right: 22 },
   name: {
-    fontFamily: fonts.semi,
-    fontWeight: "600",
-    fontSize: 34,
-    lineHeight: 43,
+    fontFamily: fonts.serif,
+    fontSize: 52,
+    lineHeight: 54,
+    letterSpacing: -0.8,
     color: colors.white,
+  },
+  age: {
+    fontFamily: fonts.regular,
+    fontWeight: "300",
+    fontSize: 28,
+    letterSpacing: 0,
+    color: "#FFFFFFD9",
   },
   location: {
     flexShrink: 1,
@@ -317,8 +330,8 @@ const c = StyleSheet.create({
   pill: {
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "#FFFFFF50",
-    backgroundColor: "#FFFFFF18",
+    borderColor: "#FFFFFF40",
+    backgroundColor: "#FFFFFF26",
     paddingHorizontal: 11,
     paddingVertical: 6,
   },
@@ -346,5 +359,5 @@ const c = StyleSheet.create({
     padding: 10,
     transform: [{ rotate: "-10deg" }],
   },
-  stampText: { fontFamily: fonts.bold, fontSize: 26 },
+  stampText: { fontFamily: fonts.bold, fontWeight: "800", fontSize: 26, letterSpacing: 2 },
 });

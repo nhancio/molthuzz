@@ -7,7 +7,7 @@ import { Host, ListItem, RNHostView, Text as NativeText } from "@expo/ui";
 import { AccountForm, AccountSection, AccountFooter } from "../components/account-settings";
 import type { Membership, Profile } from "../lib/contracts";
 import { Badge, Button, Icon, Notice } from "../components/UI";
-import { colors, fonts, shared, radius } from "../theme";
+import { colors, fonts, shared, radius, type } from "../theme";
 
 export function AccountScreen({ profile, demo, active, onEdit, onMembership, onTerms, onPrivacy, onDelete, onSignOut }: {
   profile: Profile;
@@ -48,7 +48,7 @@ export function AccountScreen({ profile, demo, active, onEdit, onMembership, onT
             trailing={icon("chevron-forward")}
             colors={{ containerColor: "transparent", contentColor: colors.ink }}
           >
-            <NativeText textStyle={{ fontSize: scaled(22), fontWeight: "600", color: colors.ink }}>{`${profile.name}, ${profile.age}`}</NativeText>
+            <NativeText textStyle={{ fontFamily: fonts.serif, fontSize: scaled(30), color: colors.ink }}>{`${profile.name}, ${profile.age}`}</NativeText>
           </ListItem>
           {row("Edit profile", "create-outline", onEdit)}
           {demo ? <AccountFooter><NativeText textStyle={{ fontSize: scaled(13), color: colors.muted }}>{t("DEMO PROFILE")}</NativeText></AccountFooter> : null}
@@ -94,21 +94,21 @@ export function MembershipScreen({
       <Badge dark>{t("MAKEIN MEMBERSHIP")}</Badge>
       <Text
         accessibilityRole="header"
-        style={[shared.heading, { fontSize: 33, lineHeight: 40 }]}
+        style={[shared.heading, { fontSize: 36, lineHeight: 40 }]}
       >
         {t("More possibilities. One simple plan.")}
       </Text>
       <View
         style={{
-          padding: 25,
+          padding: 24,
           backgroundColor: colors.lime,
-          borderRadius: 22,
+          borderRadius: 30,
           borderCurve: "continuous",
         }}
       >
         <View style={[shared.row, { alignItems: "baseline", gap: 5 }]}>
           <Text
-            style={{ fontFamily: fonts.serif, fontSize: 64, color: "#20251F" }}
+            style={{ fontFamily: fonts.serif, fontSize: 68, lineHeight: 72, color: colors.ink }}
           >
             ₹2
           </Text>
@@ -119,13 +119,13 @@ export function MembershipScreen({
               lineHeight: 23,
               flex: 1,
               flexShrink: 1,
-              color: "#20251F",
+              color: colors.ink,
             }}
           >
             {t("first calendar month")}
           </Text>
         </View>
-        <Text style={[shared.body, { marginTop: 4, color: "#20251F" }]}>
+        <Text style={[shared.body, { marginTop: 4, color: colors.ink }]}>
           {t("Then ₹99/month · INR")}
         </Text>
       </View>
@@ -268,14 +268,7 @@ export function Legal({ kind }: { kind: "terms" | "privacy" }) {
       </Text>
       {sections.map(([title, text]) => (
         <View key={title} style={{ gap: 7 }}>
-          <Text
-            style={{
-              fontFamily: fonts.semi,
-              fontWeight: "600",
-              fontSize: 16,
-              color: colors.ink,
-            }}
-          >
+          <Text style={[type.serifTitle, { fontSize: 22, lineHeight: 26 }]}>
             {t(title)}
           </Text>
           <Text style={shared.muted}>{t(text)}</Text>

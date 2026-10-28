@@ -4,8 +4,9 @@ import { Platform, StyleSheet } from "react-native";
 export const colors = {
   paper: "#F8F7F2",
   ink: "#20251F",
-  muted: "#70776B",
+  muted: "#63695E",
   lime: "#D5F36A",
+  olive: "#7D922F",
   line: "#E4E6DC",
   white: "#FFFFFF",
   soft: "#F0F1E9",
@@ -29,6 +30,10 @@ export const type = {
   body: { fontFamily: fonts.regular, fontSize: 17, lineHeight: 24, color: colors.ink },
   subhead: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, color: colors.muted },
   caption: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, color: colors.muted },
+  // Editorial voice: Instrument Serif for display and section titles, tracked caps for eyebrows.
+  display: { fontFamily: fonts.serif, fontSize: 46, lineHeight: 48, letterSpacing: -0.8, color: colors.ink },
+  serifTitle: { fontFamily: fonts.serif, fontSize: 28, lineHeight: 32, color: colors.ink },
+  eyebrow: { fontFamily: fonts.semi, fontWeight: "600", fontSize: 11, lineHeight: 15, letterSpacing: 1.4, textTransform: "uppercase", color: colors.muted },
 } as const;
 export const shared = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.paper },

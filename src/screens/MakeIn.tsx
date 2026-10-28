@@ -469,6 +469,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
     loadFailed,
   });
   function closeDialog(kind: Dialog, next: Dialog = null) {
+    if (!next) setError("");
     setDialog((current) => (current === kind ? next : current));
   }
   function openConversation(match: Match) {
@@ -485,7 +486,8 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
     const other = chat.members.find((member) => member !== uid);
     if (other) openSafety(other, chat.names[other]);
   }
-  function renderNotice() {
+  function renderNotice(surfaceTab?: Tab) {
+    if (dialog || selected || (surfaceTab && surfaceTab !== tab)) return null;
     return (
       <>
         {error ? (
@@ -573,7 +575,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
     return (
       <View collapsable={false} style={[shared.page, a.main, tab === "profile" && { paddingHorizontal: 0, paddingTop: 0 }]}>
         {demo && (
-          <View style={a.demoBar}>
+          <View style={[a.demoBar, tab === "profile" && { marginHorizontal: 16, marginTop: 8 }]}>
             <Text style={[shared.muted, { fontSize: 10 }]}>
               {t(
                 "DEMO EXPERIENCE · Fictional profiles. Local likes and practice chats.",
@@ -581,7 +583,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
             </Text>
           </View>
         )}
-        {renderNotice()}
+        {renderNotice(tab)}
         {tab === "discover" && (
           <Discovery
             cards={filtered}

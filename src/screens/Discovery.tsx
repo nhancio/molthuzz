@@ -10,9 +10,9 @@ import {
   View,
 } from "react-native";
 import type { Card } from "../lib/contracts";
-import { Button, Empty, IconButton } from "../components/UI";
+import { Button, CircleButton, Empty, IconButton } from "../components/UI";
 import ProfileCard from "../components/ProfileCard";
-import { colors, shared } from "../theme";
+import { colors, type } from "../theme";
 import {
   DISCOVERY_BOTTOM_PADDING,
   DISCOVERY_CARD_GAP,
@@ -94,16 +94,16 @@ export default function Discovery({
           style={d.header}
           onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
         >
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text style={[shared.muted, { fontSize: 14 }]}>
-              {t("Your next hello.")}
-            </Text>
+          <Text style={[type.eyebrow, { flex: 1 }]}>
+            {t("Your next hello.")}
+          </Text>
+          <View style={d.filter}>
+            <IconButton
+              label={t("Discovery filters")}
+              icon="options-outline"
+              onPress={onFilters}
+            />
           </View>
-          <IconButton
-            label={t("Discovery filters")}
-            icon="options-outline"
-            onPress={onFilters}
-          />
         </View>
         <View style={{ marginTop: DISCOVERY_CARD_GAP }}>
           {loading ? (
@@ -130,27 +130,28 @@ export default function Discovery({
                 }
               >
                 <View style={d.actions}>
-                  <IconButton
+                  <CircleButton
                     label={t("Pass profile")}
                     icon="close"
-                    size={27}
+                    size={64}
                     disabled={interactionBusy}
                     onPress={() => {
                       void decide("pass").catch(() => {});
                     }}
                   />
-                  <IconButton
+                  <CircleButton
                     label={t("View profile")}
                     icon="person-outline"
-                    size={22}
+                    size={48}
+                    tone="soft"
                     disabled={interactionBusy}
                     onPress={() => onOpen(card)}
                   />
-                  <IconButton
+                  <CircleButton
                     label={t("Like profile")}
                     icon="heart"
-                    size={27}
-                    disabled={interactionBusy}
+                    size={72}
+                    tone="lime"
                     busy={interactionBusy}
                     onPress={() => {
                       void decide("like").catch(() => {});
@@ -159,8 +160,8 @@ export default function Discovery({
                 </View>
                 <Text
                   style={[
-                    shared.muted,
-                    { fontSize: 11, textAlign: "center", marginTop: 10 },
+                    type.eyebrow,
+                    { fontSize: 10, textAlign: "center", marginTop: 12 },
                   ]}
                 >
                   {t("SWIPE LEFT TO PASS · RIGHT TO LIKE")}
@@ -199,11 +200,18 @@ const d = StyleSheet.create({
     gap: 12,
   },
 
-  controls: { paddingTop: 12 },
+  filter: {
+    backgroundColor: colors.white,
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.line,
+    overflow: "hidden",
+  },
+  controls: { paddingTop: 16 },
   actions: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 26,
+    gap: 22,
   },
 });

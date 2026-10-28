@@ -70,7 +70,7 @@ export function LanguagePicker({ compact = false }: { compact?: boolean }) {
           >
             <Picker<LanguagePreference>
               selectedValue={draft}
-              appearance="wheel"
+              appearance={Platform.OS === "ios" ? "wheel" : "menu"}
               enabled={!busy}
               onValueChange={(value) => {
                 if (!busy) setDraft(value);

@@ -14,7 +14,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { LanguageProvider } from "../i18n";
 import { MakeInProvider } from "../screens/MakeIn";
-import { colors } from "../theme";
+import { colors, fonts } from "../theme";
 
 // Keep the native launch screen visible while the bundled brand font loads.
 void SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -39,6 +39,7 @@ function Navigation() {
         contentStyle: { backgroundColor: colors.paper },
         headerStyle: { backgroundColor: colors.paper },
         headerTintColor: colors.ink,
+        headerTitleStyle: { fontFamily: fonts.serif, fontSize: 24, fontWeight: "400" },
         headerShadowVisible: false,
         headerBackButtonDisplayMode: "minimal",
       }}

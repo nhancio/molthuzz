@@ -1,8 +1,7 @@
 import React from "react";
 import { ActivityIndicator } from "react-native";
-import { Button, Picker, type UniversalBaseProps } from "@expo/ui";
+import { Button, type UniversalBaseProps } from "@expo/ui";
 import type {
-  NativeChoiceProps,
   NativeIconActionProps,
 } from "./native-control-platform-types";
 // Web-only fallback. Metro resolves the iOS/Android toolkit implementations above.
@@ -20,12 +19,7 @@ export function nativeButtonContentModifiers(
 ): NonNullable<UniversalBaseProps["modifiers"]> {
   return [];
 }
-export function nativeLabelModifiers(_inline = false): NonNullable<
-  UniversalBaseProps["modifiers"]
-> {
-  return [];
-}
-export function nativeChoiceModifiers(): NonNullable<
+export function nativeLabelModifiers(_inline = false, _compact = false): NonNullable<
   UniversalBaseProps["modifiers"]
 > {
   return [];
@@ -47,28 +41,5 @@ export function NativeIconAction({
     <Button variant="text" label={label} onPress={onPress} disabled={disabled}>
       {children}
     </Button>
-  );
-}
-export function NativeSingleChoice({
-  options,
-  selected,
-  onChange,
-  disabled,
-}: NativeChoiceProps) {
-  return (
-    <Picker<string>
-      selectedValue={selected}
-      onValueChange={onChange}
-      enabled={!disabled}
-      appearance="menu"
-    >
-      {options.map((option) => (
-        <Picker.Item
-          key={option.value}
-          value={option.value}
-          label={option.label}
-        />
-      ))}
-    </Picker>
   );
 }

@@ -5,9 +5,3 @@ export type NativeIconActionProps = {
   onPress: () => void;
   disabled: boolean;
 };
-export type NativeChoiceProps = {
-  options: { value: string; label: string }[];
-  selected: string;
-  onChange: (value: string) => void;
-  disabled: boolean;
-};
