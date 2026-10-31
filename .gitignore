@@ -56,3 +56,6 @@ credentials.json
 .makein-credentials/
 
 landing-dist/
+
+# Videos and marketing content live here; never committed.
+/content/
