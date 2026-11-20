@@ -35,9 +35,12 @@ jobs:
         run: npm install -g eas-cli
 
       - name: Restore GoogleService-Info.plist
-        if: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_B64 != '' }}
+        env:
+          GOOGLE_SERVICES_INFO_PLIST_B64: ${{ secrets.GOOGLE_SERVICES_INFO_PLIST_B64 }}
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_INFO_PLIST_B64 }}" | base64 --decode > GoogleService-Info.plist
+          if [ -n "$GOOGLE_SERVICES_INFO_PLIST_B64" ]; then
+            echo "$GOOGLE_SERVICES_INFO_PLIST_B64" | base64 --decode > GoogleService-Info.plist
+          fi
 
       - name: Build & Submit via EAS Cloud
         if: ${{ inputs.runner_mode == 'eas-cloud' }}
