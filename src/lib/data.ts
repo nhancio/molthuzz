@@ -4,7 +4,7 @@ import { auth, db, storage } from './firebase';
 import { nativePhotoAdapter } from './photo-native';
 import { PHOTO_UPLOAD_ERROR, processAndUploadPhoto } from './photo-processing';
 import { ageFromBirthDate, canonicalPair, filterCards, validateProfile } from './model';
-import type { Account, Card, Match, Membership, Message, Profile, ProfileInput } from './contracts';
+import type { Account, Card, FriendRequest, Match, Membership, Message, Profile, ProfileInput } from './contracts';
 function database(): Firestore { if (!db) throw new Error('MakeIn profiles are not connected yet. Use the labelled demo while setup is completed.'); return db; }
 function owner(uid: string) { if (!auth?.currentUser || auth.currentUser.uid !== uid) throw new Error('Sign in to your own MakeIn account to continue.'); }
 const interactionId = (from: string, to: string) => { canonicalPair(from, to); return `${from}~${to}`; };
@@ -14,8 +14,23 @@ export async function loadAccount(uid: string): Promise<Account | null> { owner(
 export async function saveProfile(uid: string, input: ProfileInput): Promise<Profile> {
   owner(uid); const error = validateProfile(input); if (error) throw new Error(error);
   const { birthDate, ...publicInput } = input;
-  const profile: Profile = { ...publicInput, name: input.name.trim(), location: input.location.trim(), bio: input.bio.trim(), age: ageFromBirthDate(birthDate), status: 'active' };
+  const profile: Profile = {
+    ...publicInput,
+    name: input.name.trim(),
+    location: input.location.trim(),
+    bio: input.bio.trim(),
+    ...(input.languages ? { languages: input.languages } : {}),
+    ...(input.mood ? { mood: input.mood.trim() } : {}),
+    age: ageFromBirthDate(birthDate),
+    status: 'active',
+  };
   const batch = writeBatch(database()); batch.set(doc(database(), 'accounts', uid), { birthDate }); batch.set(doc(database(), 'profiles', uid), profile); await batch.commit(); return profile;
+}
+export async function updateProfileMood(uid: string, mood: string): Promise<void> {
+  owner(uid);
+  const value = mood.trim();
+  if (!value || value.length > 40) throw new Error('Choose a mood of up to 40 characters.');
+  await updateDoc(doc(database(), 'profiles', uid), { mood: value });
 }
 // ponytail: relationship lists fit an initial small community; move fan-out/cleanup to paginated server jobs at scale.
 async function blocksFor(uid: string): Promise<Set<string>> {
@@ -30,6 +45,71 @@ export async function discover(uid: string, profile: Profile): Promise<Card[]> {
   const seen = new Set(sent.docs.map(d => d.data().to as string));
   return filterCards(profiles.docs.map(asCard).filter(c => c.id !== uid && !seen.has(c.id) && !blocked.has(c.id)), profile, { minAge: 18, maxAge: 100, location: '' });
 }
+export async function discoverFriends(uid: string): Promise<Card[]> {
+  owner(uid);
+  const [profiles, blocked] = await Promise.all([getDocs(query(collection(database(), 'profiles'), where('status', '==', 'active'), limit(100))), blocksFor(uid)]);
+  return profiles.docs.map(asCard).filter(c => c.id !== uid && !blocked.has(c.id));
+}
+export function watchFriendRequests(uid: string, next: (requests: FriendRequest[]) => void, error: (error: Error) => void): () => void {
+  try {
+    owner(uid);
+    const instance = database();
+    let incoming: FriendRequest[] = [];
+    let outgoing: FriendRequest[] = [];
+    const emit = () => next([...incoming, ...outgoing]);
+    const stopIn = onSnapshot(query(collection(instance, 'friendRequests'), where('to', '==', uid), where('status', '==', 'pending')), snap => {
+      incoming = snap.docs.map(d => ({ ...d.data(), id: d.id } as FriendRequest));
+      emit();
+    }, error);
+    const stopOut = onSnapshot(query(collection(instance, 'friendRequests'), where('from', '==', uid), where('status', '==', 'pending')), snap => {
+      outgoing = snap.docs.map(d => ({ ...d.data(), id: d.id } as FriendRequest));
+      emit();
+    }, error);
+    return () => { stopIn(); stopOut(); };
+  } catch (e) { error(e as Error); return () => {}; }
+}
+export async function sendFriendRequest(uid: string, targetId: string): Promise<void> {
+  owner(uid);
+  if (targetId.startsWith('demo-')) throw new Error('Demo interactions stay inside the demo.');
+  const id = interactionId(uid, targetId);
+  const refDoc = doc(database(), 'friendRequests', id);
+  const existing = await getDoc(refDoc);
+  if (existing.exists() && existing.data().status === 'pending') return;
+  await setDoc(refDoc, { from: uid, to: targetId, status: 'pending', createdAt: serverTimestamp() });
+}
+export async function respondFriendRequest(uid: string, request: FriendRequest, accept: boolean): Promise<Match | null> {
+  owner(uid);
+  if (request.to !== uid) throw new Error('Only the recipient can respond to a friend request.');
+  const instance = database();
+  const pair = canonicalPair(request.from, request.to);
+  return runTransaction(instance, async tx => {
+    const reqRef = doc(instance, 'friendRequests', request.id);
+    const matchRef = doc(instance, 'matches', pair.id);
+    const [reqSnap, existingMatch, senderSnap, recipientSnap] = await Promise.all([
+      tx.get(reqRef),
+      tx.get(matchRef),
+      tx.get(doc(instance, 'profiles', request.from)),
+      tx.get(doc(instance, 'profiles', uid)),
+    ]);
+    if (!reqSnap.exists() || reqSnap.data().status !== 'pending') return existingMatch.exists() ? ({ ...existingMatch.data(), id: existingMatch.id } as Match) : null;
+    tx.update(reqRef, { status: accept ? 'accepted' : 'declined' });
+    if (!accept) return null;
+    if (!senderSnap.exists() || !recipientSnap.exists()) throw new Error('This profile is no longer available.');
+    if (!existingMatch.exists()) {
+      const matchDoc = {
+        members: pair.members,
+        names: { [request.from]: senderSnap.data().name, [uid]: recipientSnap.data().name },
+        photos: { [request.from]: senderSnap.data().photos[0], [uid]: recipientSnap.data().photos[0] },
+        kind: 'friend' as const,
+        status: 'active' as const,
+        createdAt: serverTimestamp(),
+      };
+      tx.set(matchRef, matchDoc);
+      return { id: pair.id, members: pair.members, names: matchDoc.names, photos: matchDoc.photos, kind: 'friend', status: 'active' };
+    }
+    return { ...existingMatch.data(), id: existingMatch.id } as Match;
+  });
+}
 export async function recordInterest(uid: string, target: Card, decision: 'like' | 'pass'): Promise<boolean> {
   owner(uid); if (target.demo || target.id.startsWith('demo-')) throw new Error('Demo interactions stay inside the demo.');
   if (!['like', 'pass'].includes(decision)) throw new Error('Choose Like or Pass.');
@@ -43,7 +123,7 @@ export async function recordInterest(uid: string, target: Card, decision: 'like'
     if (!mine.exists() || !theirs.exists()) throw new Error('This profile is no longer available.');
     const mutual = decision === 'like' && reverse.exists() && reverse.data().decision === 'like';
     tx.set(ownRef, { from: uid, to: target.id, decision, createdAt: serverTimestamp() });
-    if (mutual && !existing.exists()) tx.set(matchRef, { members: pair.members, names: { [uid]: mine.data().name, [target.id]: theirs.data().name }, photos: { [uid]: mine.data().photos[0], [target.id]: theirs.data().photos[0] }, status: 'active', createdAt: serverTimestamp() });
+    if (mutual && !existing.exists()) tx.set(matchRef, { members: pair.members, names: { [uid]: mine.data().name, [target.id]: theirs.data().name }, photos: { [uid]: mine.data().photos[0], [target.id]: theirs.data().photos[0] }, kind: 'dating', status: 'active', createdAt: serverTimestamp() });
     return mutual && (!existing.exists() || existing.data().status === 'active');
   });
 }
@@ -99,7 +179,7 @@ export async function deleteAccountData(uid: string): Promise<void> {
     while (true) { const messages = await getDocs(query(collection(match.ref, 'messages'), limit(400))); if (messages.empty) break; await removeQueryDocuments(messages.docs); }
     await deleteDoc(match.ref);
   }
-  for (const [name, field] of [['interactions', 'from'], ['interactions', 'to'], ['blocks', 'from'], ['blocks', 'to'], ['reports', 'reporter']] as const) {
+  for (const [name, field] of [['interactions', 'from'], ['interactions', 'to'], ['friendRequests', 'from'], ['friendRequests', 'to'], ['calls', 'callerId'], ['calls', 'calleeId'], ['blocks', 'from'], ['blocks', 'to'], ['reports', 'reporter']] as const) {
     await removeQueryDocuments((await getDocs(query(collection(instance, name), where(field, '==', uid)))).docs);
   }
   if (storage) { const files = await listAll(ref(storage, `profiles/${uid}`)); await Promise.all(files.items.map(item => deleteObject(item))); }

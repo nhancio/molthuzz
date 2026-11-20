@@ -8,13 +8,14 @@ import React, {
   useCallback,
   useEffect,
   useRef,
+  useReducer,
   useState,
 } from "react";
 import { usePathname, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { entryGate, tabPath, type AppTab } from "./native-navigation";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import { colors, shared } from "../theme";
+import { colors, shared, spacing, radius, type } from "../theme";
 import { BrandMark } from "../components/brand-mark";
 import {
   Badge,
@@ -28,13 +29,18 @@ import {
 import Welcome from "./Welcome";
 import Onboarding from "./Onboarding";
 import Discovery from "./Discovery";
+import Friends from "./Friends";
+import Learn from "./Learn";
+import { IncomingCallBanner } from "../components/IncomingCallBanner";
 import { deleteAccountSafely } from "./accountDeletion";
-import { Chat, Conversations, Likes } from "./Connections";
+import { Chat, Conversations, Likes, MemberPhoto } from "./Connections";
 import { AccountScreen, Legal, MembershipScreen } from "./Account";
+import { startCall } from "../calls/signaling";
 import type {
   AuthUser,
   Card,
   Filters,
+  FriendRequest,
   Match,
   Membership,
   Message,
@@ -44,6 +50,7 @@ import type {
 import {
   deleteAuthUser,
   reauthenticateGoogle,
+  signInApple,
   signInGoogle,
   signOutUser,
   watchAuth,
@@ -52,19 +59,26 @@ import {
   blockUser,
   deleteAccountData,
   discover,
+  discoverFriends,
   endMatch,
   getIncomingInterests,
   loadAccount,
   loadProfile,
   recordInterest,
   reportUser,
+  respondFriendRequest,
   saveProfile,
+  sendFriendRequest,
   sendMessage,
+  updateProfileMood,
+  watchFriendRequests,
   watchMatches,
   watchMembership,
   watchMessages,
 } from "../lib/data";
-import { demoCards, demoProfile, demoProfileInput } from "../lib/demo";
+import { userErrorMessage } from "../lib/user-error";
+import { collectionReducer, initialCollection } from "../lib/collection-state";
+import { demoCards, demoFriendRequests, demoProfile, demoProfileInput } from "../lib/demo";
 import {
   ageFromBirthDate,
   emptyProfileInput,
@@ -81,14 +95,19 @@ type Tab = AppTab;
 type MakeInContextValue = {
   ready: boolean;
   settingUp: boolean;
+  uid: string;
   destination: ReturnType<typeof tabPath>;
   entry: React.ReactNode;
   renderTab: (tab: Tab) => React.ReactNode;
+  renderLikes: () => React.ReactNode;
   renderConversation: () => React.ReactNode;
   conversationTitle: string;
   hasConversation: boolean;
   conversationSafety: () => void;
+  conversationCall: (mode: "audio" | "video") => void;
+  lookupPerson: (id: string) => { name: string; photo?: string } | null;
   openMembership: () => void;
+  incomingCount: number;
   matchCount: number;
   demo: boolean;
 };
@@ -109,11 +128,7 @@ type Dialog =
   | "match"
   | null;
 const initialFilters: Filters = { minAge: 18, maxAge: 100, location: "" };
-function messageOf(e: unknown) {
-  return e instanceof Error
-    ? e.message
-    : "Something went wrong. Please try again.";
-}
+const messageOf = userErrorMessage;
 function OpeningProgress({ text }: { text: string }) {
   return (
     <View
@@ -123,7 +138,7 @@ function OpeningProgress({ text }: { text: string }) {
           alignItems: "center",
           justifyContent: "center",
           padding: 24,
-          gap: 22,
+          gap: spacing.inset,
         },
       ]}
     >
@@ -134,6 +149,14 @@ function OpeningProgress({ text }: { text: string }) {
       </Text>
     </View>
   );
+}
+// The reducer preserves loaded content during refresh and isolates each resource's failure.
+function useCollection<T>() {
+  const [state, dispatch] = useReducer(collectionReducer<T>, initialCollection<T>());
+  const setData = useCallback((value: React.SetStateAction<T[]>) => {
+    dispatch({ type: "update", update: data => typeof value === "function" ? value(data) : value });
+  }, []);
+  return [state, dispatch, setData] as const;
 }
 export function MakeInProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -146,22 +169,32 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
   const [profileOwner, setProfileOwner] = useState<string | null>(null);
   const [input, setInput] = useState<ProfileInput>(emptyProfileInput);
   const [editing, setEditing] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const mutation = useRef(false);
   const [error, setError] = useState("");
-  const [tab, setTab] = useState<Tab>("discover");
-  const [cards, setCards] = useState<Card[]>([]);
-  const [incoming, setIncoming] = useState<Card[]>([]);
-  const [matches, setMatches] = useState<Match[]>([]);
+  const [tab, setTab] = useState<Tab>("home");
+  const [cardState, updateCards, setCards] = useCollection<Card>();
+  const [friendState, updateFriends, setFriends] = useCollection<Card>();
+  const [incomingState, updateIncoming, setIncoming] = useCollection<Card>();
+  const [matchState, updateMatches, setMatches] = useCollection<Match>();
+  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
+  const cards = cardState.data;
+  const friends = friendState.data;
+  const incoming = incomingState.data;
+  const matches = matchState.data;
+  const [cardRetry, retryCards] = useReducer(n => n + 1, 0);
+  const [friendRetry, retryFriends] = useReducer(n => n + 1, 0);
+  const [incomingRetry, retryIncoming] = useReducer(n => n + 1, 0);
+  const [matchRetry, retryMatches] = useReducer(n => n + 1, 0);
+  const [messageRetry, retryMessages] = useReducer(n => n + 1, 0);
   const [membership, setMembership] = useState<Membership | null>(null);
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [filterDraft, setFilterDraft] = useState(initialFilters);
   const [dialog, setDialog] = useState<Dialog>(null);
   const [selected, setSelected] = useState<Card | null>(null);
   const [chat, setChat] = useState<Match | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [chatLoading, setChatLoading] = useState(false);
+  const [messageState, updateMessages] = useCollection<Message>();
+  const messages = messageState.data;
   const [demoMessages, setDemoMessages] = useState<Record<string, Message[]>>(
     {},
   );
@@ -174,7 +207,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
   const [loadFailed, setLoadFailed] = useState(false);
   const [profileReload, setProfileReload] = useState(0);
   const uid = demo ? "demo-you" : user?.uid || "";
-  const active = demo || membershipActive(membership);
+  const active = !paymentConfigured || demo || membershipActive(membership);
   useEffect(() => {
     if (pathname !== "/conversation") setChat(null);
   }, [pathname]);
@@ -210,20 +243,21 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
     setDialog(null);
     setSafety(null);
     setNewMatch(null);
-    setCards([]);
-    setMatches([]);
-    setIncoming([]);
+    updateCards({ type: "reset" });
+    updateFriends({ type: "reset" });
+    updateMatches({ type: "reset" });
+    updateIncoming({ type: "reset" });
+    updateMessages({ type: "reset" });
+    setFriendRequests([]);
     setMembership(null);
     setChat(null);
     setError("");
     setLoadFailed(false);
     setEditing(false);
-    setTab("discover");
+    setTab("home");
     if (!user) {
-      setLoading(false);
       return;
     }
-    setLoading(true);
     Promise.all([loadProfile(user.uid), loadAccount(user.uid)])
       .then(([p, a]) => {
         if (!current) return;
@@ -243,71 +277,97 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
           setError(messageOf(e));
           setLoadFailed(true);
         }
-      })
-      .finally(() => {
-        if (current) setLoading(false);
       });
     return () => {
       current = false;
     };
-  }, [user, demo, profileReload]);
+  }, [user, demo, profileReload, updateCards, updateFriends, updateIncoming, updateMatches, updateMessages]);
   useEffect(() => {
     if (demo || !user || !profile) return;
-    const stopMatches = watchMatches(user.uid, setMatches, (e) =>
-      setError(e.message),
-    );
-    const stopMembership = watchMembership(user.uid, setMembership, (e) =>
-      setError(e.message),
-    );
-    return () => {
-      stopMatches();
-      stopMembership();
-    };
+    let current = true;
+    updateFriends({ type: "start" });
+    discoverFriends(user.uid).then(data => {
+      if (current) updateFriends({ type: "success", data });
+    }).catch((cause) => {
+      if (!current) return;
+      console.warn("MakeIn: friends load failed", cause);
+      if (current) updateFriends({ type: "failure", error: "Couldn’t load profiles. Check your connection and try again." });
+    });
+    return () => { current = false; };
+  }, [user, demo, profile, friendRetry, updateFriends]);
+  useEffect(() => {
+    if (demo || !user || !profile) return;
+    let current = true;
+    const stop = watchFriendRequests(user.uid, data => {
+      if (current) setFriendRequests(data);
+    }, (cause) => {
+      console.warn("MakeIn: friend requests load failed", cause);
+    });
+    return () => { current = false; stop(); };
   }, [user, demo, profile]);
   useEffect(() => {
     if (demo || !user || !profile) return;
     let current = true;
-    setLoading(true);
-    Promise.all([discover(user.uid, profile), getIncomingInterests(user.uid)])
-      .then(([c, i]) => {
-        if (current) {
-          setCards(c);
-          setIncoming(i);
-        }
-      })
-      .catch((e) => {
-        if (current) setError(messageOf(e));
-      })
-      .finally(() => {
-        if (current) setLoading(false);
-      });
-    return () => {
-      current = false;
-    };
+    updateMatches({ type: "start" });
+    const stop = watchMatches(user.uid, data => {
+      if (current) updateMatches({ type: "success", data });
+    }, (cause) => {
+      if (!current) return;
+      console.warn("MakeIn: chats load failed", cause);
+      if (current) updateMatches({ type: "failure", error: "Couldn’t load chats. Check your connection and try again." });
+    });
+    return () => { current = false; stop(); };
+  }, [user, demo, profile, matchRetry, updateMatches]);
+  useEffect(() => {
+    if (demo || !user || !profile) return;
+    return watchMembership(user.uid, setMembership, e => setError(messageOf(e)));
   }, [user, demo, profile]);
   useEffect(() => {
+    if (demo || !user || !profile) return;
+    let current = true;
+    updateCards({ type: "start" });
+    discover(user.uid, profile).then(data => {
+      if (current) updateCards({ type: "success", data });
+    }).catch((cause) => {
+      if (!current) return;
+      console.warn("MakeIn: profiles load failed", cause);
+      if (current) updateCards({ type: "failure", error: "Couldn’t load profiles. Check your connection and try again." });
+    });
+    return () => { current = false; };
+  }, [user, demo, profile, cardRetry, updateCards]);
+  useEffect(() => {
+    if (demo || !user || !profile) return;
+    let current = true;
+    updateIncoming({ type: "start" });
+    getIncomingInterests(user.uid).then(data => {
+      if (current) updateIncoming({ type: "success", data });
+    }).catch((cause) => {
+      if (!current) return;
+      console.warn("MakeIn: likes load failed", cause);
+      if (current) updateIncoming({ type: "failure", error: "Couldn’t load likes. Check your connection and try again." });
+    });
+    return () => { current = false; };
+  }, [user, demo, profile, incomingRetry, updateIncoming]);
+  useEffect(() => {
     if (!chat) {
-      setMessages([]);
+      updateMessages({ type: "reset" });
       return;
     }
     if (demo) {
-      setMessages(demoMessages[chat.id] || []);
+      updateMessages({ type: "success", data: demoMessages[chat.id] || [] });
       return;
     }
-    setChatLoading(true);
-    setMessages([]);
-    return watchMessages(
-      chat.id,
-      (m) => {
-        setMessages(m);
-        setChatLoading(false);
-      },
-      (e) => {
-        setError(e.message);
-        setChatLoading(false);
-      },
-    );
-  }, [chat, demo, demoMessages]);
+    let current = true;
+    updateMessages({ type: "start" });
+    const stop = watchMessages(chat.id, data => {
+      if (current) updateMessages({ type: "success", data });
+    }, (cause) => {
+      if (!current) return;
+      console.warn("MakeIn: messages load failed", cause);
+      if (current) updateMessages({ type: "failure", error: "Couldn’t load messages. Check your connection and try again." });
+    });
+    return () => { current = false; stop(); };
+  }, [chat, demo, demoMessages, messageRetry, updateMessages]);
   function enterDemo() {
     setDemo(true);
     setProfile(demoProfile);
@@ -317,26 +377,101 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
     setSafety(null);
     setNewMatch(null);
     setInput(demoProfileInput);
-    setCards([...demoCards]);
-    setIncoming(demoCards.slice(0, 3));
-    setMatches([]);
+    updateCards({ type: "success", data: [...demoCards] });
+    updateFriends({ type: "success", data: [...demoCards] });
+    updateIncoming({ type: "success", data: demoCards.slice(0, 3) });
+    updateMatches({ type: "success", data: [] });
+    setFriendRequests([...demoFriendRequests]);
     setDemoMessages({});
     setChat(null);
-    setTab("discover");
+    setTab("home");
     setFilters(initialFilters);
     setError("");
     setLoadFailed(false);
-    setLoading(false);
   }
-  async function refresh() {
+  function refresh(kind: "discover" | "likes" | "friends" = "discover") {
     if (demo) {
-      setCards([...demoCards]);
+      if (kind === "likes") return;
+      if (kind === "friends") updateFriends({ type: "success", data: [...demoCards] });
+      else updateCards({ type: "success", data: [...demoCards] });
       return;
     }
-    if (!user || !profile) return;
+    if (kind === "likes") retryIncoming();
+    else if (kind === "friends") retryFriends();
+    else retryCards();
+  }
+  const lookupPerson = useCallback(
+    (id: string): { name: string; photo?: string } | null => {
+      const fromCard =
+        friends.find((c) => c.id === id) ||
+        cards.find((c) => c.id === id) ||
+        incoming.find((c) => c.id === id);
+      if (fromCard) return { name: fromCard.name, photo: fromCard.photos[0] };
+      const fromMatch = matches.find((m) => m.members.includes(id));
+      if (fromMatch) return { name: fromMatch.names[id] || "", photo: fromMatch.photos[id] };
+      return null;
+    },
+    [friends, cards, incoming, matches],
+  );
+  async function handleMoodChange(mood: string) {
     await run(async () => {
-      setCards(await discover(user.uid, profile));
-      setIncoming(await getIncomingInterests(user.uid));
+      if (!profile) return;
+      if (!demo) {
+        if (!user) throw Error("Sign in to continue.");
+        await updateProfileMood(user.uid, mood);
+      }
+      setProfile({ ...profile, mood });
+      setInput((prev) => ({ ...prev, mood }));
+    });
+  }
+  async function handleSayHello(person: Card) {
+    await run(async () => {
+      if (demo) {
+        setFriendRequests((prev) =>
+          prev.some((r) => r.from === uid && r.to === person.id && r.status === "pending")
+            ? prev
+            : [...prev, { id: `${uid}~${person.id}`, from: uid, to: person.id, status: "pending" }],
+        );
+      } else {
+        if (!user) throw Error("Sign in to continue.");
+        await sendFriendRequest(user.uid, person.id);
+      }
+    });
+  }
+  async function handleRespondRequest(request: FriendRequest, accept: boolean) {
+    await run(async () => {
+      if (demo) {
+        setFriendRequests((prev) => prev.filter((r) => r.id !== request.id));
+        if (accept && profile) {
+          const sender = lookupPerson(request.from);
+          const friendMatch: Match = {
+            id: `demo-friend-${request.from}`,
+            members: [uid, request.from],
+            names: { [uid]: profile.name, [request.from]: sender?.name || "Friend" },
+            photos: { [uid]: profile.photos[0], [request.from]: sender?.photo || "" },
+            kind: "friend",
+            status: "active",
+          };
+          setMatches((prev) =>
+            prev.some((m) => m.members.includes(request.from)) ? prev : [friendMatch, ...prev],
+          );
+        }
+      } else {
+        if (!user) throw Error("Sign in to continue.");
+        await respondFriendRequest(user.uid, request, accept);
+      }
+    });
+  }
+  function startConversationCall(targetMatch: Match, mode: "audio" | "video") {
+    if (demo) {
+      setError("Audio and video calls are available after signing in with your MakeIn account.");
+      return;
+    }
+    const other = targetMatch.members.find((m) => m !== uid);
+    if (!user || !other) return;
+    void run(async () => {
+      const callId = await startCall(targetMatch.id, user.uid, other, mode);
+      router.push({ pathname: "/call/[id]", params: { id: callId } });
     });
   }
   function demoMatch(card: Card) {
@@ -427,8 +562,10 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
       }
       if (action !== "report") {
         setCards((v) => v.filter((c) => c.id !== safety.id));
+        setFriends((v) => v.filter((c) => c.id !== safety.id));
         setIncoming((v) => v.filter((c) => c.id !== safety.id));
         setMatches((v) => v.filter((m) => !m.members.includes(safety.id)));
+        setFriendRequests((v) => v.filter((r) => r.from !== safety.id && r.to !== safety.id));
         setChat(null);
       }
       setDialog(null);
@@ -447,8 +584,8 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
       dismissible={!busy}
       title={
         dialog === "privacy"
-          ? t("Your privacy matters.")
-          : t("A few things to know.")
+          ? t("Privacy policy")
+          : t("Terms of use")
       }
       visible={dialog === "terms" || dialog === "privacy"}
       onClose={() =>
@@ -473,6 +610,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
     setDialog((current) => (current === kind ? next : current));
   }
   function openConversation(match: Match) {
+    updateMessages({ type: "reset" });
     setChat(match);
     setError("");
     router.navigate("/conversation");
@@ -517,6 +655,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
         <>
           <Welcome
             onGoogle={() => run(signInGoogle)}
+            onApple={() => run(signInApple)}
             onDemo={enterDemo}
             onLegal={setDialog}
             busy={busy}
@@ -541,8 +680,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
                 <Button
                   onPress={() => {
                     // Firebase User methods live on its prototype; retry loading without replacing it.
-                    setLoading(true);
-                    setLoadFailed(false);
+                                    setLoadFailed(false);
                     setProfileReload((version) => version + 1);
                   }}
                 >
@@ -570,13 +708,29 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
       );
     return null;
   }
+  function renderLikes() {
+    if (gate !== "ready" || !profile) return null;
+    return (
+      <View collapsable={false} style={[shared.page, a.main]}>
+        {renderNotice()}
+        <Likes
+          cards={incoming}
+          demo={demo}
+          loading={incomingState.loading}
+          error={incomingState.error}
+          onOpen={setSelected}
+          onRefresh={() => refresh("likes")}
+        />
+      </View>
+    );
+  }
   function renderTab(tab: Tab) {
     if (gate !== "ready" || !profile) return null;
     return (
       <View collapsable={false} style={[shared.page, a.main, tab === "profile" && { paddingHorizontal: 0, paddingTop: 0 }]}>
         {demo && (
           <View style={[a.demoBar, tab === "profile" && { marginHorizontal: 16, marginTop: 8 }]}>
-            <Text style={[shared.muted, { fontSize: 10 }]}>
+            <Text style={type.caption}>
               {t(
                 "DEMO EXPERIENCE · Fictional profiles. Local likes and practice chats.",
               )}
@@ -584,12 +738,14 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
           </View>
         )}
         {renderNotice(tab)}
-        {tab === "discover" && (
+        {tab === "home" && (
           <Discovery
             cards={filtered}
             demo={demo}
             busy={busy}
-            loading={loading}
+            loading={cardState.loading}
+            error={cardState.error}
+            onRetry={() => refresh()}
             onDecision={decide}
             onOpen={setSelected}
             onFilters={() => {
@@ -599,28 +755,48 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
             onReset={refresh}
           />
         )}
-        {tab === "likes" && (
-          <Likes
-            cards={incoming}
+        {tab === "friends" && (
+          <Friends
+            profile={profile}
+            people={friends}
+            matches={matches}
+            requests={friendRequests}
+            uid={uid}
             demo={demo}
-            loading={loading}
-            onOpen={setSelected}
-            onRefresh={refresh}
+            busy={busy}
+            loading={friendState.loading}
+            error={friendState.error}
+            onRetry={() => refresh("friends")}
+            onMoodChange={handleMoodChange}
+            onSayHello={handleSayHello}
+            onRespond={handleRespondRequest}
+            onOpenChat={openConversation}
+            onStartCall={startConversationCall}
+            onOpenProfile={setSelected}
           />
         )}
         {tab === "matches" && (
           <Conversations
             matches={matches}
+            requests={friendRequests}
+            lookupPerson={lookupPerson}
+            loading={matchState.loading}
+            error={matchState.error}
+            busy={busy}
+            onRetry={retryMatches}
+            onRespondRequest={handleRespondRequest}
             uid={uid}
             demo={demo}
             onOpen={openConversation}
           />
         )}
+        {tab === "learn" && <Learn user={user} demo={demo} />}
         {tab === "profile" && (
           <AccountScreen
             profile={profile}
             demo={demo}
             active={active}
+            showMembership={paymentConfigured}
             onEdit={() => {
               setTab("profile");
               setEditing(true);
@@ -650,7 +826,9 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
           messages={messages}
           demo={demo}
           busy={busy}
-          loading={chatLoading}
+          loading={messageState.loading}
+          error={messageState.error}
+          onRetry={retryMessages}
           onBack={backToMatches}
           onSafety={() => {
             const id = chat.members.find((m) => m !== uid)!;
@@ -672,7 +850,10 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
                     { id: `practice-${Date.now()}`, sender: uid, text },
                   ],
                 }));
-              else await sendMessage(chat.id, uid, text);
+              else {
+                try { await sendMessage(chat.id, uid, text); }
+                catch { throw Error("Message could not be sent. Your draft is saved. Try again."); }
+              }
             }, true)
           }
         />
@@ -684,9 +865,11 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
       value={{
         ready: gate === "ready",
         settingUp: gate === "onboarding",
+        uid,
         destination: tabPath(tab),
         entry: entryContent(),
         renderTab,
+        renderLikes,
         renderConversation,
         conversationTitle: chat
           ? chat.names[chat.members.find((member) => member !== uid) || ""] ||
@@ -694,18 +877,28 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
           : t("Your match"),
         hasConversation: !!chat,
         conversationSafety,
+        conversationCall: (mode) => {
+          if (chat) startConversationCall(chat, mode);
+        },
+        lookupPerson,
         openMembership: () => setDialog("membership"),
+        incomingCount: incoming.length,
         matchCount: matches.length,
         demo,
       }}
     >
       {children}
+      <IncomingCallBanner
+        uid={uid}
+        enabled={gate === "ready" && !demo}
+        lookupPerson={lookupPerson}
+      />
       {legalSheet}
       {gate === "ready" && profile && (
         <>
           <Sheet
             dismissible={!busy}
-            title={t("Your kind of connection.")}
+            title={t("Discovery filters")}
             visible={dialog === "filters"}
             onClose={() => closeDialog("filters")}
           >
@@ -772,7 +965,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
           </Sheet>
           <Sheet
             dismissible={!busy}
-            title={t("A little more possibility.")}
+            title={t("Membership")}
             visible={dialog === "membership"}
             onClose={() => closeDialog("membership")}
           >
@@ -835,18 +1028,7 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
                       : t(selected.intent)}
                   </Badge>
                 </View>
-                {selected.photos.map((photo, i) => (
-                  <Image
-                    key={`${photo}-${i}`}
-                    source={{ uri: photo }}
-                    style={{
-                      width: "100%",
-                      aspectRatio: 0.87,
-                      borderRadius: 19,
-                      backgroundColor: colors.soft,
-                    }}
-                  />
-                ))}
+                <MemberPhoto uri={selected.photos[0]} style={{ width: "100%", aspectRatio: 0.87, borderRadius: radius.xl, borderCurve: "continuous" }} />
                 <View style={[shared.row, { gap: 7 }]}>
                   <Icon name="location-outline" size={17} />
                   <Text style={shared.muted}>
@@ -854,32 +1036,6 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
                   </Text>
                 </View>
                 <Text style={shared.body}>{selected.bio}</Text>
-                <View>
-                  <Text style={[shared.label, { marginBottom: 12 }]}>
-                    {t("LOOKING FOR")}
-                  </Text>
-                  <Text style={shared.body}>{t(selected.intent)}</Text>
-                </View>
-                <View
-                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
-                >
-                  {selected.interests.map((interest) => (
-                    <Badge key={interest}>{t(interest)}</Badge>
-                  ))}
-                </View>
-                {selected.prompts.map((p, i) => (
-                  <View key={i} style={shared.panel}>
-                    <Text style={shared.label}>{p.question.toUpperCase()}</Text>
-                    <Text
-                      style={[
-                        shared.heading,
-                        { fontSize: 30, lineHeight: 35, marginTop: 15 },
-                      ]}
-                    >
-                      {p.answer}
-                    </Text>
-                  </View>
-                ))}
                 <Button
                   busy={busy}
                   onPress={() => decide("like", selected)}
@@ -895,6 +1051,33 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
                 >
                   {t("Report or block")}
                 </Button>
+                <View>
+                  <Text style={[shared.label, { marginBottom: 12 }]}>
+                    {t("Looking for")}
+                  </Text>
+                  <Text style={shared.body}>{t(selected.intent)}</Text>
+                </View>
+                <View
+                  style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}
+                >
+                  {selected.interests.map((interest) => (
+                    <Badge key={interest}>{t(interest)}</Badge>
+                  ))}
+                </View>
+                {selected.prompts.map((p, i) => (
+                  <View key={i} style={shared.panel}>
+                    <Text style={shared.label}>{p.question}</Text>
+                    <Text
+                      style={[
+                        type.body,
+                        { marginTop: spacing.row },
+                      ]}
+                    >
+                      {p.answer}
+                    </Text>
+                  </View>
+                ))}
+                {selected.photos.slice(1).map((photo, i) => <MemberPhoto key={`${photo}-${i}`} uri={photo} style={{ width: "100%", aspectRatio: 0.87, borderRadius: radius.xl, borderCurve: "continuous" }} />)}
                 {error && <Notice text={error} error />}
               </>
             )}
@@ -1074,10 +1257,10 @@ export function MakeInProvider({ children }: { children: React.ReactNode }) {
 }
 const a = StyleSheet.create({
   demoBar: {
-    backgroundColor: "#EAF0D5",
+    backgroundColor: colors.soft,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: radius.md,
     marginBottom: 12,
   },
   main: {
@@ -1085,12 +1268,12 @@ const a = StyleSheet.create({
     minHeight: 0,
     width: "100%",
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: spacing.sm,
   },
   matchPhoto: {
     width: 104,
     height: 132,
-    borderRadius: 28,
+    borderRadius: radius.lg,
     backgroundColor: colors.soft,
   },
   matchHeart: {

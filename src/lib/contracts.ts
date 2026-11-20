@@ -1,10 +1,14 @@
 export type Gender = 'Woman' | 'Man' | 'Non-binary';
 export type Intent = 'A relationship' | 'Something casual' | 'Figuring it out';
-export type Profile = { name: string; age: number; gender: Gender; interestedIn: Gender[]; location: string; bio: string; photos: string[]; interests: string[]; intent: Intent; prompts: { question: string; answer: string }[]; status: 'active' | 'paused' | 'deleting' };
+export type Profile = { name: string; age: number; gender: Gender; interestedIn: Gender[]; location: string; bio: string; photos: string[]; interests: string[]; intent: Intent; prompts: { question: string; answer: string }[]; languages?: string[]; mood?: string; status: 'active' | 'paused' | 'deleting' };
 export type ProfileInput = Omit<Profile, 'age' | 'status'> & { birthDate: string };
 export type Card = Profile & { id: string; demo?: boolean };
-export type Match = { id: string; members: string[]; names: Record<string, string>; photos: Record<string, string>; status: 'active' | 'ended' };
+export type MatchKind = 'dating' | 'friend';
+export type Match = { id: string; members: string[]; names: Record<string, string>; photos: Record<string, string>; status: 'active' | 'ended'; kind?: MatchKind };
+export type FriendRequest = { id: string; from: string; to: string; status: 'pending' | 'accepted' | 'declined'; createdAt?: unknown };
+export type Call = { id: string; matchId: string; callerId: string; calleeId: string; mode: 'audio' | 'video'; status: 'ringing' | 'accepted' | 'ended' | 'declined'; offer?: { type: string; sdp: string }; answer?: { type: string; sdp: string }; createdAt: number };
 export type Message = { id: string; sender: string; text: string };
+export type LearnChatMessage = { id: string; role: 'user' | 'assistant'; text: string };
 export type Membership = { status: 'inactive' | 'active' | 'cancelled'; currentPeriodEnd: number; renewalAt?: number; subscriptionId?: string };
 export type Account = { birthDate: string };
 export type AuthUser = { uid: string; displayName: string | null; email: string | null; photoURL: string | null; getIdToken: () => Promise<string> };

@@ -1,10 +1,11 @@
-export type AppTab = "discover" | "likes" | "matches" | "profile";
+export type AppTab = "home" | "friends" | "matches" | "learn" | "profile";
 export const tabPath = (tab: AppTab) =>
   (
     ({
-      discover: "/(tabs)/discover",
-      likes: "/(tabs)/likes",
+      home: "/(tabs)/home",
+      friends: "/(tabs)/friends",
       matches: "/(tabs)/connections",
+      learn: "/(tabs)/learn",
       profile: "/(tabs)/profile",
     }) as const
   )[tab];

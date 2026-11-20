@@ -6,13 +6,14 @@ import { Image } from "expo-image";
 import { Host, ListItem, RNHostView, Text as NativeText } from "@expo/ui";
 import { AccountForm, AccountSection, AccountFooter } from "../components/account-settings";
 import type { Membership, Profile } from "../lib/contracts";
-import { Badge, Button, Icon, Notice } from "../components/UI";
+import { Button, Icon, Notice } from "../components/UI";
 import { colors, fonts, shared, radius, type } from "../theme";
 
-export function AccountScreen({ profile, demo, active, onEdit, onMembership, onTerms, onPrivacy, onDelete, onSignOut }: {
+export function AccountScreen({ profile, demo, active, showMembership = false, onEdit, onMembership, onTerms, onPrivacy, onDelete, onSignOut }: {
   profile: Profile;
   demo: boolean;
   active: boolean;
+  showMembership?: boolean;
   onEdit: () => void;
   onMembership: () => void;
   onTerms: () => void;
@@ -53,11 +54,13 @@ export function AccountScreen({ profile, demo, active, onEdit, onMembership, onT
           {row("Edit profile", "create-outline", onEdit)}
           {demo ? <AccountFooter><NativeText textStyle={{ fontSize: scaled(13), color: colors.muted }}>{t("DEMO PROFILE")}</NativeText></AccountFooter> : null}
         </AccountSection>
-        <AccountSection>
-          <ListItem onPress={onMembership} leading={icon("sparkles-outline")} trailing={icon("chevron-forward")} supportingText={t(demo ? "Explore membership pricing. Demo mode is always free." : active ? "View your membership and renewal details." : "MEMBERSHIP · SOON")} colors={{ containerColor: "transparent", contentColor: colors.ink }}>
-            <NativeText textStyle={{ fontSize: scaled(17), fontWeight: "600", color: colors.ink }}>{t("Membership")}</NativeText>
-          </ListItem>
-        </AccountSection>
+        {showMembership ? (
+          <AccountSection>
+            <ListItem onPress={onMembership} leading={icon("document-text-outline")} trailing={icon("chevron-forward")} supportingText={t(demo ? "Explore membership pricing. Demo mode is always free." : active ? "View your membership and renewal details." : "MEMBERSHIP · SOON")} colors={{ containerColor: "transparent", contentColor: colors.ink }}>
+              <NativeText textStyle={{ fontSize: scaled(17), fontWeight: "600", color: colors.ink }}>{t("Membership")}</NativeText>
+            </ListItem>
+          </AccountSection>
+        ) : null}
         <AccountSection>
           {row("Privacy policy", "lock-closed-outline", onPrivacy)}
           {row("Terms of use", "document-text-outline", onTerms)}
@@ -90,19 +93,18 @@ export function MembershipScreen({
 }) {
   const { t, i18n } = useTranslation();
   return (
-    <View style={{ gap: 23 }}>
-      <Badge dark>{t("MAKEIN MEMBERSHIP")}</Badge>
+    <View style={{ gap: 24 }}>
       <Text
         accessibilityRole="header"
-        style={[shared.heading, { fontSize: 36, lineHeight: 40 }]}
+        style={type.title}
       >
-        {t("More possibilities. One simple plan.")}
+        {t("Membership")}
       </Text>
       <View
         style={{
           padding: 24,
           backgroundColor: colors.lime,
-          borderRadius: 30,
+          borderRadius: radius.xl,
           borderCurve: "continuous",
         }}
       >

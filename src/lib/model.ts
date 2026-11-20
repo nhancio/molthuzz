@@ -1,6 +1,8 @@
 import type { Card, Filters, Membership, Profile, ProfileInput } from './contracts';
 const genders = ['Woman', 'Man', 'Non-binary'];
 const intents = ['A relationship', 'Something casual', 'Figuring it out'];
+export const FRIEND_LANGUAGES = ['English', 'Hindi', 'Telugu', 'Tamil', 'Kannada', 'Malayalam', 'Marathi', 'Bengali', 'Gujarati'] as const;
+export const FRIEND_MOODS = ['Up for a chat', 'Coffee & walks', 'Making new friends', 'Exploring the city', 'Quiet check-in'] as const;
 export const emptyProfileInput: ProfileInput = { name: '', birthDate: '', gender: 'Woman', interestedIn: [], location: '', bio: '', photos: [], interests: [], intent: 'A relationship', prompts: [] };
 export function ageFromBirthDate(value: string, now = new Date()): number {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return NaN;
@@ -14,8 +16,9 @@ export function persistentPhoto(value: unknown): value is string {
   try { const url = new URL(value); return url.protocol === 'https:' && !!url.hostname && !url.username && !url.password; } catch { return false; }
 }
 export function validateProfile(input: ProfileInput, now = new Date()): string | null {
-  const keys = ['name', 'birthDate', 'gender', 'interestedIn', 'location', 'bio', 'photos', 'interests', 'intent', 'prompts'];
-  if (!input || Object.keys(input).length !== keys.length || Object.keys(input).some(k => !keys.includes(k))) return 'Profile contains unsupported fields.';
+  const requiredKeys = ['name', 'birthDate', 'gender', 'interestedIn', 'location', 'bio', 'photos', 'interests', 'intent', 'prompts'];
+  const allowedKeys = [...requiredKeys, 'languages', 'mood'];
+  if (!input || requiredKeys.some(k => !(k in input)) || Object.keys(input).some(k => !allowedKeys.includes(k))) return 'Profile contains unsupported fields.';
   if (!boundedText(input.name, 1, 40)) return 'Enter a first name of 1–40 characters.';
   const age = ageFromBirthDate(input.birthDate, now);
   if (!Number.isInteger(age) || age < 18 || age > 100) return 'MakeIn is for adults aged 18–100. Enter a valid birth date.';
@@ -27,7 +30,30 @@ export function validateProfile(input: ProfileInput, now = new Date()): string |
   if (!Array.isArray(input.interests) || input.interests.length < 1 || input.interests.length > 8 || new Set(input.interests).size !== input.interests.length || input.interests.some(i => !boundedText(i, 1, 30))) return 'Choose 1–8 different interests.';
   if (!intents.includes(input.intent)) return 'Choose what you are looking for.';
   if (!Array.isArray(input.prompts) || input.prompts.length > 3 || input.prompts.some(p => !p || Object.keys(p).length !== 2 || !boundedText(p.question, 1, 100) || !boundedText(p.answer, 1, 200))) return 'Use up to 3 prompts with a question and answer.';
+  if (input.languages !== undefined && (!Array.isArray(input.languages) || input.languages.length > 6 || new Set(input.languages).size !== input.languages.length || input.languages.some(l => !boundedText(l, 1, 30)))) return 'Choose up to 6 languages.';
+  if (input.mood !== undefined && input.mood !== '' && !boundedText(input.mood, 1, 40)) return 'Choose a mood of up to 40 characters.';
   return null;
+}
+export function recommendFriends(me: Profile, people: Card[], options: { query?: string; language?: string; interest?: string } = {}): Card[] {
+  const q = (options.query || '').trim().toLocaleLowerCase();
+  const lang = options.language && options.language !== 'All languages' ? options.language : '';
+  const interest = options.interest && options.interest !== 'All interests' ? options.interest : '';
+  const myLangs = new Set(me.languages || []);
+  const myInterests = new Set(me.interests || []);
+  const myCity = me.location.trim().toLocaleLowerCase();
+  return people
+    .filter(p => p.status === 'active')
+    .filter(p => !lang || (p.languages || []).includes(lang))
+    .filter(p => !interest || p.interests.includes(interest))
+    .filter(p => !q || `${p.name} ${p.location} ${p.bio} ${p.interests.join(' ')} ${(p.languages || []).join(' ')}`.toLocaleLowerCase().includes(q))
+    .sort((a, b) => {
+      const score = (p: Card) =>
+        (p.languages || []).filter(l => myLangs.has(l)).length * 4 +
+        p.interests.filter(i => myInterests.has(i)).length * 2 +
+        (p.location.trim().toLocaleLowerCase() === myCity ? 3 : 0) +
+        (me.mood && p.mood === me.mood ? 2 : 0);
+      return score(b) - score(a);
+    });
 }
 export function swipeDirection(dx: number, vx: number): 'like' | 'pass' | null {
   if (!Number.isFinite(dx) || !Number.isFinite(vx)) return null;

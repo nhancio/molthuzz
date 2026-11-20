@@ -3,6 +3,7 @@ node_modules/
 .expo/
 .netlify/
 dist/
+artifacts/
 work/
 .env*
 !.env.example

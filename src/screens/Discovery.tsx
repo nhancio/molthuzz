@@ -3,16 +3,15 @@ import { Text } from "../components/LocalizedText";
 import React, { useCallback, useRef, useState } from "react";
 import * as Haptics from "expo-haptics";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
 } from "react-native";
 import type { Card } from "../lib/contracts";
-import { Button, CircleButton, Empty, IconButton } from "../components/UI";
+import { Button, CircleButton, CollectionFeedback, Empty, IconButton } from "../components/UI";
 import ProfileCard from "../components/ProfileCard";
-import { colors, type } from "../theme";
+import { colors, type, spacing, radius } from "../theme";
 import {
   DISCOVERY_BOTTOM_PADDING,
   DISCOVERY_CARD_GAP,
@@ -24,6 +23,8 @@ export default function Discovery({
   demo,
   busy,
   loading,
+  error,
+  onRetry,
   onDecision,
   onOpen,
   onFilters,
@@ -33,6 +34,8 @@ export default function Discovery({
   demo: boolean;
   busy: boolean;
   loading: boolean;
+  error: string;
+  onRetry: () => void;
   onDecision: (v: "like" | "pass") => Promise<void>;
   onOpen: (card: Card) => void;
   onFilters: () => void;
@@ -43,6 +46,7 @@ export default function Discovery({
   const [bounds, setBounds] = useState({ height: 570, width: 354 });
   const [headerHeight, setHeaderHeight] = useState(48);
   const [controlsHeight, setControlsHeight] = useState(100);
+  const [showHint, setShowHint] = useState(true);
   const [gestureBusy, setGestureBusy] = useState(false);
   const decisionPending = useRef(false);
   const decide = useCallback(
@@ -56,6 +60,7 @@ export default function Discovery({
         );
       try {
         await onDecision(decision);
+        setShowHint(false);
       } finally {
         decisionPending.current = false;
         setGestureBusy(false);
@@ -63,7 +68,7 @@ export default function Discovery({
     },
     [onDecision],
   );
-  const interactionBusy = busy || gestureBusy;
+  const interactionBusy = busy || gestureBusy || loading;
   const card = cards[0];
   const layout = discoveryLayout({
     availableHeight: bounds.height,
@@ -94,9 +99,6 @@ export default function Discovery({
           style={d.header}
           onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
         >
-          <Text style={[type.eyebrow, { flex: 1 }]}>
-            {t("Your next hello.")}
-          </Text>
           <View style={d.filter}>
             <IconButton
               label={t("Discovery filters")}
@@ -106,13 +108,8 @@ export default function Discovery({
           </View>
         </View>
         <View style={{ marginTop: DISCOVERY_CARD_GAP }}>
-          {loading ? (
-            <View
-              style={{ height: layout.cardHeight, justifyContent: "center" }}
-            >
-              <ActivityIndicator color={colors.ink} />
-            </View>
-          ) : card ? (
+          <CollectionFeedback loading={loading} error={error} hasContent={!!card} onRetry={onRetry} height={layout.cardHeight} />
+          {card ? (
             <>
               <ProfileCard
                 key={card.id}
@@ -158,19 +155,13 @@ export default function Discovery({
                     }}
                   />
                 </View>
-                <Text
-                  style={[
-                    type.eyebrow,
-                    { fontSize: 10, textAlign: "center", marginTop: 12 },
-                  ]}
-                >
-                  {t("SWIPE LEFT TO PASS · RIGHT TO LIKE")}
-                </Text>
+                {showHint ? <Text style={[type.caption, { textAlign: "center", marginTop: spacing.row }]}>{t("Swipe left to pass · Right to like")}</Text> : null}
               </View>
             </>
-          ) : (
+          ) : !loading && !error ? (
             <Empty
-              title={t("A little pause.")}
+              icon="compass-outline"
+              title={t("No profiles match these filters")}
               text={
                 demo
                   ? t(
@@ -186,7 +177,7 @@ export default function Discovery({
                 </Button>
               }
             />
-          )}
+          ) : null}
         </View>
       </ScrollView>
     </View>
@@ -195,14 +186,14 @@ export default function Discovery({
 const d = StyleSheet.create({
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     gap: 12,
   },
 
   filter: {
     backgroundColor: colors.white,
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     overflow: "hidden",
@@ -212,6 +203,6 @@ const d = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 22,
+    gap: spacing.inset,
   },
 });

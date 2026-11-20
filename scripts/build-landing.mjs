@@ -24,7 +24,7 @@ const tokens = {
 };
 
 // Read and validate sources before changing the one fixed build directory.
-const files = ['index.html', 'privacy.html', 'terms.html', '404.html', 'styles.css'];
+const files = ['index.html', 'privacy.html', 'terms.html', '404.html', 'styles.css', 'robots.txt', 'sitemap.xml', 'llms.txt'];
 const contents = await Promise.all(files.map(async (name) => [name, await readFile(resolve(source, name), 'utf8')]));
 const assets = await readdir(resolve(source, 'assets'));
 if (!assets.length) throw new Error('Landing assets are missing');

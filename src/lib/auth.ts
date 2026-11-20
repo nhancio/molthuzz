@@ -1,7 +1,8 @@
-import { GoogleAuthProvider, browserLocalPersistence, deleteUser, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, setPersistence, signInWithCredential, signInWithPopup, signOut } from 'firebase/auth';
+import { GoogleAuthProvider, OAuthProvider, browserLocalPersistence, deleteUser, onAuthStateChanged, reauthenticateWithCredential, reauthenticateWithPopup, setPersistence, signInWithCredential, signInWithPopup, signOut } from 'firebase/auth';
 import { Platform } from 'react-native';
 import { auth } from './firebase';
 import type { AuthUser } from './contracts';
+
 const requireAuth = () => { if (!auth) throw new Error('Google sign in is not configured yet. Explore the labelled demo while setup is completed.'); return auth; };
 export function watchAuth(next: (user: AuthUser | null) => void): () => void {
   if (!auth) { next(null); return () => {}; } return onAuthStateChanged(auth, next);
@@ -16,17 +17,44 @@ async function nativeCredential() {
   if (result.type !== 'success' || !result.data.idToken) throw new Error('Google sign in was cancelled.');
   return GoogleAuthProvider.credential(result.data.idToken);
 }
+async function appleCredential() {
+  const AppleAuthentication = await import('expo-apple-authentication');
+  const Crypto = await import('expo-crypto');
+  const rawNonce = Array.from(Crypto.getRandomBytes(16), (b) => b.toString(16).padStart(2, '0')).join('');
+  const hashedNonce = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, rawNonce);
+  const credential = await AppleAuthentication.signInAsync({
+    requestedScopes: [
+      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+      AppleAuthentication.AppleAuthenticationScope.EMAIL,
+    ],
+    nonce: hashedNonce,
+  });
+  if (!credential.identityToken) throw new Error('Apple sign in was cancelled.');
+  return new OAuthProvider('apple.com').credential({
+    idToken: credential.identityToken,
+    rawNonce,
+  });
+}
 export async function signInGoogle(): Promise<void> {
   const instance = requireAuth();
   if (Platform.OS === 'web') { await setPersistence(instance, browserLocalPersistence); await signInWithPopup(instance, new GoogleAuthProvider()); }
   else await signInWithCredential(instance, await nativeCredential());
 }
+export async function signInApple(): Promise<void> {
+  const instance = requireAuth();
+  if (Platform.OS !== 'ios') throw new Error('Sign in with Apple is only available on iOS.');
+  await signInWithCredential(instance, await appleCredential());
+}
 export async function signOutUser(): Promise<void> { await signOut(requireAuth()); }
 export async function reauthenticateGoogle(): Promise<void> {
   const user = requireAuth().currentUser; if (!user) throw new Error('Sign in again to continue.');
+  if (Platform.OS === 'ios' && user.providerData.some((p) => p.providerId === 'apple.com')) {
+    await reauthenticateWithCredential(user, await appleCredential());
+    return;
+  }
   if (Platform.OS === 'web') await reauthenticateWithPopup(user, new GoogleAuthProvider());
   else await reauthenticateWithCredential(user, await nativeCredential());
 }
 export async function deleteAuthUser(): Promise<void> {
-  const user = requireAuth().currentUser; if (!user) throw new Error('Sign in again to delete your account.'); await deleteUser(user);
+  const user = requireAuth().currentUser; if (!user) throw new Error('Sign in to delete your account.'); await deleteUser(user);
 }

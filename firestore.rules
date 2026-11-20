@@ -38,14 +38,22 @@ service cloud.firestore {
     }
     function prompt(v) { return v is map && v.keys().hasOnly(['question','answer']) && text(v.question,1,100) && text(v.answer,1,200); }
     function prompts(v) { let size = v.size(); return v is list && size <= 3 && (size<1 || prompt(v[0])) && (size<2 || prompt(v[1])) && (size<3 || prompt(v[2])); }
+    function languagesList(v) {
+      let size = v.size();
+      return v is list && size <= 6 && v.toSet().size() == size && (size < 1 || text(v[0],1,30)) && (size < 2 || text(v[1],1,30)) && (size < 3 || text(v[2],1,30)) && (size < 4 || text(v[3],1,30)) && (size < 5 || text(v[4],1,30)) && (size < 6 || text(v[5],1,30));
+    }
     function validProfile(p, uid) {
-      return p.keys().hasOnly(['name','age','gender','interestedIn','location','bio','photos','interests','intent','prompts','status']) && text(p.name,1,40) && p.age is int && p.age >= 18 && p.age <= 100 && p.age == ageFor(uid) && p.gender in ['Woman','Man','Non-binary'] && p.interestedIn is list && p.interestedIn.size() >= 1 && p.interestedIn.size() <= 3 && p.interestedIn.hasOnly(['Woman','Man','Non-binary']) && p.interestedIn.toSet().size() == p.interestedIn.size() && text(p.location,1,80) && text(p.bio,1,500) && photoList(p.photos) && interests(p.interests) && p.intent in ['A relationship','Something casual','Figuring it out'] && prompts(p.prompts) && p.status in ['active','paused','deleting'];
+      return p.keys().hasOnly(['name','age','gender','interestedIn','location','bio','photos','interests','intent','prompts','languages','mood','status']) && text(p.name,1,40) && p.age is int && p.age >= 18 && p.age <= 100 && p.age == ageFor(uid) && p.gender in ['Woman','Man','Non-binary'] && p.interestedIn is list && p.interestedIn.size() >= 1 && p.interestedIn.size() <= 3 && p.interestedIn.hasOnly(['Woman','Man','Non-binary']) && p.interestedIn.toSet().size() == p.interestedIn.size() && text(p.location,1,80) && text(p.bio,1,500) && photoList(p.photos) && interests(p.interests) && p.intent in ['A relationship','Something casual','Figuring it out'] && prompts(p.prompts) && (!('languages' in p) || languagesList(p.languages)) && (!('mood' in p) || p.mood == '' || text(p.mood,1,40)) && p.status in ['active','paused','deleting'];
     }
     function unblocked(a,b) { return !exists(/databases/$(database)/documents/blocks/$(a + '~' + b)) && !exists(/databases/$(database)/documents/blocks/$(b + '~' + a)); }
     function interactive(a,b) { return a != b && active(a) && active(b) && unblocked(a,b); }
     function pairReader(id) { let members = id.split('~'); return signed() && members.size() == 2 && request.auth.uid in members; }
     function member(m) { return signed() && request.auth.uid in m.members; }
     function like(a,b) { return getAfter(/databases/$(database)/documents/interactions/$(a + '~' + b)).data.decision == 'like'; }
+    function acceptedFriend(a,b) {
+      return (existsAfter(/databases/$(database)/documents/friendRequests/$(a + '~' + b)) && getAfter(/databases/$(database)/documents/friendRequests/$(a + '~' + b)).data.status == 'accepted')
+        || (existsAfter(/databases/$(database)/documents/friendRequests/$(b + '~' + a)) && getAfter(/databases/$(database)/documents/friendRequests/$(b + '~' + a)).data.status == 'accepted');
+    }
     match /accounts/{uid} {
       allow get: if own(uid);
       allow create, update: if own(uid) && !deletingExisting(uid) && request.resource.data.keys().hasOnly(['birthDate']) && request.resource.data.birthDate is string && adultDate(request.resource.data.birthDate) && getAfter(/databases/$(database)/documents/profiles/$(uid)).data.age == birthAge(request.resource.data.birthDate);
@@ -56,29 +64,51 @@ service cloud.firestore {
       allow get: if signed() && (own(uid) || resource.data.status == 'active');
       allow list: if signed() && resource.data.status == 'active';
       allow create: if own(uid) && validProfile(request.resource.data, uid) && request.resource.data.status == 'active';
-      allow update: if own(uid) && resource.data.status != 'deleting' && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status in ['paused','deleting']) || validProfile(request.resource.data,uid));
+      allow update: if own(uid) && resource.data.status != 'deleting' && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status in ['paused','deleting']) || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mood']) && text(request.resource.data.mood,1,40)) || validProfile(request.resource.data,uid));
       allow delete: if own(uid) && deleting(uid);
     }
     match /entitlements/{uid} { allow read: if own(uid); allow write: if false; }
     match /interactions/{id} {
       allow get: if pairReader(id) && (!exists(/databases/$(database)/documents/interactions/$(id)) || (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid));
       allow list: if signed() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
-      allow create: if signed() && request.resource.data.keys().hasOnly(['from','to','decision','createdAt']) && request.resource.data.from == request.auth.uid && request.resource.data.to is string && id == request.auth.uid + '~' + request.resource.data.to && request.resource.data.decision in ['like','pass'] && request.resource.data.createdAt == request.time && paid(request.auth.uid) && interactive(request.auth.uid, request.resource.data.to);
+      allow create: if signed() && request.resource.data.keys().hasOnly(['from','to','decision','createdAt']) && request.resource.data.from == request.auth.uid && request.resource.data.to is string && id == request.auth.uid + '~' + request.resource.data.to && request.resource.data.decision in ['like','pass'] && request.resource.data.createdAt == request.time && interactive(request.auth.uid, request.resource.data.to);
       allow update: if false;
+      allow delete: if signed() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid) && deleting(request.auth.uid);
+    }
+    match /friendRequests/{id} {
+      allow get: if pairReader(id) && (!exists(/databases/$(database)/documents/friendRequests/$(id)) || (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid));
+      allow list: if signed() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+      allow create: if signed() && request.resource.data.keys().hasOnly(['from','to','status','createdAt']) && request.resource.data.from == request.auth.uid && request.resource.data.to is string && id == request.auth.uid + '~' + request.resource.data.to && request.resource.data.status == 'pending' && request.resource.data.createdAt == request.time && interactive(request.auth.uid, request.resource.data.to);
+      allow update: if signed() && resource.data.to == request.auth.uid && resource.data.status == 'pending' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status in ['accepted','declined'];
       allow delete: if signed() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid) && deleting(request.auth.uid);
     }
     match /matches/{id} {
       allow get: if pairReader(id) && (!exists(/databases/$(database)/documents/matches/$(id)) || member(resource.data));
       allow list: if member(resource.data);
-      allow create: if signed() && request.resource.data.keys().hasOnly(['members','names','photos','status','createdAt']) && request.resource.data.members is list && request.resource.data.members.size() == 2 && request.resource.data.members[0] is string && request.resource.data.members[1] is string && request.resource.data.members[0] < request.resource.data.members[1] && id == request.resource.data.members[0] + '~' + request.resource.data.members[1] && member(request.resource.data) && request.resource.data.status == 'active' && request.resource.data.createdAt == request.time && validMatch(request.resource.data) && paid(request.auth.uid) && interactive(request.resource.data.members[0],request.resource.data.members[1]) && like(request.resource.data.members[0],request.resource.data.members[1]) && like(request.resource.data.members[1],request.resource.data.members[0]);
+      allow create: if signed() && request.resource.data.keys().hasOnly(['members','names','photos','kind','status','createdAt']) && request.resource.data.members is list && request.resource.data.members.size() == 2 && request.resource.data.members[0] is string && request.resource.data.members[1] is string && request.resource.data.members[0] < request.resource.data.members[1] && id == request.resource.data.members[0] + '~' + request.resource.data.members[1] && member(request.resource.data) && (!('kind' in request.resource.data) || request.resource.data.kind in ['dating','friend']) && request.resource.data.status == 'active' && request.resource.data.createdAt == request.time && validMatch(request.resource.data) && interactive(request.resource.data.members[0],request.resource.data.members[1]) && ((like(request.resource.data.members[0],request.resource.data.members[1]) && like(request.resource.data.members[1],request.resource.data.members[0])) || (('kind' in request.resource.data) && request.resource.data.kind == 'friend' && acceptedFriend(request.resource.data.members[0],request.resource.data.members[1])));
       allow update: if member(resource.data) && resource.data.status == 'active' && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']) && request.resource.data.status == 'ended';
       allow delete: if member(resource.data) && deleting(request.auth.uid);
       match /messages/{messageId} {
         function conversation() { return get(/databases/$(database)/documents/matches/$(id)).data; }
         allow read: if member(conversation());
-        allow create: if member(conversation()) && conversation().status == 'active' && paid(request.auth.uid) && interactive(conversation().members[0],conversation().members[1]) && request.resource.data.keys().hasOnly(['sender','text','createdAt']) && request.resource.data.sender == request.auth.uid && text(request.resource.data.text,1,2000) && request.resource.data.createdAt == request.time;
+        allow create: if member(conversation()) && conversation().status == 'active' && interactive(conversation().members[0],conversation().members[1]) && request.resource.data.keys().hasOnly(['sender','text','createdAt']) && request.resource.data.sender == request.auth.uid && text(request.resource.data.text,1,2000) && request.resource.data.createdAt == request.time;
         allow update: if false;
         allow delete: if member(conversation()) && deleting(request.auth.uid);
+      }
+    }
+    match /calls/{id} {
+      function callParticipant(c) { return signed() && (request.auth.uid == c.callerId || request.auth.uid == c.calleeId); }
+      allow get: if signed() && (!exists(/databases/$(database)/documents/calls/$(id)) || callParticipant(resource.data));
+      allow list: if callParticipant(resource.data);
+      allow create: if signed() && request.resource.data.keys().hasOnly(['matchId','callerId','calleeId','mode','status','createdAt']) && request.resource.data.callerId == request.auth.uid && request.resource.data.calleeId is string && request.resource.data.mode in ['audio','video'] && request.resource.data.status == 'ringing' && request.resource.data.createdAt is number && interactive(request.resource.data.callerId, request.resource.data.calleeId) && exists(/databases/$(database)/documents/matches/$(request.resource.data.matchId)) && get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.status == 'active' && request.auth.uid in get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.members && request.resource.data.calleeId in get(/databases/$(database)/documents/matches/$(request.resource.data.matchId)).data.members;
+      allow update: if callParticipant(resource.data) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','offer','answer']) && request.resource.data.status in ['ringing','accepted','ended','declined'];
+      allow delete: if callParticipant(resource.data) && deleting(request.auth.uid);
+      match /candidates/{candidateId} {
+        function parentCall() { return get(/databases/$(database)/documents/calls/$(id)).data; }
+        allow read: if callParticipant(parentCall());
+        allow create: if callParticipant(parentCall()) && request.resource.data.keys().hasOnly(['authorId','candidate']) && request.resource.data.authorId == request.auth.uid;
+        allow update: if false;
+        allow delete: if callParticipant(parentCall()) && deleting(request.auth.uid);
       }
     }
     function validMatch(m) { return m.names is map && m.photos is map && m.names.keys().hasOnly(m.members) && m.photos.keys().hasOnly(m.members) && m.names[m.members[0]] == profile(m.members[0]).name && m.names[m.members[1]] == profile(m.members[1]).name && m.photos[m.members[0]] == profile(m.members[0]).photos[0] && m.photos[m.members[1]] == profile(m.members[1]).photos[0]; }

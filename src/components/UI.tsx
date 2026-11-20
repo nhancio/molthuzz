@@ -25,7 +25,7 @@ import {
   nativeLabelModifiers,
 } from "./native-control-platform";
 import { nativeSelectionChange } from "../lib/native-control-state";
-import { colors, controlSize, fonts, shared } from "../theme";
+import { colors, controlSize, fonts, shared, spacing, radius, type } from "../theme";
 import NativeSheet from "./native-sheet";
 import { Icon, type IconName } from "./native-icons";
 export { Icon } from "./native-icons";
@@ -73,7 +73,7 @@ export function Button({
       seedColor={colors.ink}
       ignoreSafeArea="all"
       matchContents={inline ? true : { vertical: true }}
-      style={{ alignSelf: inline ? "flex-start" : "stretch", minHeight: compact ? 34 : controlSize }}
+      style={{ alignSelf: inline ? "flex-start" : "stretch", minHeight: controlSize }}
     >
       <NativeButton
         disabled={blocked}
@@ -280,7 +280,7 @@ export function Badge({
 }) {
   return (
     <View style={[s.badge, dark && { backgroundColor: colors.ink }]}>
-      <Text style={[s.badgeText, dark && { color: colors.lime }]}>
+      <Text style={[s.badgeText, dark && { color: colors.white }]}>
         {children}
       </Text>
     </View>
@@ -324,8 +324,34 @@ export function Notice({
     </View>
   );
 }
+// Initial placeholders keep the shape of known content; refresh leaves content mounted.
+export function CollectionFeedback({ loading, error, hasContent, onRetry, height, kind = "rows", columns = 2 }: {
+  loading: boolean;
+  error: string;
+  hasContent: boolean;
+  onRetry: () => void;
+  height?: number;
+  kind?: "rows" | "likes" | "messages";
+  columns?: number;
+}) {
+  const { t } = useTranslation();
+  if (error) return <View style={{ gap: spacing.sm, paddingVertical: spacing.md }}>
+    <Notice error text={error} />
+    <Button secondary compact busy={loading} onPress={onRetry}>{t("Try again")}</Button>
+  </View>;
+  if (!loading) return null;
+  if (hasContent) return <ActivityIndicator accessibilityLabel={t("Loading…")} color={colors.ink} style={{ padding: spacing.sm }} />;
+  return <View accessible accessibilityLabel={t("Loading…")} accessibilityRole="progressbar" accessibilityState={{ busy: true }} style={{ gap: spacing.md, paddingVertical: spacing.md }}>
+    {height ? <View style={{ height, backgroundColor: colors.soft, borderRadius: radius.xl, borderCurve: "continuous" }} /> : kind === "likes" ? <View style={{ flexDirection: "row", gap: spacing.row }}>
+      {Array.from({ length: columns }, (_, index) => <View key={index} style={{ flex: 1, height: 250, borderRadius: radius.xl, backgroundColor: colors.soft }} />)}
+    </View> : kind === "messages" ? [0, 1, 2].map(index => <View key={index} style={{ alignSelf: index % 2 ? "flex-end" : "flex-start", width: index === 1 ? "50%" : "65%", height: 48, borderRadius: radius.lg, backgroundColor: colors.soft }} />) : [0, 1, 2].map(row => <View key={row} style={{ flexDirection: "row", gap: spacing.md, alignItems: "center" }}>
+      <View style={{ width: 56, height: 56, borderRadius: radius.full, backgroundColor: colors.soft }} />
+      <View style={{ flex: 1, gap: spacing.sm }}><View style={{ height: 16, width: "55%", borderRadius: radius.sm, backgroundColor: colors.soft }} /><View style={{ height: 12, width: "80%", borderRadius: radius.sm, backgroundColor: colors.soft }} /></View>
+    </View>)}
+  </View>;
+}
 export function Empty({
-  icon = "sparkles-outline",
+  icon = "information-circle-outline",
   title,
   text,
   action,
@@ -389,7 +415,7 @@ export function Sheet({
           style={{ flex: 1 }}
           contentContainerStyle={{
             gap: 20,
-            paddingHorizontal: 22,
+            paddingHorizontal: spacing.inset,
             paddingTop: 20,
             paddingBottom: 32,
           }}
@@ -411,34 +437,34 @@ export const s = StyleSheet.create({
   field: {
     gap: 1,
     backgroundColor: colors.white,
-    borderRadius: 22,
+    borderRadius: radius.md,
     borderCurve: "continuous",
     borderWidth: 1,
     borderColor: colors.line,
-    paddingHorizontal: 18,
+    paddingHorizontal: spacing.md,
     paddingTop: 12,
-    paddingBottom: 3,
+    paddingBottom: spacing.xs,
   },
   badge: {
     alignSelf: "flex-start",
-    backgroundColor: colors.lime,
-    borderRadius: 20,
-    paddingHorizontal: 11,
-    paddingVertical: 5,
+    backgroundColor: colors.soft,
+    borderRadius: radius.sm,
+    borderCurve: "continuous",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
     maxWidth: "100%",
   },
   badgeText: {
-    fontFamily: fonts.bold,
-    fontWeight: "700",
-    fontSize: 11,
-    lineHeight: 15,
-    letterSpacing: 1.2,
+    fontFamily: fonts.medium,
+    fontWeight: "500",
+    fontSize: 13,
+    lineHeight: 19,
     color: colors.ink,
   },
   notice: {
     padding: 16,
     backgroundColor: colors.soft,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     borderCurve: "continuous",
     flexDirection: "row",
     alignItems: "flex-start",
@@ -457,15 +483,12 @@ export const s = StyleSheet.create({
     height: 64,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.lime,
-    borderRadius: 32,
+    backgroundColor: colors.soft,
+    borderRadius: radius.full,
     marginBottom: 4,
   },
   emptyTitle: {
-    fontFamily: fonts.serif,
-    color: colors.ink,
-    fontSize: 34,
-    lineHeight: 38,
+    ...type.title,
     textAlign: "center",
   },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
@@ -475,7 +498,7 @@ export const s = StyleSheet.create({
     alignItems: "center",
     gap: 7,
     paddingHorizontal: 17,
-    borderRadius: 999,
+    borderRadius: radius.full,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.white,
@@ -494,10 +517,10 @@ export const s = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: 1,
     borderColor: colors.line,
-    boxShadow: "0 6px 16px #20251F14",
+
   },
-  lime: { backgroundColor: colors.lime, boxShadow: "0 10px 24px #7D922F59" },
-  soft: { backgroundColor: "#ECEEE4" },
+  lime: { backgroundColor: colors.lime },
+  soft: { backgroundColor: colors.soft },
   sheet: { flex: 1, backgroundColor: colors.paper },
   sheetGrabberWrap: {
     alignItems: "center",
@@ -516,15 +539,12 @@ export const s = StyleSheet.create({
     gap: 12,
     paddingTop: 12,
     paddingBottom: 16,
-    paddingHorizontal: 22,
+    paddingHorizontal: spacing.inset,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.line,
   },
   sheetTitle: {
     flex: 1,
-    fontFamily: fonts.serif,
-    fontSize: 30,
-    lineHeight: 34,
-    color: colors.ink,
+    ...type.title,
   },
 });

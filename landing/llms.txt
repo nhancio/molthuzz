@@ -1,0 +1,19 @@
+# MakeIn
+
+> MakeIn is a dating app for adults aged 18 and over on Android and iOS. Share your interests and relationship intentions, set your preferences, and discover people you'd like to get to know.
+
+MakeIn is in preview. There is no announced Google Play or App Store release; the Android link opens the Expo preview build page, and iOS preview availability is listed on the site. Dating, profiles and conversations happen inside the mobile app, not in the browser.
+
+## Pricing
+
+Payments are not active yet. Planned launch pricing is ₹2 for the first calendar month, then ₹99/month with automatic monthly renewal once payments launch. Profile setup and the clearly labelled demo are free.
+
+## Privacy
+
+The app includes account deletion with cleanup of your profile, likes, matches and conversations. Profiles shown on the website are fictional design illustrations.
+
+## Pages
+
+- [MakeIn](https://makein-nhancio.netlify.app/): app overview, FAQ, and preview availability.
+- [Privacy notice](https://makein-nhancio.netlify.app/privacy.html)
+- [Preview terms](https://makein-nhancio.netlify.app/terms.html)

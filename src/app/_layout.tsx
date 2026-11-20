@@ -39,7 +39,7 @@ function Navigation() {
         contentStyle: { backgroundColor: colors.paper },
         headerStyle: { backgroundColor: colors.paper },
         headerTintColor: colors.ink,
-        headerTitleStyle: { fontFamily: fonts.serif, fontSize: 24, fontWeight: "400" },
+        headerTitleStyle: { fontFamily: fonts.semi, fontSize: 17, fontWeight: "600" },
         headerShadowVisible: false,
         headerBackButtonDisplayMode: "minimal",
       }}
@@ -52,7 +52,12 @@ function Navigation() {
         name="(tabs)"
         options={{ headerShown: false, animation: "none" }}
       />
+      <Stack.Screen name="likes" options={{ title: t("Likes you") }} />
       <Stack.Screen name="conversation" options={{ title: t("Chats") }} />
+      <Stack.Screen
+        name="call/[id]"
+        options={{ headerShown: false, presentation: "fullScreenModal" }}
+      />
     </Stack>
   );
 }

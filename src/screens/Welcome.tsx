@@ -9,20 +9,21 @@ import { Text } from "../components/LocalizedText";
 import { BrandMark } from "../components/brand-mark";
 import { Badge, Button, Notice } from "../components/UI";
 import { LanguagePicker } from "../components/LanguagePicker";
-import { colors, shared, type, spacing } from "../theme";
+import { colors, shared, type, spacing, radius } from "../theme";
 
 const portrait =
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=900&auto=format&fit=crop&q=80";
 
-export default function Welcome({ onGoogle, onDemo, onLegal, busy, error }: {
+export default function Welcome({ onGoogle, onApple, onDemo, onLegal, busy, error }: {
   onGoogle: () => void;
+  onApple?: () => void;
   onDemo: () => void;
   onLegal: (v: "terms" | "privacy") => void;
   busy: boolean;
   error: string;
 }) {
   const { t } = useTranslation();
-  const { height } = useWindowDimensions();
+  const { height, fontScale } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   return (
     <View style={shared.page}>
@@ -32,7 +33,7 @@ export default function Welcome({ onGoogle, onDemo, onLegal, busy, error }: {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1 }}
       >
-        <View style={{ height: Math.max(300, Math.min(560, height * 0.56)), backgroundColor: colors.ink }}>
+        <View style={{ height: Math.max(180, Math.min(340, height * (fontScale > 1.2 ? 0.25 : 0.36))), backgroundColor: colors.ink }}>
           <Image source={portrait} contentFit="cover" contentPosition="top" accessibilityLabel={t("ILLUSTRATIVE PHOTOGRAPHY · NOT MEMBER PROFILES")} style={StyleSheet.absoluteFill} />
           <LinearGradient pointerEvents="none" colors={["#14181399", "#14181300"]} style={[StyleSheet.absoluteFill, { bottom: "55%" }]} />
           <View style={[shared.row, { justifyContent: "space-between", paddingTop: insets.top + spacing.sm, paddingHorizontal: 20 }]}>
@@ -49,11 +50,14 @@ export default function Welcome({ onGoogle, onDemo, onLegal, busy, error }: {
           <View style={{ width: "100%", maxWidth: 480, alignSelf: "center", gap: spacing.lg }}>
             <View style={{ gap: 12 }}>
               <Badge>{t("18+ ONLY")}</Badge>
-              <Text accessibilityRole="header" style={type.display}>{t("Less scrolling. More feeling.")}</Text>
-              <Text style={type.subhead}>{t("Meet someone who makes the everyday feel a little less ordinary.")}</Text>
+              <Text accessibilityRole="header" style={[type.display, { fontSize: 36, lineHeight: 40 }]}>{t("Meet someone through what you share")}</Text>
+              <Text style={type.subhead}>{t("Share your interests, discover profiles and chat when you both like each other.")}</Text>
             </View>
             <View style={{ gap: 10 }}>
-              <Button onPress={onGoogle} busy={busy} icon="logo-google">{t("Continue with Google")}</Button>
+              {process.env.EXPO_OS === "ios" && onApple ? (
+                <Button onPress={onApple} busy={busy} icon="lock-closed-outline">{t("Continue with Apple")}</Button>
+              ) : null}
+              <Button onPress={onGoogle} secondary={process.env.EXPO_OS === "ios" && !!onApple} busy={busy} icon="logo-google">{t("Continue with Google")}</Button>
               <Button secondary onPress={onDemo} disabled={busy}>{t("Explore the demo")}</Button>
               {error ? <Notice text={error} error /> : null}
             </View>
@@ -75,19 +79,19 @@ const w = StyleSheet.create({
   caption: {
     position: "absolute",
     left: 20,
-    bottom: 48,
+    bottom: 32,
     backgroundColor: "#14181399",
-    borderRadius: 999,
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  captionText: { ...type.caption, fontSize: 10, lineHeight: 14, letterSpacing: 1, color: colors.white },
+  captionText: { ...type.caption, fontSize: 12, lineHeight: 18, color: colors.white },
   // The paper panel overlaps the photo like a magazine fold.
   panel: {
     flexGrow: 1,
     marginTop: -32,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     borderCurve: "continuous",
     backgroundColor: colors.paper,
     paddingHorizontal: spacing.lg,

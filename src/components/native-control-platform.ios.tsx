@@ -23,7 +23,7 @@ export function nativeButtonModifiers(label: string, compact: boolean, appearanc
     controlSize(compact ? "small" : "large"),
     buttonBorderShape("capsule"),
     tint(appearance === "destructive" ? colors.red : colors.ink),
-    frame({ minHeight: compact ? 32 : 50, ...(inline ? {} : { maxWidth: Infinity }) }),
+    frame({ minHeight: compact ? 44 : 50, ...(inline ? {} : { maxWidth: Infinity }) }),
     accessibilityElement("ignore"),
     accessibilityLabel(label),
   ];

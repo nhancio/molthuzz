@@ -18,7 +18,7 @@ import type {
 export function nativeButtonModifiers(label: string, compact: boolean, _appearance = "primary", inline = false) {
   return [
     ...(inline ? [] : [fillMaxWidth()]),
-    defaultMinSize({ minWidth: compact ? 36 : 48, minHeight: compact ? 34 : 52 }),
+    defaultMinSize({ minWidth: 48, minHeight: compact ? 48 : 52 }),
     semantics({ contentDescription: label }),
   ];
 }

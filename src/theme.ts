@@ -21,8 +21,10 @@ export const fonts = {
   bold: Platform.OS === "android" ? "sans-serif-bold" : system,
 };
 export const controlSize = Platform.OS === "ios" ? 44 : 48;
-export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 } as const;
+export const spacing = { xs: 4, sm: 8, row: 12, md: 16, inset: 20, lg: 24, xl: 32, xxl: 48 } as const;
 export const radius = { sm: 8, md: 12, lg: 16, xl: 24, full: 9999 } as const;
+// Elevation is reserved for a photo card lifted above its surroundings.
+export const shadows = { card: "0 4px 12px #20251F14" } as const;
 export const type = {
   largeTitle: { fontFamily: fonts.bold, fontWeight: "700", fontSize: 32, lineHeight: 37, letterSpacing: -0.7, color: colors.ink },
   title: { fontFamily: fonts.semi, fontWeight: "600", fontSize: 22, lineHeight: 29, color: colors.ink },
@@ -30,10 +32,10 @@ export const type = {
   body: { fontFamily: fonts.regular, fontSize: 17, lineHeight: 24, color: colors.ink },
   subhead: { fontFamily: fonts.regular, fontSize: 15, lineHeight: 22, color: colors.muted },
   caption: { fontFamily: fonts.regular, fontSize: 12, lineHeight: 18, color: colors.muted },
-  // Editorial voice: Instrument Serif for display and section titles, tracked caps for eyebrows.
+  // Serif is reserved for the brand and photo-led moments; metadata stays readable.
   display: { fontFamily: fonts.serif, fontSize: 46, lineHeight: 48, letterSpacing: -0.8, color: colors.ink },
   serifTitle: { fontFamily: fonts.serif, fontSize: 28, lineHeight: 32, color: colors.ink },
-  eyebrow: { fontFamily: fonts.semi, fontWeight: "600", fontSize: 11, lineHeight: 15, letterSpacing: 1.4, textTransform: "uppercase", color: colors.muted },
+  eyebrow: { fontFamily: fonts.medium, fontWeight: "500", fontSize: 13, lineHeight: 19, color: colors.muted },
 } as const;
 export const shared = StyleSheet.create({
   page: { flex: 1, backgroundColor: colors.paper },
@@ -68,9 +70,9 @@ export const shared = StyleSheet.create({
     backgroundColor: colors.white,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
-    borderRadius: 24,
+    borderRadius: radius.lg,
     borderCurve: "continuous",
-    padding: 20,
+    padding: spacing.inset,
   },
   input: {
     fontFamily: fonts.regular,

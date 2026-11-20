@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
@@ -13,11 +12,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text, TextInput } from "../components/LocalizedText";
-import type { Card, Match, Message } from "../lib/contracts";
-import { Badge, Button, CircleButton, Empty, Icon, IconButton } from "../components/UI";
-import { colors, fonts, shared, type } from "../theme";
+import type { Card, FriendRequest, Match, Message } from "../lib/contracts";
+import { Badge, Button, CircleButton, CollectionFeedback, Empty, Icon, IconButton } from "../components/UI";
+import { colors, fonts, shared, type, spacing, radius } from "../theme";
 
-function MemberPhoto({
+export function MemberPhoto({
   uri,
   style,
 }: {
@@ -54,12 +53,14 @@ export function Likes({
   cards,
   demo,
   loading,
+  error,
   onOpen,
   onRefresh,
 }: {
   cards: Card[];
   demo: boolean;
   loading: boolean;
+  error: string;
   onOpen: (c: Card) => void;
   onRefresh: () => void;
 }) {
@@ -69,44 +70,22 @@ export function Likes({
   return (
     <FlatList
       key={columns}
-      data={loading ? [] : cards}
+      data={cards}
       numColumns={columns}
       keyExtractor={(card) => card.id}
       style={{ flex: 1 }}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ paddingBottom: 32, gap: 12 }}
       columnWrapperStyle={columns > 1 ? { gap: 12 } : undefined}
-      refreshing={loading}
+      refreshing={loading && cards.length > 0}
       onRefresh={onRefresh}
-      ListHeaderComponent={
-        <Text style={[shared.muted, { paddingTop: 8, paddingBottom: 12 }]}>
-          {demo
-            ? t(
-                "Sample incoming likes from fictional profiles. Try liking one to practice matching.",
-              )
-            : t(
-                "People who liked your profile. Like someone back to start a conversation.",
-              )}
+      ListHeaderComponent={<>
+        <Text style={[shared.muted, { paddingTop: spacing.sm, paddingBottom: spacing.row }]}>
+          {demo ? t("Sample incoming likes from fictional profiles. Try liking one to practice matching.") : t("People who liked your profile. Like someone back to start a conversation.")}
         </Text>
-      }
-      ListEmptyComponent={
-        loading ? (
-          <ActivityIndicator color={colors.ink} style={{ padding: 32 }} />
-        ) : (
-          <Empty
-            icon="heart-outline"
-            title={t("Good things take time.")}
-            text={t(
-              "Your incoming likes will appear here. A thoughtful bio helps someone find a reason to say hello.",
-            )}
-            action={
-              <Button secondary onPress={onRefresh}>
-                {t("Refresh likes")}
-              </Button>
-            }
-          />
-        )
-      }
+        <CollectionFeedback kind="likes" columns={columns} loading={loading && cards.length === 0} error={error} hasContent={cards.length > 0} onRetry={onRefresh} />
+      </>}
+      ListEmptyComponent={!loading && !error ? <Empty icon="heart-outline" title={t("No likes yet")} text={t("Your incoming likes will appear here. A thoughtful bio helps someone find a reason to say hello.")} /> : undefined}
       renderItem={({ item: card }) => (
         <Pressable
           accessibilityRole="button"
@@ -159,43 +138,154 @@ export function Likes({
 
 export function Conversations({
   matches,
+  requests = [],
+  lookupPerson,
+  loading,
+  error,
+  busy = false,
+  onRetry,
+  onRespondRequest,
   uid,
   demo,
   onOpen,
 }: {
   matches: Match[];
+  requests?: FriendRequest[];
+  lookupPerson?: (id: string) => { name: string; photo?: string } | null;
+  loading: boolean;
+  error: string;
+  busy?: boolean;
+  onRetry: () => void;
+  onRespondRequest?: (request: FriendRequest, accept: boolean) => Promise<void>;
   uid: string;
   demo: boolean;
   onOpen: (m: Match) => void;
 }) {
   const { t } = useTranslation();
+  const [filter, setFilter] = useState<"all" | "dating" | "friend">("all");
+  const incomingRequests = requests.filter(
+    (r) => r.to === uid && r.status === "pending",
+  );
+  const visibleMatches = matches.filter((m) => {
+    const kind = m.kind || "dating";
+    return filter === "all" || kind === filter;
+  });
   return (
     <FlatList
-      data={matches}
+      data={visibleMatches}
       keyExtractor={(match) => match.id}
       style={{ flex: 1 }}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={{ paddingBottom: 32 }}
+      refreshing={loading && matches.length > 0}
+      onRefresh={onRetry}
       ListHeaderComponent={
-        <Text style={[shared.muted, { paddingTop: 8, paddingBottom: 24 }]}>
-          {demo
-            ? t(
-                "Your demo matches. Practice a first message — no one else receives it.",
-              )
-            : t("When the feeling is mutual, the conversation starts here.")}
-        </Text>
+        <View style={{ gap: spacing.row, paddingTop: spacing.xs, paddingBottom: spacing.sm }}>
+          {demo ? (
+            <Text style={shared.muted}>
+              {t("Your demo matches. Practice a first message — no one else receives it.")}
+            </Text>
+          ) : null}
+
+          <View style={[shared.row, { gap: 8 }]}>
+            {(
+              [
+                ["all", "All"],
+                ["dating", "Dating"],
+                ["friend", "Friends"],
+              ] as const
+            ).map(([value, label]) => {
+              const active = filter === value;
+              return (
+                <Pressable
+                  key={value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  onPress={() => setFilter(value)}
+                  style={[n.filterPill, active && n.filterPillActive]}
+                >
+                  <Text
+                    style={[
+                      n.filterText,
+                      active && { color: colors.white, fontWeight: "600" },
+                    ]}
+                  >
+                    {t(label)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          {incomingRequests.length > 0 && onRespondRequest ? (
+            <View style={{ gap: 10 }}>
+              <Text style={shared.label}>{t("Friend requests")}</Text>
+              {incomingRequests.map((req) => {
+                const sender = lookupPerson?.(req.from);
+                return (
+                  <View key={req.id} style={n.requestCard}>
+                    <View style={[shared.row, { gap: 12 }]}>
+                      <MemberPhoto uri={sender?.photo} style={n.requestAvatar} />
+                      <View style={{ flex: 1 }}>
+                        <Text numberOfLines={1} style={type.headline}>
+                          {sender?.name || t("New friend")}
+                        </Text>
+                        <Text style={shared.muted}>
+                          {t("Wants to connect as friends")}
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={[shared.row, { gap: 8 }]}>
+                      <View style={{ flex: 1 }}>
+                        <Button
+                          secondary
+                          compact
+                          disabled={busy}
+                          onPress={() => {
+                            void onRespondRequest(req, false);
+                          }}
+                        >
+                          {t("Decline")}
+                        </Button>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Button
+                          compact
+                          disabled={busy}
+                          onPress={() => {
+                            void onRespondRequest(req, true);
+                          }}
+                        >
+                          {t("Accept")}
+                        </Button>
+                      </View>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          ) : null}
+
+          <CollectionFeedback
+            loading={loading && matches.length === 0}
+            error={error}
+            hasContent={matches.length > 0}
+            onRetry={onRetry}
+          />
+        </View>
       }
       ListEmptyComponent={
-        <Empty
-          icon="chatbubble-ellipses-outline"
-          title={t("A hello is on its way.")}
-          text={t(
-            "Like someone in Discover. When they like you back, you’ll find your match here.",
-          )}
-        />
+        !loading && !error ? (
+          <Empty
+            icon="chatbubble-ellipses-outline"
+            title={t("No conversations yet")}
+            text={t("Like someone in Home or say hello in Friends. Your dating matches and friend chats appear here.")}
+          />
+        ) : undefined
       }
       renderItem={({ item: match }) => {
         const other = match.members.find((member) => member !== uid) || "";
+        const isFriend = match.kind === "friend";
         return (
           <Pressable
             accessibilityRole="button"
@@ -214,15 +304,14 @@ export function Conversations({
             </View>
             <View style={{ flex: 1, gap: 2 }}>
               <View style={[shared.row, { gap: 8 }]}>
-                <Text numberOfLines={1} style={[type.serifTitle, { flexShrink: 1, fontSize: 26, lineHeight: 30 }]}>
+                <Text numberOfLines={1} style={[type.headline, { flexShrink: 1 }]}>
                   {match.names[other] || t("Your match")}
                 </Text>
+                <Badge>{isFriend ? t("Friend") : t("Dating")}</Badge>
                 {demo && <Badge dark>{t("DEMO")}</Badge>}
               </View>
               <Text style={[shared.muted, { fontSize: 14, lineHeight: 20, fontFamily: fonts.semi, fontWeight: "600", color: colors.ink }]}>
-                {demo
-                  ? t("Demo match · Say your first hello")
-                  : t("You matched · Say your first hello")}
+                {isFriend ? t("Friend chat") : t("Your connection")}
               </Text>
             </View>
             <Icon name="chevron-forward" size={18} color={colors.muted} />
@@ -243,6 +332,8 @@ export function Chat({
   onBack,
   onSafety,
   loading,
+  error,
+  onRetry,
   nativeHeader = false,
 }: {
   match: Match;
@@ -254,6 +345,8 @@ export function Chat({
   onBack: () => void;
   onSafety: () => void;
   loading: boolean;
+  error: string;
+  onRetry: () => void;
   nativeHeader?: boolean;
 }) {
   const { t } = useTranslation();
@@ -329,7 +422,7 @@ export function Chat({
         </View>
       )}
       <FlatList
-        data={loading ? [] : messages}
+        data={messages}
         keyExtractor={(message) => message.id}
         style={{ flex: 1 }}
         contentInsetAdjustmentBehavior="automatic"
@@ -340,37 +433,12 @@ export function Chat({
           paddingVertical: 20,
           gap: 8,
         }}
-        ListHeaderComponent={
-          <View style={n.spark}>
-            <View style={shared.row}>
-              <MemberPhoto uri={match.photos[uid]} style={[n.sparkPhoto, { transform: [{ rotate: "-6deg" }] }]} />
-              <MemberPhoto uri={match.photos[other]} style={[n.sparkPhoto, { marginLeft: -14, borderColor: colors.lime, transform: [{ rotate: "6deg" }] }]} />
-            </View>
-            <Text style={[type.serifTitle, { fontSize: 26, lineHeight: 30, textAlign: "center" }]}>
-              {t("You and {{name}} liked each other.", { name: match.names[other] || t("your match") })}
-            </Text>
-            {demo && <Text style={[type.eyebrow, { fontSize: 10, textAlign: "center" }]}>{t("Demo conversation · practice only")}</Text>}
-          </View>
-        }
-        ListEmptyComponent={
-          loading ? (
-            <ActivityIndicator color={colors.ink} />
-          ) : (
-            <Empty
-              title={t("Every story starts somewhere.")}
-              text={
-                demo
-                  ? t(
-                      "Write a practice hello. It stays in this session and isn’t sent to anyone.",
-                    )
-                  : t(
-                      "Skip the perfect opening line. Ask about something that caught your eye.",
-                    )
-              }
-              icon="chatbubbles-outline"
-            />
-          )
-        }
+        ListHeaderComponent={<CollectionFeedback kind="messages" loading={loading} error={error} hasContent={messages.length > 0} onRetry={onRetry} />}
+        ListEmptyComponent={!loading && !error ? <Empty
+          title={t("No messages yet")}
+          text={demo ? t("Write a practice hello. It stays in this session and isn’t sent to anyone.") : t("Skip the perfect opening line. Ask about something that caught your eye.")}
+          icon="chatbubbles-outline"
+        /> : undefined}
         renderItem={({ item: message }) => {
           const mine = message.sender === uid;
           return (
@@ -378,11 +446,6 @@ export function Chat({
               <Text selectable style={[shared.body, mine && { color: colors.white }]}>
                 {message.text}
               </Text>
-              {demo && (
-                <Text style={[type.eyebrow, { fontSize: 10, marginTop: 5, letterSpacing: 1 }, mine && { color: "#FFFFFFB3" }]}>
-                  {t("PRACTICE MESSAGE")}
-                </Text>
-              )}
             </View>
           );
         }}
@@ -390,7 +453,7 @@ export function Chat({
       <View style={n.composer}>
         <TextInput
           accessibilityLabel={t("Message")}
-          placeholder={t("A thoughtful hello…")}
+          placeholder={t("Message")}
           placeholderTextColor={colors.muted}
           style={[
             shared.body,
@@ -420,7 +483,7 @@ export function Chat({
         style={[
           shared.muted,
           {
-            fontSize: 11,
+            fontSize: 13,
             textAlign: "center",
             paddingTop: 10,
             paddingBottom: 8,
@@ -441,7 +504,7 @@ const n = StyleSheet.create({
     flex: 1,
     height: 250,
     backgroundColor: colors.soft,
-    borderRadius: 24,
+    borderRadius: radius.xl,
     borderCurve: "continuous",
     overflow: "hidden",
   },
@@ -477,13 +540,13 @@ const n = StyleSheet.create({
     backgroundColor: colors.soft,
   },
 
-  // New matches get a lime ring with a paper gap.
+  // A neutral frame avoids implying that every match is unread.
   ring: {
     width: 64,
     height: 64,
     borderRadius: 32,
     padding: 2,
-    backgroundColor: colors.lime,
+    backgroundColor: colors.soft,
   },
   ringPhoto: {
     flex: 1,
@@ -491,20 +554,12 @@ const n = StyleSheet.create({
     borderWidth: 2,
     borderColor: colors.paper,
   },
-  spark: { alignItems: "center", gap: 12, paddingTop: 4, paddingBottom: 20 },
-  sparkPhoto: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 3,
-    borderColor: colors.paper,
-  },
   message: {
     maxWidth: "78%",
-    borderRadius: 22,
+    borderRadius: radius.lg,
     borderCurve: "continuous",
     paddingHorizontal: 16,
-    paddingVertical: 11,
+    paddingVertical: spacing.row,
   },
   mine: {
     alignSelf: "flex-end",
@@ -522,7 +577,7 @@ const n = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.white,
-    borderRadius: 28,
+    borderRadius: radius.xl,
     borderCurve: "continuous",
     flexDirection: "row",
     alignItems: "flex-end",
@@ -530,6 +585,35 @@ const n = StyleSheet.create({
     minHeight: 56,
     padding: 6,
     paddingLeft: 8,
-    boxShadow: "0 6px 18px #20251F0F",
+  },
+  filterPill: {
+    minHeight: 36,
+    paddingHorizontal: 16,
+    borderRadius: radius.full,
+    backgroundColor: colors.soft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterPillActive: {
+    backgroundColor: colors.ink,
+  },
+  filterText: {
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    color: colors.ink,
+  },
+  requestCard: {
+    backgroundColor: colors.white,
+    borderRadius: radius.lg,
+    borderCurve: "continuous",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.line,
+    padding: spacing.md,
+    gap: 12,
+  },
+  requestAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
   },
 });

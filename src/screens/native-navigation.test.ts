@@ -7,9 +7,10 @@ import {
 } from "./native-navigation.ts";
 
 test("all permanent tabs have native routes and a conversation returns to Chats", () => {
-  assert.equal(tabPath("discover"), "/(tabs)/discover");
-  assert.equal(tabPath("likes"), "/(tabs)/likes");
+  assert.equal(tabPath("home"), "/(tabs)/home");
+  assert.equal(tabPath("friends"), "/(tabs)/friends");
   assert.equal(tabPath("matches"), "/(tabs)/connections");
+  assert.equal(tabPath("learn"), "/(tabs)/learn");
   assert.equal(tabPath("profile"), "/(tabs)/profile");
   assert.equal(conversationFallback(true, true), null);
   assert.equal(conversationFallback(true, false), "/(tabs)/connections");

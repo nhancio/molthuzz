@@ -25,8 +25,9 @@ import {
   IconButton,
   Notice,
 } from "../components/UI";
-import { colors, shared, spacing, type } from "../theme";
+import { colors, shared, spacing, radius, type } from "../theme";
 import { uploadPhoto } from "../lib/data";
+import { FRIEND_LANGUAGES } from "../lib/model";
 import { photoUploadMessage } from "../lib/photo-processing";
 import type { ProfileInput, Gender, Intent } from "../lib/contracts";
 import { setupBackAction } from "./setup-back";
@@ -397,7 +398,7 @@ export default function Onboarding({
   }
 
   const section = { gap: 12, paddingTop: 4, paddingBottom: 6 };
-  const sectionTitle = type.serifTitle;
+  const sectionTitle = type.headline;
   return (
     <View style={shared.page}>
       <Stack.Screen options={{
@@ -420,13 +421,12 @@ export default function Onboarding({
           width: "100%",
           maxWidth: 540,
           alignSelf: "center",
-          paddingHorizontal: 22,
+          paddingHorizontal: spacing.inset,
           paddingTop: spacing.md,
           paddingBottom: footerHeight + spacing.lg,
           gap: spacing.lg,
         }}
       >
-        <Text accessibilityRole="header" style={[type.display, { fontSize: 44, lineHeight: 46 }]}>{t("First names. Fresh starts.")}</Text>
         <View
           onLayout={(event) => recordSectionLayout("photos", event)}
           style={section}
@@ -447,7 +447,7 @@ export default function Onboarding({
               >
                 <View
                   style={{
-                    borderRadius: 18,
+                    borderRadius: radius.lg,
                     borderCurve: "continuous",
                     overflow: "hidden",
                     backgroundColor: colors.soft,
@@ -489,7 +489,7 @@ export default function Onboarding({
               </View>
             ))}
             {Array.from({ length: availableSlots }, (_, index) => (
-              <View key={`empty-${index}`} style={{ width: "31%", minWidth: 80, aspectRatio: 0.78, borderRadius: 18, borderCurve: "continuous", borderWidth: 1.5, borderStyle: "dashed", borderColor: index ? "#D6D9CD" : "#B9BEAF", backgroundColor: index ? "transparent" : colors.white, alignItems: "center", justifyContent: "center" }}>
+              <View key={`empty-${index}`} style={{ width: "31%", minWidth: 80, aspectRatio: 0.78, borderRadius: radius.lg, borderCurve: "continuous", borderWidth: 1.5, borderStyle: "dashed", borderColor: index ? "#D6D9CD" : "#B9BEAF", backgroundColor: index ? "transparent" : colors.white, alignItems: "center", justifyContent: "center" }}>
                 <IconButton label={t("Add photos")} icon="add" onPress={pick} disabled={working || demo || !uid} />
               </View>
             ))}
@@ -566,7 +566,7 @@ export default function Onboarding({
           onLayout={(event) => recordSectionLayout("birthDate", event)}
           style={section}
         >
-          <View style={{ backgroundColor: colors.white, borderRadius: 22, borderCurve: "continuous", borderWidth: 1, borderColor: colors.line, paddingHorizontal: 18, paddingVertical: spacing.md, gap: spacing.sm }}>
+          <View style={{ backgroundColor: colors.white, borderRadius: radius.md, borderCurve: "continuous", borderWidth: 1, borderColor: colors.line, paddingHorizontal: spacing.md, paddingVertical: spacing.md, gap: spacing.sm }}>
             <View style={[shared.row, { justifyContent: "space-between", flexWrap: "wrap", gap: spacing.sm }]}>
               <Text style={type.body}>{t("Date of birth")}</Text>
               {process.env.EXPO_OS === "android" ? (
@@ -676,6 +676,20 @@ export default function Onboarding({
             onChange={(selection) => change("intent", selection[0] as Intent)}
           />
           {inlineError("intent")}
+        </View>
+        <View style={section}>
+          <Text style={sectionTitle}>{t("Languages you speak")}</Text>
+          <Text style={shared.muted}>
+            {t("Optional. Helps match you with friends who speak your language.")}
+          </Text>
+          <Chips
+            disabled={busy || saving}
+            maxSelected={6}
+            values={[...FRIEND_LANGUAGES]}
+            selected={value.languages || []}
+            onChange={(selection) => change("languages", selection.slice(0, 6))}
+            multiple
+          />
         </View>
         <View
           onLayout={(event) => recordSectionLayout("prompts", event)}

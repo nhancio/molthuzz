@@ -23,7 +23,7 @@ import {
 } from "../lib/swipe-gesture";
 import { Text } from "./LocalizedText";
 import { Badge, Icon } from "./UI";
-import { colors, fonts, shared, type } from "../theme";
+import { colors, fonts, shared, type, radius, spacing, shadows } from "../theme";
 
 const spring = {
   duration: 400,
@@ -211,7 +211,7 @@ export default function ProfileCard({
             </Text>
           </View>
           <View
-            style={[shared.row, { flexWrap: "wrap", gap: 7, marginTop: 16 }]}
+            style={[shared.row, { flexWrap: "wrap", gap: spacing.sm, marginTop: spacing.md }]}
           >
             {card.interests.slice(0, 3).map((interest) => (
               <View key={interest} style={c.pill}>
@@ -255,11 +255,11 @@ export default function ProfileCard({
 const c = StyleSheet.create({
   card: {
     width: "100%",
-    borderRadius: 30,
+    borderRadius: radius.xl,
     borderCurve: "continuous",
     overflow: "hidden",
     backgroundColor: colors.soft,
-    boxShadow: "0 18px 40px #20251F2E",
+    boxShadow: shadows.card,
   },
   placeholder: {
     position: "absolute",
@@ -328,12 +328,12 @@ const c = StyleSheet.create({
     color: colors.white,
   },
   pill: {
-    borderRadius: 20,
+    borderRadius: radius.sm,
     borderWidth: 1,
     borderColor: "#FFFFFF40",
     backgroundColor: "#FFFFFF26",
-    paddingHorizontal: 11,
-    paddingVertical: 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   interest: {
     fontFamily: fonts.medium,

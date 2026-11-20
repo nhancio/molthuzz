@@ -46,6 +46,16 @@ export const nativeIconNames = {
   "trash-outline": ["trash", "delete-outline"],
   "camera-outline": ["camera", "photo-camera"],
   add: ["plus", "add"],
+  "call-outline": ["phone", "call"],
+  "call-end": ["phone.down.fill", "call-end"],
+  "videocam-outline": ["video", "videocam"],
+  "videocam-off-outline": ["video.slash", "videocam-off"],
+  "mic-outline": ["mic", "mic"],
+  "mic-off-outline": ["mic.slash", "mic-off"],
+  "search-outline": ["magnifyingglass", "search"],
+  "people-outline": ["person.2", "group"],
+  "book-outline": ["book", "menu-book"],
+  "time-outline": ["clock", "schedule"],
 } as const satisfies Record<string, readonly [SFSymbol, MaterialName]>;
 
 export type IconName = keyof typeof nativeIconNames | "logo-google";

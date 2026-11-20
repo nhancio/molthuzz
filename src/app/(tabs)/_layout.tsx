@@ -4,8 +4,9 @@ import { NativeTabs } from "expo-router/native-tabs";
 import { useTranslation } from "react-i18next";
 import { useMakeIn } from "../../screens/MakeIn";
 import { colors } from "../../theme";
+
 export default function TabLayout() {
-  const { ready, matchCount } = useMakeIn();
+  const { ready } = useMakeIn();
   const { t } = useTranslation();
   if (!ready) return <Redirect href="/" />;
   return (
@@ -19,19 +20,19 @@ export default function TabLayout() {
       }
       minimizeBehavior="onScrollDown"
     >
-      <NativeTabs.Trigger name="discover">
+      <NativeTabs.Trigger name="home">
         <NativeTabs.Trigger.Icon
-          sf={{ default: "safari", selected: "safari.fill" }}
-          md="explore"
+          sf={{ default: "flame", selected: "flame.fill" }}
+          md="local_fire_department"
         />
-        <NativeTabs.Trigger.Label>{t("Discover")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("Home")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="likes">
+      <NativeTabs.Trigger name="friends">
         <NativeTabs.Trigger.Icon
-          sf={{ default: "heart", selected: "heart.fill" }}
-          md="favorite"
+          sf={{ default: "person.2", selected: "person.2.fill" }}
+          md="group"
         />
-        <NativeTabs.Trigger.Label>{t("Likes you")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("Friends")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="connections">
         <NativeTabs.Trigger.Icon
@@ -42,11 +43,13 @@ export default function TabLayout() {
           md="chat_bubble"
         />
         <NativeTabs.Trigger.Label>{t("Chats")}</NativeTabs.Trigger.Label>
-        {matchCount > 0 && (
-          <NativeTabs.Trigger.Badge>
-            {String(matchCount)}
-          </NativeTabs.Trigger.Badge>
-        )}
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="learn">
+        <NativeTabs.Trigger.Icon
+          sf={{ default: "sparkles", selected: "sparkles" }}
+          md="auto_awesome"
+        />
+        <NativeTabs.Trigger.Label>{t("Learn")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <NativeTabs.Trigger.Icon
@@ -56,7 +59,7 @@ export default function TabLayout() {
           }}
           md="person"
         />
-        <NativeTabs.Trigger.Label>{t("You")}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label>{t("Profile")}</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
