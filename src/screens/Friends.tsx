@@ -79,8 +79,11 @@ export default function Friends({
       onRefresh={onRetry}
       ListHeaderComponent={
         <View style={{ gap: spacing.md, paddingTop: spacing.xs, paddingBottom: spacing.sm }}>
+          <Text style={shared.muted}>
+            {t("Meet people across India for genuine friendship, accept requests, and start 1-on-1 audio or video calls.")}
+          </Text>
           <View style={{ gap: spacing.sm }}>
-            <Text style={shared.label}>{t("How are you feeling?")}</Text>
+            <Text style={shared.label}>{t("Current mood")}</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}

@@ -161,14 +161,14 @@ export default function Discovery({
           ) : !loading && !error ? (
             <Empty
               icon="compass-outline"
-              title={t("No profiles match these filters")}
+              title={t("You’ve seen everyone here")}
               text={
                 demo
                   ? t(
-                      "You’ve explored these fictional profiles. Reset the demo or adjust your filters to keep looking.",
+                      "You’ve explored these sample profiles. Reset the demo or widen your filters to keep browsing.",
                     )
                   : t(
-                      "No profiles meet your preferences yet. Try broadening your filters or return later.",
+                      "No more profiles match these filters right now. Widen your filters or explore the Friends tab.",
                     )
               }
               action={

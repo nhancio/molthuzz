@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import { Text } from "../components/LocalizedText";
 import { BrandMark } from "../components/brand-mark";
-import { Badge, Button, Notice } from "../components/UI";
+import { Button, Notice } from "../components/UI";
 import { LanguagePicker } from "../components/LanguagePicker";
 import { colors, shared, type, spacing, radius } from "../theme";
 
@@ -43,15 +43,29 @@ export default function Welcome({ onGoogle, onApple, onDemo, onLegal, busy, erro
             </View>
           </View>
           <View style={w.caption}>
-            <Text style={w.captionText}>{t("ILLUSTRATIVE PHOTOGRAPHY · NOT MEMBER PROFILES")}</Text>
+            <Text style={w.captionText}>{t("Illustrative photo, not a member")}</Text>
           </View>
         </View>
         <View style={[w.panel, { paddingBottom: insets.bottom + spacing.md }]}>
           <View style={{ width: "100%", maxWidth: 480, alignSelf: "center", gap: spacing.lg }}>
-            <View style={{ gap: 12 }}>
-              <Badge>{t("18+ ONLY")}</Badge>
-              <Text accessibilityRole="header" style={[type.display, { fontSize: 36, lineHeight: 40 }]}>{t("Meet someone through what you share")}</Text>
-              <Text style={type.subhead}>{t("Share your interests, discover profiles and chat when you both like each other.")}</Text>
+            <View style={{ gap: 10 }}>
+              <Text style={w.metaLine}>{t("18+ · 9 Indian languages")}</Text>
+              <Text accessibilityRole="header" style={[type.display, { fontSize: 34, lineHeight: 38 }]}>{t("Date, make friends, and talk clearly")}</Text>
+              <Text style={type.subhead}>{t("Swipe for dating on Home, connect with friends for 1-on-1 calls, keep every chat in one inbox, and practice openers in Learn.")}</Text>
+            </View>
+            <View style={w.pillars}>
+              <View style={w.pillarRow}>
+                <View style={w.pillarDot} />
+                <Text style={w.pillarText}>{t("Home — swipe thoughtfully and see who liked you")}</Text>
+              </View>
+              <View style={w.pillarRow}>
+                <View style={w.pillarDot} />
+                <Text style={w.pillarText}>{t("Friends — meet people and start 1-on-1 audio or video calls")}</Text>
+              </View>
+              <View style={w.pillarRow}>
+                <View style={w.pillarDot} />
+                <Text style={w.pillarText}>{t("Learn — practical guides and a private conversation coach")}</Text>
+              </View>
             </View>
             <View style={{ gap: 10 }}>
               {process.env.EXPO_OS === "ios" && onApple ? (
@@ -85,7 +99,12 @@ const w = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
   },
-  captionText: { ...type.caption, fontSize: 12, lineHeight: 18, color: colors.white },
+  captionText: { ...type.caption, fontSize: 12, lineHeight: 16, color: colors.white },
+  metaLine: { ...type.caption, fontSize: 13, color: colors.muted },
+  pillars: { gap: 8, paddingVertical: 12, paddingHorizontal: 14, borderRadius: radius.md, backgroundColor: colors.soft },
+  pillarRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  pillarDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.ink },
+  pillarText: { ...type.body, fontSize: 13, lineHeight: 18, color: colors.ink, flex: 1 },
   // The paper panel overlaps the photo like a magazine fold.
   panel: {
     flexGrow: 1,

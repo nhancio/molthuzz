@@ -108,7 +108,7 @@ export default function Learn({
             color={mode === "chat" ? colors.lime : colors.ink}
           />
           <Text style={[l.segmentText, mode === "chat" && l.segmentTextActive]}>
-            {t("AI Coach")}
+            {t("Coach")}
           </Text>
         </Pressable>
       </View>
@@ -123,7 +123,7 @@ export default function Learn({
           ListHeaderComponent={
             <View style={{ gap: 6, paddingBottom: 4 }}>
               <Text style={shared.muted}>
-                {t("Tap any card to read practical dating tips, or switch to AI Coach to practice flirting live.")}
+                {t("Read short, practical conversation guides, or switch to Coach to draft warm openers and replies.")}
               </Text>
             </View>
           }
@@ -161,8 +161,8 @@ export default function Learn({
           <View style={[shared.row, { justifyContent: "space-between", paddingTop: spacing.sm, paddingBottom: spacing.xs }]}>
             <Text style={type.caption}>
               {demo || offlineNote
-                ? t("Practice AI Coach · Instant tips")
-                : t("MakeIn AI Coach · Ask anything or practice flirting")}
+                ? t("MakeIn Coach · Instant built-in guidance")
+                : t("MakeIn Coach · Draft openers, replies, and date ideas")}
             </Text>
             {messages.length > 0 ? (
               <Button
@@ -199,10 +199,10 @@ export default function Learn({
                   <Icon name="sparkles" size={24} color={colors.ink} />
                 </View>
                 <Text style={[type.serifTitle, { textAlign: "center" }]}>
-                  {t("Practice flirting & get reply ideas")}
+                  {t("Practice openers and thoughtful replies")}
                 </Text>
                 <Text style={[shared.muted, { textAlign: "center", maxWidth: 310 }]}>
-                  {t("Paste a message you received, test an opener, or roleplay banter with MakeIn Coach.")}
+                  {t("Paste a message you received, test a first message, or plan a calm first date with MakeIn Coach.")}
                 </Text>
                 <View style={l.prompts}>
                   {LEARN_STARTER_PROMPTS.map((prompt) => (
