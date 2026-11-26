@@ -22,6 +22,10 @@ test('landing build publishes a standalone site with resolvable local links', as
     assert.equal(ids.length, new Set(ids).size, `duplicate HTML id in ${page}`);
     for (const [, link] of content.matchAll(/(?:href|src)="([^"]+)"/g)) {
       if (/^(https:|data:)/.test(link)) continue;
+      if (link.startsWith('mailto:')) {
+        assert.match(new URL(link).pathname, /^[^\s@]+@[^\s@]+$/, `invalid email link in ${page}`);
+        continue;
+      }
       const [path, anchor] = link.split('#');
       const target = path ? await readFile(resolve(root, 'landing-dist', path === '/' ? 'index.html' : path.replace(/^\//, '')), 'utf8') : content;
       if (anchor) assert.ok(target.includes(`id="${anchor}"`), `missing anchor ${link} in ${page}`);
